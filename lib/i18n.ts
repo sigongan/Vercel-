@@ -27,6 +27,7 @@ export const translations = {
       UNSUPPORTED_SOURCE:
         "That source isn't supported yet. Try YouTube, TikTok, Instagram, or Google Docs — or upload a file.",
       NETWORK: "Something went wrong. Please try again.",
+      TIMEOUT: "The request took too long and timed out. Please try again — shorter text or a smaller image can help.",
     },
     styleLabel: "Style",
     themeClassic: "Classic",
@@ -73,6 +74,7 @@ export const translations = {
       UNSUPPORTED_SOURCE:
         "아직 지원하지 않는 소스입니다. 유튜브, 틱톡, 인스타그램, 구글 Docs 링크나 파일 업로드를 이용해 주세요.",
       NETWORK: "요청 중 오류가 발생했습니다. 다시 시도해 주세요.",
+      TIMEOUT: "요청 시간이 너무 오래 걸려 중단되었습니다. 다시 시도해 주세요 — 텍스트를 짧게 줄이거나 이미지 용량을 줄이면 도움이 될 수 있어요.",
     },
     styleLabel: "디자인",
     themeClassic: "클래식",

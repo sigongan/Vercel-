@@ -47,14 +47,24 @@ export function RecipeExtractor() {
     setRecipe(null);
 
     try {
-      const res =
-        tab === "file"
-          ? submitFile(file as File, language)
-          : tab === "url"
-            ? submitJson({ url: url.trim(), lang: language })
-            : submitJson({ text: text.trim(), lang: language });
+      const response = await (tab === "file"
+        ? submitFile(file as File, language)
+        : tab === "url"
+          ? submitJson({ url: url.trim(), lang: language })
+          : submitJson({ text: text.trim(), lang: language }));
 
-      const data: ExtractRecipeResult = await (await res).json();
+      const rawBody = await response.text();
+      let data: ExtractRecipeResult;
+      try {
+        data = JSON.parse(rawBody);
+      } catch {
+        console.error("extract-recipe: non-JSON response", response.status, rawBody.slice(0, 500));
+        throw new Error(
+          response.status === 504 || response.status === 408
+            ? "TIMEOUT"
+            : `HTTP_${response.status}`
+        );
+      }
 
       if (data.ok) {
         setRecipe(data.recipe);
@@ -63,8 +73,13 @@ export function RecipeExtractor() {
         setError({ message: data.error.error, code: data.error.code });
         setStatus("error");
       }
-    } catch {
-      setError({ message: t.errors.NETWORK, code: "NETWORK" });
+    } catch (err) {
+      console.error("extract-recipe: request failed", err);
+      const reason = err instanceof Error ? err.message : undefined;
+      setError({
+        message: reason === "TIMEOUT" ? t.errors.TIMEOUT : t.errors.NETWORK,
+        code: reason === "TIMEOUT" ? "TIMEOUT" : "NETWORK",
+      });
       setStatus("error");
     }
   }
