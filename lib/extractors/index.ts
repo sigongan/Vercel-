@@ -4,6 +4,7 @@ import { extractFromVideoFile } from "./videoFile";
 import { extractFromYoutube } from "./youtube";
 import { extractFromTiktok } from "./tiktok";
 import { extractFromInstagram } from "./instagram";
+import { extractFromGoogleDocs } from "./googleDocs";
 import { ExtractedContent, ExtractionError } from "./types";
 
 export { ExtractionError };
@@ -43,9 +44,12 @@ export async function extractFromUrl(rawUrl: string): Promise<ExtractedContent> 
   if (host === "instagram.com" || host.endsWith(".instagram.com")) {
     return extractFromInstagram(url.toString());
   }
+  if (host === "docs.google.com") {
+    return extractFromGoogleDocs(url.toString());
+  }
 
   throw new ExtractionError(
-    "지원하지 않는 링크입니다. 유튜브, 인스타그램, 틱톡 링크만 지원합니다.",
+    "지원하지 않는 링크입니다. 유튜브, 인스타그램, 틱톡, 구글 Docs 링크를 지원합니다.",
     "UNSUPPORTED_SOURCE"
   );
 }

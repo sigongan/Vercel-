@@ -49,24 +49,24 @@ export function RecipeExtractor() {
   }
 
   return (
-    <div className="w-full max-w-2xl flex flex-col items-center gap-6">
-      <div className="w-full flex rounded-full border border-black/10 dark:border-white/15 p-1">
+    <div className="w-full max-w-3xl flex flex-col items-center gap-8">
+      <div className="w-full flex rounded-full border border-amber-200 dark:border-amber-800 bg-white dark:bg-amber-950/30 p-1">
         <TabButton active={tab === "file"} onClick={() => setTab("file")}>
-          파일 업로드
+          📸 파일 업로드
         </TabButton>
         <TabButton active={tab === "url"} onClick={() => setTab("url")}>
-          링크 붙여넣기
+          🔗 링크 붙여넣기
         </TabButton>
       </div>
 
-      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-6">
         {tab === "file" ? (
           <div
             role="button"
             tabIndex={0}
             onClick={() => fileInputRef.current?.click()}
             onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
-            className="w-full rounded-xl border-2 border-dashed border-black/15 dark:border-white/20 py-10 px-4 flex flex-col items-center gap-2 text-center cursor-pointer hover:border-black/30 dark:hover:border-white/40 transition-colors"
+            className="w-full rounded-2xl border-2 border-dashed border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/20 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer hover:border-amber-400 dark:hover:border-amber-600 hover:bg-amber-100 dark:hover:bg-amber-950/40 transition-all"
           >
             <input
               ref={fileInputRef}
@@ -75,34 +75,49 @@ export function RecipeExtractor() {
               className="hidden"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
-            <span className="text-sm font-medium">
-              {file ? file.name : "이미지, PDF, 동영상 파일을 선택하세요"}
+            <span className="text-4xl">🖼️</span>
+            <span className="text-lg font-semibold text-amber-950 dark:text-amber-100">
+              {file ? file.name : "파일을 여기에 드래그하거나 클릭"}
             </span>
-            <span className="text-xs text-black/50 dark:text-white/50">
-              스크린샷, 캡처 이미지, PDF 레시피, 저장한 영상 파일 등
+            <span className="text-sm text-amber-700 dark:text-amber-300">
+              스크린샷, PDF, 동영상 파일 지원
             </span>
           </div>
         ) : (
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://www.youtube.com/watch?v=... 또는 인스타그램/틱톡 링크"
-            className="w-full rounded-xl border border-black/15 dark:border-white/20 px-4 py-3 text-sm bg-transparent outline-none focus:border-black/40 dark:focus:border-white/50"
-          />
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-amber-900 dark:text-amber-100">
+              레시피 링크
+            </label>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=... 또는 구글 Docs 링크"
+              className="w-full rounded-xl border border-amber-300 dark:border-amber-700 bg-white dark:bg-amber-950 px-4 py-3 text-sm placeholder-amber-400 dark:placeholder-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 dark:focus:ring-amber-600"
+            />
+          </div>
         )}
 
         <button
           type="submit"
           disabled={!canSubmit || status === "loading"}
-          className="w-full rounded-full bg-foreground text-background py-3 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-4 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
         >
-          {status === "loading" ? "레시피 추출 중..." : "레시피 추출하기"}
+          {status === "loading" ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="inline-block animate-spin">⏳</span>
+              레시피 추출 중...
+            </span>
+          ) : (
+            "✨ 레시피 추출하기"
+          )}
         </button>
       </form>
 
       {status === "error" && errorMessage && (
-        <p className="w-full text-sm text-red-600 dark:text-red-400 text-center">{errorMessage}</p>
+        <div className="w-full rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm text-red-700 dark:text-red-200">❌ {errorMessage}</p>
+        </div>
       )}
 
       {recipe && <RecipeCard recipe={recipe} />}
@@ -123,8 +138,10 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 rounded-full py-2 text-sm font-medium transition-colors ${
-        active ? "bg-foreground text-background" : "text-black/60 dark:text-white/60"
+      className={`flex-1 rounded-full py-3 text-sm font-semibold transition-all ${
+        active
+          ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md"
+          : "text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
       }`}
     >
       {children}
