@@ -1,4 +1,4 @@
-export type SourceType = "image" | "pdf" | "video-file" | "youtube" | "instagram" | "tiktok" | "url";
+export type SourceType = "image" | "pdf" | "video-file" | "youtube" | "instagram" | "tiktok" | "url" | "text";
 
 export interface Ingredient {
   name: string;

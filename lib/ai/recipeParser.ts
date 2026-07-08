@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ExtractedContent } from "@/lib/extractors";
+import type { Language } from "@/lib/i18n";
 import type { Recipe } from "@/lib/types/recipe";
 
 export class AiNotConfiguredError extends Error {
@@ -11,7 +12,7 @@ export class AiNotConfiguredError extends Error {
 export class RecipeParseError extends Error {}
 
 const SYSTEM_PROMPT = `당신은 유튜브, 인스타그램, 틱톡, PDF, 스크린샷 등에서 가져온 자료를 보고 요리 레시피를 정리하는 도우미입니다.
-주어진 텍스트와 이미지를 분석해서 레시피를 아래 JSON 스키마에 맞춰 한국어로 정리하세요.
+주어진 텍스트와 이미지를 분석해서 레시피를 아래 JSON 스키마에 맞춰 정리하세요.
 확실하지 않은 값은 비워두고 억지로 추측해서 채우지 마세요. 영상/이미지에 레시피 정보가 부족하면 confidence를 "low"로 표시하세요.
 
 JSON 스키마:
@@ -30,11 +31,16 @@ JSON 스키마:
 
 JSON 객체만 출력하세요. 다른 설명 텍스트는 포함하지 마세요.`;
 
+const OUTPUT_LANGUAGE_INSTRUCTION: Record<Language, string> = {
+  ko: "모든 출력 값(title, description, ingredients, steps, tags, notes)은 한국어로 작성하세요. 원본이 다른 언어라면 한국어로 번역하세요.",
+  en: "Write every output value (title, description, ingredients, steps, tags, notes) in English. Translate the source content if it is in another language.",
+};
+
 function isConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
-export async function parseRecipeFromContent(content: ExtractedContent): Promise<Recipe> {
+export async function parseRecipeFromContent(content: ExtractedContent, lang: Language): Promise<Recipe> {
   if (!isConfigured()) {
     throw new AiNotConfiguredError();
   }
@@ -67,7 +73,7 @@ export async function parseRecipeFromContent(content: ExtractedContent): Promise
   const message = await client.messages.create({
     model: "claude-sonnet-4-5",
     max_tokens: 2048,
-    system: SYSTEM_PROMPT,
+    system: `${SYSTEM_PROMPT}\n\n${OUTPUT_LANGUAGE_INSTRUCTION[lang]}`,
     messages: [{ role: "user", content: contentBlocks }],
   });
 

@@ -1,7 +1,13 @@
 import { YoutubeTranscript } from "youtube-transcript";
+import type { Language } from "@/lib/i18n";
 import { ExtractedContent, ExtractionError } from "./types";
 
-export async function extractFromYoutube(url: string): Promise<ExtractedContent> {
+const NO_CAPTION_WARNING: Record<Language, string> = {
+  ko: "이 영상은 자막이 없어 제목 정보만으로 레시피를 추정합니다. 정확도가 낮을 수 있습니다.",
+  en: "This video has no captions, so the recipe is inferred from the title alone. Accuracy may be low.",
+};
+
+export async function extractFromYoutube(url: string, lang: Language): Promise<ExtractedContent> {
   let title: string | undefined;
 
   try {
@@ -37,7 +43,7 @@ export async function extractFromYoutube(url: string): Promise<ExtractedContent>
       sourceType: "youtube",
       sourceUrl: url,
       title,
-      warning: "이 영상은 자막이 없어 제목 정보만으로 레시피를 추정합니다. 정확도가 낮을 수 있습니다.",
+      warning: NO_CAPTION_WARNING[lang],
     };
   }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractFromFile, extractFromUrl, ExtractionError } from "@/lib/extractors";
+import { extractFromFile, extractFromUrl, extractFromText, ExtractionError } from "@/lib/extractors";
+import type { ExtractedContent } from "@/lib/extractors";
 import { parseRecipeFromContent, AiNotConfiguredError, RecipeParseError } from "@/lib/ai/recipeParser";
+import type { Language } from "@/lib/i18n";
 import type { ExtractRecipeResult } from "@/lib/types/recipe";
 
 export const runtime = "nodejs";
@@ -15,15 +17,19 @@ function fail(
   return NextResponse.json(body, { status });
 }
 
+function asLanguage(value: unknown): Language {
+  return value === "ko" ? "ko" : "en";
+}
+
 export async function POST(req: NextRequest) {
   const contentType = req.headers.get("content-type") ?? "";
 
   try {
-    const content = contentType.includes("multipart/form-data")
+    const { content, lang } = contentType.includes("multipart/form-data")
       ? await handleFileUpload(req)
-      : await handleUrlInput(req);
+      : await handleJsonInput(req);
 
-    const recipe = await parseRecipeFromContent(content);
+    const recipe = await parseRecipeFromContent(content, lang);
     if (content.warning) {
       recipe.notes = recipe.notes ? `${recipe.notes}\n${content.warning}` : content.warning;
     }
@@ -49,24 +55,30 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function handleFileUpload(req: NextRequest) {
+async function handleFileUpload(req: NextRequest): Promise<{ content: ExtractedContent; lang: Language }> {
   const formData = await req.formData();
   const file = formData.get("file");
+  const lang = asLanguage(formData.get("lang"));
 
   if (!(file instanceof File) || file.size === 0) {
     throw new ExtractionError("업로드된 파일이 없습니다.", "INVALID_INPUT");
   }
 
-  return extractFromFile(file);
+  return { content: await extractFromFile(file, lang), lang };
 }
 
-async function handleUrlInput(req: NextRequest) {
+async function handleJsonInput(req: NextRequest): Promise<{ content: ExtractedContent; lang: Language }> {
   const body = await req.json().catch(() => null);
-  const url = body?.url;
+  const lang = asLanguage(body?.lang);
 
-  if (typeof url !== "string" || !url.trim()) {
-    throw new ExtractionError("URL을 입력해 주세요.", "INVALID_INPUT");
+  if (typeof body?.text === "string" && body.text.trim()) {
+    return { content: extractFromText(body.text), lang };
   }
 
-  return extractFromUrl(url.trim());
+  const url = body?.url;
+  if (typeof url !== "string" || !url.trim()) {
+    throw new ExtractionError("URL 또는 텍스트를 입력해 주세요.", "INVALID_INPUT");
+  }
+
+  return { content: await extractFromUrl(url.trim(), lang), lang };
 }
