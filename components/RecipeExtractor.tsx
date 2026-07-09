@@ -210,7 +210,9 @@ export function RecipeExtractor() {
             className="w-full rounded-xl bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900 py-3.5 text-[15px] font-medium transition-colors hover:bg-stone-700 dark:hover:bg-stone-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
           >
             {status === "loading" && (
-              <span className="h-4 w-4 rounded-full border-2 border-current/30 border-t-current animate-spin" />
+              <span className="inline-block animate-spin text-lg leading-none" aria-hidden>
+                🥑
+              </span>
             )}
             {status === "loading" ? t.extracting : t.extract}
           </button>
