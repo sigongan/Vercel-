@@ -38,7 +38,7 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
       recipe.description ?? "",
       "",
       `${t.ingredients}:`,
-      ...recipe.ingredients.map((i) => `- ${i.name}${i.amount ? ` — ${i.amount}` : ""}`),
+      ...recipe.ingredients.map((i) => `- ${i.name}${i.amount ? ` — ${formatAmount(i)}` : ""}`),
       "",
       `${t.steps}:`,
       ...steps.map((s) => `${s.order}. ${s.instruction}`),
@@ -147,14 +147,22 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
                   {ing.amount && (
                     <>
                       <span className="flex-1 border-b border-dotted border-stone-300 dark:border-stone-700" />
-                      <span className="text-stone-500 dark:text-stone-400 text-sm tabular-nums">
-                        {ing.amount}
+                      <span
+                        title={ing.estimated ? t.estimatedShort : undefined}
+                        className={`text-sm tabular-nums ${
+                          ing.estimated
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-stone-500 dark:text-stone-400"
+                        }`}
+                      >
+                        {formatAmount(ing)}
                       </span>
                     </>
                   )}
                 </li>
               ))}
             </ul>
+            {hasEstimates(recipe) && <EstimatedLegend t={t} />}
           </section>
         )}
 
@@ -216,11 +224,19 @@ function MagazineCard({ recipe, steps, metas, t }: CardProps) {
           <ul className="grid gap-x-12 gap-y-2.5 sm:grid-cols-2">
             {recipe.ingredients.map((ing, i) => (
               <li key={i} className="text-[15px] leading-relaxed text-stone-800 dark:text-stone-300">
-                {ing.amount && <span className="font-semibold">{ing.amount} </span>}
+                {ing.amount && (
+                  <span
+                    title={ing.estimated ? t.estimatedShort : undefined}
+                    className={`font-semibold ${ing.estimated ? "text-amber-700 dark:text-amber-400" : ""}`}
+                  >
+                    {formatAmount(ing)}{" "}
+                  </span>
+                )}
                 {ing.name}
               </li>
             ))}
           </ul>
+          {hasEstimates(recipe) && <EstimatedLegend t={t} className="pt-1" />}
         </section>
       )}
 
@@ -287,12 +303,20 @@ function DiningCard({ recipe, steps, metas, t }: CardProps) {
                 {ing.amount && (
                   <>
                     <span className="flex-1 border-b border-dotted border-stone-700" />
-                    <span className="text-amber-300/90 tabular-nums">{ing.amount}</span>
+                    <span
+                      title={ing.estimated ? t.estimatedShort : undefined}
+                      className="text-amber-300/90 tabular-nums"
+                    >
+                      {formatAmount(ing)}
+                    </span>
                   </>
                 )}
               </li>
             ))}
           </ul>
+          {hasEstimates(recipe) && (
+            <p className="text-[11px] italic text-stone-500 text-center">{t.estimatedLegend}</p>
+          )}
         </section>
       )}
 
@@ -420,6 +444,23 @@ function CopyIcon() {
       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
     </svg>
+  );
+}
+
+function formatAmount(ing: { amount?: string; estimated?: boolean }): string {
+  if (!ing.amount) return "";
+  return ing.estimated ? `~${ing.amount}` : ing.amount;
+}
+
+function hasEstimates(recipe: Recipe): boolean {
+  return recipe.ingredients.some((i) => i.estimated);
+}
+
+function EstimatedLegend({ t, className = "" }: { t: Translation; className?: string }) {
+  return (
+    <p className={`text-[11px] italic text-stone-400 dark:text-stone-500 ${className}`}>
+      {t.estimatedLegend}
+    </p>
   );
 }
 

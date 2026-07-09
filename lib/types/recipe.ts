@@ -3,6 +3,8 @@ export type SourceType = "image" | "pdf" | "video-file" | "youtube" | "instagram
 export interface Ingredient {
   name: string;
   amount?: string;
+  /** true when the source didn't specify an amount and the AI estimated a reasonable one */
+  estimated?: boolean;
 }
 
 export interface RecipeStep {

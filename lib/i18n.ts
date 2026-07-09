@@ -48,6 +48,8 @@ export const translations = {
       medium: "Medium confidence",
       low: "Low confidence",
     },
+    estimatedLegend: "~ marks amounts the AI estimated — the source didn't specify them",
+    estimatedShort: "estimated",
   },
   ko: {
     title: "레시피 추출기",
@@ -95,6 +97,8 @@ export const translations = {
       medium: "정확도 보통",
       low: "정확도 낮음",
     },
+    estimatedLegend: "~ 표시는 원문에 분량이 없어 AI가 추정한 값입니다",
+    estimatedShort: "추정",
   },
 } as const;
 
