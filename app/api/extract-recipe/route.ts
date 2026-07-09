@@ -70,27 +70,35 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(body);
       }
 
-      const user = await getSessionUser();
+      // Auth/quota checks hit Supabase over the network (session lookup, the
+      // consume_quota RPC). Login/billing is a value-add, not the core
+      // product — if Supabase is misconfigured or unreachable, let the
+      // request through rather than 500ing an otherwise-working extraction.
+      try {
+        const user = await getSessionUser();
 
-      if (user) {
-        const quota = await consumeQuota(user.id);
-        if (!quota.allowed) {
-          return fail(
-            "이번 달 무료 추출 횟수를 모두 사용했어요. 크레딧을 구매하면 계속 이용하실 수 있어요.",
-            "QUOTA_EXCEEDED",
-            402
-          );
+        if (user) {
+          const quota = await consumeQuota(user.id);
+          if (!quota.allowed) {
+            return fail(
+              "이번 달 무료 추출 횟수를 모두 사용했어요. 크레딧을 구매하면 계속 이용하실 수 있어요.",
+              "QUOTA_EXCEEDED",
+              402
+            );
+          }
+        } else {
+          const anon = consumeAnonQuota(req.cookies.get(ANON_COOKIE_NAME)?.value);
+          if (!anon.allowed) {
+            return fail(
+              "무료 체험 횟수를 모두 사용했어요. 로그인하면 매달 5회 무료로 계속 이용하실 수 있어요.",
+              "AUTH_REQUIRED",
+              401
+            );
+          }
+          anonCookieToSet = anon.nextCookieValue;
         }
-      } else {
-        const anon = consumeAnonQuota(req.cookies.get(ANON_COOKIE_NAME)?.value);
-        if (!anon.allowed) {
-          return fail(
-            "무료 체험 횟수를 모두 사용했어요. 로그인하면 매달 5회 무료로 계속 이용하실 수 있어요.",
-            "AUTH_REQUIRED",
-            401
-          );
-        }
-        anonCookieToSet = anon.nextCookieValue;
+      } catch (gatingErr) {
+        console.error("auth/quota check failed; allowing request through ungated", gatingErr);
       }
     }
 
