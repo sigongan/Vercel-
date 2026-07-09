@@ -5,6 +5,7 @@ import type { ExtractRecipeResult, Recipe } from "@/lib/types/recipe";
 import { RecipeCard } from "./RecipeCard";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
+import { compressImageFile } from "@/lib/compressImage";
 
 type Tab = "file" | "url" | "text";
 
@@ -22,6 +23,7 @@ export function RecipeExtractor() {
 
   const [tab, setTab] = useState<Tab>("file");
   const [file, setFile] = useState<File | null>(null);
+  const [preparingFile, setPreparingFile] = useState(false);
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -29,8 +31,28 @@ export function RecipeExtractor() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  async function handleFileSelected(selected: File | null) {
+    if (!selected) {
+      setFile(null);
+      return;
+    }
+    setPreparingFile(true);
+    try {
+      const prepared = selected.type.startsWith("image/")
+        ? await compressImageFile(selected)
+        : selected;
+      setFile(prepared);
+    } finally {
+      setPreparingFile(false);
+    }
+  }
+
   const canSubmit =
-    tab === "file" ? Boolean(file) : tab === "url" ? url.trim().length > 0 : text.trim().length > 0;
+    tab === "file"
+      ? Boolean(file) && !preparingFile
+      : tab === "url"
+        ? url.trim().length > 0
+        : text.trim().length > 0;
 
   const errorMessage = error
     ? language === "en" && error.code && error.code in t.errors
@@ -110,7 +132,7 @@ export function RecipeExtractor() {
               onDrop={(e) => {
                 e.preventDefault();
                 const dropped = e.dataTransfer.files?.[0];
-                if (dropped) setFile(dropped);
+                if (dropped) handleFileSelected(dropped);
               }}
               className="rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-700 bg-stone-50/60 dark:bg-stone-950/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-orange-600/50 hover:bg-orange-50/40 dark:hover:bg-stone-800/50"
             >
@@ -119,12 +141,14 @@ export function RecipeExtractor() {
                 type="file"
                 accept={ACCEPTED_FILE_TYPES}
                 className="hidden"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)}
               />
               <span className="flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400">
                 <UploadIcon size={22} />
               </span>
-              {file ? (
+              {preparingFile ? (
+                <span className="text-sm text-stone-500 dark:text-stone-400">{t.preparingFile}</span>
+              ) : file ? (
                 <span className="flex items-center gap-2 text-sm font-medium text-stone-800 dark:text-stone-200">
                   {file.name}
                   <span className="text-stone-400 font-normal">
