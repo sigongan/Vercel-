@@ -23,6 +23,7 @@ export function AuthPanel() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined); // undefined = loading
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (!SUPABASE_CONFIGURED) return;
@@ -86,6 +87,17 @@ export function AuthPanel() {
   }
 
   if (profile === null) {
+    if (!expanded) {
+      return (
+        <button
+          onClick={() => setExpanded(true)}
+          className="text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2 whitespace-nowrap"
+        >
+          {t.signInLink}
+        </button>
+      );
+    }
+
     return (
       <form onSubmit={handleSendLink} className="flex items-center gap-2">
         {status === "sent" ? (
@@ -95,6 +107,7 @@ export function AuthPanel() {
             <input
               type="email"
               required
+              autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t.emailPlaceholder}

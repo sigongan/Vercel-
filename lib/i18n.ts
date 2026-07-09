@@ -30,7 +30,7 @@ export const translations = {
         "That source isn't supported yet. Try YouTube, TikTok, Instagram, or Google Docs — or upload a file.",
       NETWORK: "Something went wrong. Please try again.",
       TIMEOUT: "The request took too long and timed out. Please try again — shorter text or a smaller image can help.",
-      AUTH_REQUIRED: "Please sign in to extract recipes.",
+      AUTH_REQUIRED: "You've used your free trial. Sign in to get 5 more free extractions every month.",
       QUOTA_EXCEEDED: "You've used all your free extractions for this month. Buy more credits to keep going.",
     },
     auth: {
@@ -46,6 +46,7 @@ export const translations = {
       buying: "Redirecting…",
       signInPrompt: "Sign in to start extracting recipes",
       genericAuthError: "Something went wrong. Please try again.",
+      signInLink: "Sign in",
     },
     styleLabel: "Style",
     themeClassic: "Classic",
@@ -95,7 +96,7 @@ export const translations = {
         "아직 지원하지 않는 소스입니다. 유튜브, 틱톡, 인스타그램, 구글 Docs 링크나 파일 업로드를 이용해 주세요.",
       NETWORK: "요청 중 오류가 발생했습니다. 다시 시도해 주세요.",
       TIMEOUT: "요청 시간이 너무 오래 걸려 중단되었습니다. 다시 시도해 주세요 — 텍스트를 짧게 줄이거나 이미지 용량을 줄이면 도움이 될 수 있어요.",
-      AUTH_REQUIRED: "레시피를 추출하려면 로그인해 주세요.",
+      AUTH_REQUIRED: "무료 체험 횟수를 모두 사용했어요. 로그인하면 매달 5회 무료로 계속 이용하실 수 있어요.",
       QUOTA_EXCEEDED: "이번 달 무료 추출 횟수를 모두 사용했어요. 크레딧을 구매하면 계속 이용하실 수 있어요.",
     },
     auth: {
@@ -111,6 +112,7 @@ export const translations = {
       buying: "이동 중…",
       signInPrompt: "레시피 추출을 시작하려면 로그인하세요",
       genericAuthError: "오류가 발생했습니다. 다시 시도해 주세요.",
+      signInLink: "로그인",
     },
     styleLabel: "디자인",
     themeClassic: "클래식",

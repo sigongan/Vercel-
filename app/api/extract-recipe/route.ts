@@ -6,6 +6,8 @@ import type { Language } from "@/lib/i18n";
 import type { ExtractRecipeResult } from "@/lib/types/recipe";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getSessionUser, consumeQuota } from "@/lib/usage";
+import { consumeAnonQuota } from "@/lib/anonQuota";
+import { ANON_COOKIE_NAME } from "@/lib/billingConstants";
 import { hashSource, getCachedRecipe, setCachedRecipe } from "@/lib/recipeCache";
 
 export const runtime = "nodejs";
@@ -24,17 +26,34 @@ type Input =
   | { kind: "url"; url: string; lang: Language }
   | { kind: "text"; text: string; lang: Language };
 
-function fail(error: string, code: ErrorCode, status: number) {
-  const body: ExtractRecipeResult = { ok: false, error: { error, code } };
-  return NextResponse.json(body, { status });
-}
-
 function asLanguage(value: unknown): Language {
   return value === "ko" ? "ko" : "en";
 }
 
 export async function POST(req: NextRequest) {
   const contentType = req.headers.get("content-type") ?? "";
+
+  // Set only once an anonymous trial use has actually been consumed, so it's
+  // persisted on every response from that point on — success or failure —
+  // matching how a logged-in user's DB quota is decremented up front too.
+  let anonCookieToSet: string | null = null;
+
+  function fail(error: string, code: ErrorCode, status: number) {
+    const body: ExtractRecipeResult = { ok: false, error: { error, code } };
+    return withAnonCookie(NextResponse.json(body, { status }));
+  }
+
+  function withAnonCookie(response: NextResponse) {
+    if (anonCookieToSet) {
+      response.cookies.set(ANON_COOKIE_NAME, anonCookieToSet, {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 365,
+        path: "/",
+      });
+    }
+    return response;
+  }
 
   try {
     const input = contentType.includes("multipart/form-data")
@@ -52,17 +71,26 @@ export async function POST(req: NextRequest) {
       }
 
       const user = await getSessionUser();
-      if (!user) {
-        return fail("레시피를 추출하려면 로그인해 주세요.", "AUTH_REQUIRED", 401);
-      }
 
-      const quota = await consumeQuota(user.id);
-      if (!quota.allowed) {
-        return fail(
-          "이번 달 무료 추출 횟수를 모두 사용했어요. 크레딧을 구매하면 계속 이용하실 수 있어요.",
-          "QUOTA_EXCEEDED",
-          402
-        );
+      if (user) {
+        const quota = await consumeQuota(user.id);
+        if (!quota.allowed) {
+          return fail(
+            "이번 달 무료 추출 횟수를 모두 사용했어요. 크레딧을 구매하면 계속 이용하실 수 있어요.",
+            "QUOTA_EXCEEDED",
+            402
+          );
+        }
+      } else {
+        const anon = consumeAnonQuota(req.cookies.get(ANON_COOKIE_NAME)?.value);
+        if (!anon.allowed) {
+          return fail(
+            "무료 체험 횟수를 모두 사용했어요. 로그인하면 매달 5회 무료로 계속 이용하실 수 있어요.",
+            "AUTH_REQUIRED",
+            401
+          );
+        }
+        anonCookieToSet = anon.nextCookieValue;
       }
     }
 
@@ -77,7 +105,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body: ExtractRecipeResult = { ok: true, recipe };
-    return NextResponse.json(body);
+    return withAnonCookie(NextResponse.json(body));
   } catch (err) {
     if (err instanceof ExtractionError) {
       return fail(err.message, err.code, 422);
