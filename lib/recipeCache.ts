@@ -19,29 +19,41 @@ export function hashSource(kind: string, lang: Language, data: Buffer | string):
   return hash.digest("hex");
 }
 
+// The cache is an optimization — a Supabase outage or misconfiguration must
+// degrade to "no cache", never break extraction itself. Hence the broad
+// catches here, unlike the quota path where failing open would be a real bug.
 export async function getCachedRecipe(contentHash: string): Promise<Recipe | null> {
   if (!isSupabaseConfigured()) return null;
 
-  const admin = createSupabaseAdminClient();
-  const { data } = await admin
-    .from("recipe_cache")
-    .select("recipe, hit_count")
-    .eq("content_hash", contentHash)
-    .maybeSingle();
+  try {
+    const admin = createSupabaseAdminClient();
+    const { data } = await admin
+      .from("recipe_cache")
+      .select("recipe, hit_count")
+      .eq("content_hash", contentHash)
+      .maybeSingle();
 
-  if (!data) return null;
+    if (!data) return null;
 
-  await admin
-    .from("recipe_cache")
-    .update({ hit_count: data.hit_count + 1 })
-    .eq("content_hash", contentHash);
+    await admin
+      .from("recipe_cache")
+      .update({ hit_count: data.hit_count + 1 })
+      .eq("content_hash", contentHash);
 
-  return data.recipe as Recipe;
+    return data.recipe as Recipe;
+  } catch (err) {
+    console.error("recipe cache read failed", err);
+    return null;
+  }
 }
 
 export async function setCachedRecipe(contentHash: string, recipe: Recipe): Promise<void> {
   if (!isSupabaseConfigured()) return;
 
-  const admin = createSupabaseAdminClient();
-  await admin.from("recipe_cache").upsert({ content_hash: contentHash, recipe });
+  try {
+    const admin = createSupabaseAdminClient();
+    await admin.from("recipe_cache").upsert({ content_hash: contentHash, recipe });
+  } catch (err) {
+    console.error("recipe cache write failed", err);
+  }
 }

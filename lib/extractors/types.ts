@@ -5,12 +5,18 @@ export interface ExtractedImage {
   mediaType: string;
 }
 
+export interface ExtractedDocument {
+  base64: string;
+  mediaType: "application/pdf";
+}
+
 export interface ExtractedContent {
   sourceType: SourceType;
   sourceUrl?: string;
   title?: string;
   text?: string;
   images?: ExtractedImage[];
+  documents?: ExtractedDocument[];
   warning?: string;
 }
 

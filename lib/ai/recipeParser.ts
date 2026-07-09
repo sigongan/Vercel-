@@ -68,6 +68,15 @@ export async function parseRecipeFromContent(content: ExtractedContent, lang: La
     }
   }
 
+  if (content.documents) {
+    for (const doc of content.documents) {
+      contentBlocks.push({
+        type: "document",
+        source: { type: "base64", media_type: "application/pdf", data: doc.base64 },
+      });
+    }
+  }
+
   const textParts = [
     content.title ? `제목/출처: ${content.title}` : null,
     content.sourceUrl ? `원본 링크: ${content.sourceUrl}` : null,
@@ -76,17 +85,26 @@ export async function parseRecipeFromContent(content: ExtractedContent, lang: La
 
   contentBlocks.push({ type: "text", text: textParts.join("\n\n") || "(텍스트 정보 없음, 이미지만 참고)" });
 
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5",
-    max_tokens: 2048,
-    // The instruction text is identical across every request (per language), so
-    // marking it cacheable avoids re-billing the full system prompt on every call.
-    system: [
-      { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
-      { type: "text", text: OUTPUT_LANGUAGE_INSTRUCTION[lang], cache_control: { type: "ephemeral" } },
-    ],
-    messages: [{ role: "user", content: contentBlocks }],
-  });
+  let message: Anthropic.Message;
+  try {
+    message = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 2048,
+      // The instruction text is identical across every request (per language), so
+      // marking it cacheable avoids re-billing the full system prompt on every call.
+      system: [
+        { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
+        { type: "text", text: OUTPUT_LANGUAGE_INSTRUCTION[lang], cache_control: { type: "ephemeral" } },
+      ],
+      messages: [{ role: "user", content: contentBlocks }],
+    });
+  } catch (err) {
+    console.error("Anthropic API request failed", err);
+    if (err instanceof Anthropic.APIError) {
+      throw new RecipeParseError("AI 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    }
+    throw err;
+  }
 
   console.log(
     `[recipeParser] model=${message.model} input=${message.usage.input_tokens} output=${message.usage.output_tokens} cache_write=${message.usage.cache_creation_input_tokens ?? 0} cache_read=${message.usage.cache_read_input_tokens ?? 0}`
