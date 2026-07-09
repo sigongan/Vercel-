@@ -29,7 +29,13 @@ export interface Recipe {
 
 export interface ExtractRecipeError {
   error: string;
-  code: "AI_NOT_CONFIGURED" | "INVALID_INPUT" | "EXTRACTION_FAILED" | "UNSUPPORTED_SOURCE";
+  code:
+    | "AI_NOT_CONFIGURED"
+    | "INVALID_INPUT"
+    | "EXTRACTION_FAILED"
+    | "UNSUPPORTED_SOURCE"
+    | "AUTH_REQUIRED"
+    | "QUOTA_EXCEEDED";
 }
 
 export type ExtractRecipeResult =

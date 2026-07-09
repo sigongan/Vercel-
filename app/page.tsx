@@ -1,6 +1,7 @@
 "use client";
 
 import { RecipeExtractor } from "@/components/RecipeExtractor";
+import { AuthPanel } from "@/components/AuthPanel";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 
@@ -15,8 +16,9 @@ export default function Home() {
         className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(70%_60%_at_50%_0%,rgba(234,88,12,0.07),transparent_70%)]"
       />
 
-      <div className="absolute top-5 right-5 z-10">
-        <div className="flex rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-0.5 text-xs font-medium shadow-sm">
+      <div className="absolute top-5 inset-x-5 z-10 flex items-center justify-between gap-3">
+        <AuthPanel />
+        <div className="ml-auto flex rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-0.5 text-xs font-medium shadow-sm">
           {(["ko", "en"] as const).map((lang) => (
             <button
               key={lang}
