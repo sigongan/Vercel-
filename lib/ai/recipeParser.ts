@@ -77,11 +77,20 @@ export async function parseRecipeFromContent(content: ExtractedContent, lang: La
   contentBlocks.push({ type: "text", text: textParts.join("\n\n") || "(텍스트 정보 없음, 이미지만 참고)" });
 
   const message = await client.messages.create({
-    model: "claude-sonnet-4-5",
+    model: "claude-haiku-4-5",
     max_tokens: 2048,
-    system: `${SYSTEM_PROMPT}\n\n${OUTPUT_LANGUAGE_INSTRUCTION[lang]}`,
+    // The instruction text is identical across every request (per language), so
+    // marking it cacheable avoids re-billing the full system prompt on every call.
+    system: [
+      { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
+      { type: "text", text: OUTPUT_LANGUAGE_INSTRUCTION[lang], cache_control: { type: "ephemeral" } },
+    ],
     messages: [{ role: "user", content: contentBlocks }],
   });
+
+  console.log(
+    `[recipeParser] model=${message.model} input=${message.usage.input_tokens} output=${message.usage.output_tokens} cache_write=${message.usage.cache_creation_input_tokens ?? 0} cache_read=${message.usage.cache_read_input_tokens ?? 0}`
+  );
 
   const textBlock = message.content.find((block) => block.type === "text");
   if (!textBlock || textBlock.type !== "text") {
