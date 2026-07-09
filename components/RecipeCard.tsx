@@ -1,9 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation } from "@/lib/i18n";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+
+const SUPABASE_CONFIGURED = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 type Theme = "classic" | "magazine" | "dining";
 
@@ -82,13 +87,16 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
             ))}
           </div>
         </div>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
-        >
-          <CopyIcon />
-          {copied ? t.copied : t.copy}
-        </button>
+        <div className="flex items-center gap-2">
+          {SUPABASE_CONFIGURED && <SaveButton recipe={recipe} t={t} />}
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+          >
+            <CopyIcon />
+            {copied ? t.copied : t.copy}
+          </button>
+        </div>
       </div>
 
       {theme === "classic" && <ClassicCard recipe={recipe} steps={steps} metas={metas} t={t} />}
@@ -364,6 +372,64 @@ function DiningCard({ recipe, steps, metas, t }: CardProps) {
         </footer>
       )}
     </article>
+  );
+}
+
+function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
+  const [plan, setPlan] = useState<string | null | undefined>(undefined); // undefined = loading, null = signed out
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) {
+        setPlan(null);
+        return;
+      }
+      const { data } = await supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle();
+      setPlan(data?.plan ?? "free");
+    });
+  }, []);
+
+  if (plan === undefined || plan === null) return null;
+
+  if (plan !== "pro") {
+    return (
+      <button
+        onClick={async () => {
+          const res = await fetch("/api/stripe/subscribe", { method: "POST" });
+          const data = await res.json();
+          if (data.url) window.location.href = data.url;
+        }}
+        className="flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-400 transition-colors hover:border-amber-500"
+      >
+        {t.saveRequiresPro}
+      </button>
+    );
+  }
+
+  async function handleSave() {
+    setState("saving");
+    try {
+      const res = await fetch("/api/recipes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipe }),
+      });
+      setState(res.ok ? "saved" : "error");
+    } catch {
+      setState("error");
+    }
+  }
+
+  return (
+    <button
+      onClick={handleSave}
+      disabled={state === "saving" || state === "saved"}
+      className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600 disabled:opacity-60"
+    >
+      {state === "saving" ? t.saving : state === "saved" ? t.saved : t.save}
+    </button>
   );
 }
 

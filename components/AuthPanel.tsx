@@ -14,11 +14,13 @@ interface Profile {
   email: string | null;
   credits: number;
   free_used_this_period: number;
+  plan: string;
 }
 
 export function AuthPanel() {
   const { language } = useLanguage();
-  const t = translations[language].auth;
+  const tRoot = translations[language];
+  const t = tRoot.auth;
 
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -41,11 +43,13 @@ export function AuthPanel() {
 
       const { data } = await supabase
         .from("profiles")
-        .select("email, credits, free_used_this_period")
+        .select("email, credits, free_used_this_period, plan")
         .eq("id", user.id)
         .maybeSingle();
 
-      setProfile(data ?? { email: user.email ?? null, credits: 0, free_used_this_period: 0 });
+      setProfile(
+        data ?? { email: user.email ?? null, credits: 0, free_used_this_period: 0, plan: "free" }
+      );
     }
 
     loadProfile();
@@ -147,6 +151,12 @@ export function AuthPanel() {
           {t.buyCredits}
         </button>
       )}
+      <a
+        href="/recipes"
+        className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2 whitespace-nowrap"
+      >
+        {profile.plan === "pro" ? tRoot.myRecipes : tRoot.myRecipesLocked}
+      </a>
       <button
         onClick={handleSignOut}
         className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2 whitespace-nowrap"

@@ -1,4 +1,4 @@
-import { CREDIT_PACK_SIZE, CREDIT_PACK_PRICE_USD } from "./billingConstants";
+import { CREDIT_PACK_SIZE, CREDIT_PACK_PRICE_USD, SUBSCRIPTION_PRICE_USD } from "./billingConstants";
 
 export type Language = "ko" | "en";
 
@@ -70,6 +70,19 @@ export const translations = {
     },
     estimatedLegend: "~ marks amounts the AI estimated — the source didn't specify them",
     estimatedShort: "estimated",
+    myRecipes: "My Recipes",
+    myRecipesLocked: "My Recipes ★",
+    save: "Save recipe",
+    saving: "Saving…",
+    saved: "Saved",
+    saveRequiresPro: `Subscribe — $${SUBSCRIPTION_PRICE_USD}/mo`,
+    savedRecipesTitle: "My Recipes",
+    noSavedRecipes: "No saved recipes yet.",
+    delete: "Delete",
+    manageSubscription: "Manage subscription",
+    subscribeCta: `Save unlimited recipes for $${SUBSCRIPTION_PRICE_USD}/month`,
+    subscribeButton: "Subscribe",
+    backToExtractor: "← Back to extractor",
   },
   ko: {
     title: "레시피 추출기",
@@ -137,6 +150,19 @@ export const translations = {
     },
     estimatedLegend: "~ 표시는 원문에 분량이 없어 AI가 추정한 값입니다",
     estimatedShort: "추정",
+    myRecipes: "내 레시피",
+    myRecipesLocked: "내 레시피 ★",
+    save: "레시피 저장",
+    saving: "저장 중…",
+    saved: "저장됨",
+    saveRequiresPro: `구독하기 — $${SUBSCRIPTION_PRICE_USD}/월`,
+    savedRecipesTitle: "내 레시피",
+    noSavedRecipes: "저장된 레시피가 없습니다.",
+    delete: "삭제",
+    manageSubscription: "구독 관리",
+    subscribeCta: `월 $${SUBSCRIPTION_PRICE_USD}에 레시피를 무제한 저장하세요`,
+    subscribeButton: "구독하기",
+    backToExtractor: "← 추출기로 돌아가기",
   },
 } as const;
 

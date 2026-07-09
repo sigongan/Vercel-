@@ -5,3 +5,6 @@ export const CREDIT_PACK_PRICE_USD = 3;
 /** Free tries for anonymous (not-signed-in) visitors, tracked via a signed cookie — no account needed. */
 export const ANON_FREE_LIMIT = 3;
 export const ANON_COOKIE_NAME = "rx_anon";
+
+/** "My Recipes" — save/organize extracted recipes. */
+export const SUBSCRIPTION_PRICE_USD = 4;
