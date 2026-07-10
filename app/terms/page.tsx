@@ -16,13 +16,15 @@ export default function TermsPage() {
 
         <div className="flex flex-col gap-5 text-sm leading-relaxed text-stone-600 dark:text-stone-400">
           <p>
-            {SITE_NAME} (&quot;we&quot;, &quot;us&quot;) provides a tool that uses AI to extract structured recipes from
+            {SITE_NAME}{" "}
+            (&quot;we&quot;, &quot;us&quot;) provides a tool that uses AI to extract structured recipes from
             content you submit — files you upload, links you paste, or text you enter. By using{" "}
             {SITE_NAME}, you agree to these terms.
           </p>
 
           <Section title="1. The service">
-            {SITE_NAME} processes the source you provide with an AI model to generate a recipe (title,
+            {SITE_NAME}{" "}
+            processes the source you provide with an AI model to generate a recipe (title,
             ingredients, steps, and related details). Extracted recipes may contain errors — including
             AI-estimated ingredient amounts when the source didn&apos;t specify them — and should be used
             as a starting point, not a guarantee of accuracy.
