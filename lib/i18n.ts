@@ -4,7 +4,7 @@ export type Language = "ko" | "en";
 
 export const translations = {
   en: {
-    title: "Recipe Extractor",
+    title: "Avocato",
     tagline: "Turn videos, photos, and documents into clean, beautifully structured recipes.",
     sources: ["YouTube", "TikTok", "Instagram", "Google Docs", "PDF", "Screenshot", "Plain text"],
     tabFile: "Upload",
@@ -83,9 +83,11 @@ export const translations = {
     subscribeCta: `Save unlimited recipes for $${SUBSCRIPTION_PRICE_USD}/month`,
     subscribeButton: "Subscribe",
     backToExtractor: "← Back to extractor",
+    footerTerms: "Terms",
+    footerPrivacy: "Privacy",
   },
   ko: {
-    title: "레시피 추출기",
+    title: "Avocato",
     tagline: "영상, 사진, 문서를 깔끔하게 정리된 레시피로 바꿔 드립니다.",
     sources: ["유튜브", "틱톡", "인스타그램", "구글 Docs", "PDF", "스크린샷", "텍스트"],
     tabFile: "파일 업로드",
@@ -163,6 +165,8 @@ export const translations = {
     subscribeCta: `월 $${SUBSCRIPTION_PRICE_USD}에 레시피를 무제한 저장하세요`,
     subscribeButton: "구독하기",
     backToExtractor: "← 추출기로 돌아가기",
+    footerTerms: "이용약관",
+    footerPrivacy: "개인정보처리방침",
   },
 } as const;
 

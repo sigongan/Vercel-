@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { SITE_NAME, SITE_TAGLINE_EN, SITE_URL } from "@/lib/siteConfig";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,9 +20,21 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Recipe Extractor",
-  description:
-    "Extract clean, structured recipes from YouTube, Instagram, TikTok, Google Docs, PDFs, screenshots, and plain text.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: `${SITE_NAME} — Recipe Extractor`, template: `%s · ${SITE_NAME}` },
+  description: SITE_TAGLINE_EN,
+  openGraph: {
+    title: `${SITE_NAME} — Recipe Extractor`,
+    description: SITE_TAGLINE_EN,
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — Recipe Extractor`,
+    description: SITE_TAGLINE_EN,
+  },
 };
 
 export default function RootLayout({
