@@ -7,6 +7,7 @@ import type { ExtractRecipeResult } from "@/lib/types/recipe";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getSessionUser, consumeQuota } from "@/lib/usage";
 import { consumeAnonQuota } from "@/lib/anonQuota";
+import { isAdminEmail } from "@/lib/admin";
 import { ANON_COOKIE_NAME } from "@/lib/billingConstants";
 import { hashSource, getCachedRecipe, setCachedRecipe } from "@/lib/recipeCache";
 
@@ -77,7 +78,9 @@ export async function POST(req: NextRequest) {
       try {
         const user = await getSessionUser();
 
-        if (user) {
+        if (user && isAdminEmail(user.email)) {
+          // Admin accounts skip quota entirely — no free-limit or credit checks.
+        } else if (user) {
           const quota = await consumeQuota(user.id);
           if (!quota.allowed) {
             return fail(
