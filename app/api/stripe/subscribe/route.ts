@@ -17,28 +17,34 @@ export async function POST(request: Request) {
   }
 
   const origin = new URL(request.url).origin;
-  const stripe = getStripeClient();
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    client_reference_id: user.id,
-    customer_email: user.email ?? undefined,
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "usd",
-          unit_amount: SUBSCRIPTION_PRICE_USD * 100,
-          recurring: { interval: "month" },
-          product_data: {
-            name: "My Recipes — save and organize extracted recipes",
+  try {
+    const stripe = getStripeClient();
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      client_reference_id: user.id,
+      customer_email: user.email ?? undefined,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "usd",
+            unit_amount: SUBSCRIPTION_PRICE_USD * 100,
+            recurring: { interval: "month" },
+            product_data: {
+              name: "My Recipes — save and organize extracted recipes",
+            },
           },
         },
-      },
-    ],
-    success_url: `${origin}/recipes?subscribed=success`,
-    cancel_url: `${origin}/?checkout=cancelled`,
-  });
+      ],
+      success_url: `${origin}/recipes?subscribed=success`,
+      cancel_url: `${origin}/?checkout=cancelled`,
+    });
 
-  return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
+  } catch (err) {
+    console.error("stripe subscribe checkout session creation failed", err);
+    const message = err instanceof Error ? err.message : "Failed to start checkout.";
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 }

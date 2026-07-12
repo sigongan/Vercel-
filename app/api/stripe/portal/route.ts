@@ -28,10 +28,17 @@ export async function POST(request: Request) {
   }
 
   const origin = new URL(request.url).origin;
-  const session = await getStripeClient().billingPortal.sessions.create({
-    customer: profile.stripe_customer_id,
-    return_url: `${origin}/recipes`,
-  });
 
-  return NextResponse.json({ url: session.url });
+  try {
+    const session = await getStripeClient().billingPortal.sessions.create({
+      customer: profile.stripe_customer_id,
+      return_url: `${origin}/recipes`,
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (err) {
+    console.error("stripe billing portal session creation failed", err);
+    const message = err instanceof Error ? err.message : "Failed to open billing portal.";
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 }

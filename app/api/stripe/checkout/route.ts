@@ -17,27 +17,33 @@ export async function POST(request: Request) {
   }
 
   const origin = new URL(request.url).origin;
-  const stripe = getStripeClient();
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    client_reference_id: user.id,
-    customer_email: user.email ?? undefined,
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "usd",
-          unit_amount: CREDIT_PACK_PRICE_USD * 100,
-          product_data: {
-            name: `${CREDIT_PACK_SIZE} recipe extraction credits`,
+  try {
+    const stripe = getStripeClient();
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      client_reference_id: user.id,
+      customer_email: user.email ?? undefined,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "usd",
+            unit_amount: CREDIT_PACK_PRICE_USD * 100,
+            product_data: {
+              name: `${CREDIT_PACK_SIZE} recipe extraction credits`,
+            },
           },
         },
-      },
-    ],
-    success_url: `${origin}/?checkout=success`,
-    cancel_url: `${origin}/?checkout=cancelled`,
-  });
+      ],
+      success_url: `${origin}/?checkout=success`,
+      cancel_url: `${origin}/?checkout=cancelled`,
+    });
 
-  return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
+  } catch (err) {
+    console.error("stripe credit-pack checkout session creation failed", err);
+    const message = err instanceof Error ? err.message : "Failed to start checkout.";
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 }
