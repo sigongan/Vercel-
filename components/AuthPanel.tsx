@@ -24,6 +24,8 @@ export function AuthPanel() {
   const t = tRoot.auth;
 
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<"magic" | "password">("magic");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined); // undefined = loading
@@ -83,6 +85,21 @@ export function AuthPanel() {
     }
   }
 
+  async function handlePasswordSignIn(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("sending");
+    setErrorDetail(null);
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error("signInWithPassword failed", error);
+      setErrorDetail(error.message);
+      setStatus("error");
+    } else {
+      setStatus("idle");
+    }
+  }
+
   async function handleSignOut() {
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
@@ -112,7 +129,10 @@ export function AuthPanel() {
     }
 
     return (
-      <form onSubmit={handleSendLink} className="flex flex-col items-end gap-2">
+      <form
+        onSubmit={mode === "magic" ? handleSendLink : handlePasswordSignIn}
+        className="flex flex-col items-end gap-2"
+      >
         {status === "sent" ? (
           <span className="text-sm text-stone-500 dark:text-stone-400">{t.checkEmail}</span>
         ) : (
@@ -124,16 +144,39 @@ export function AuthPanel() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t.emailPlaceholder}
-              className="w-56 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-2 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:border-stone-400"
+              className="w-48 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-2 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:border-stone-400"
             />
+            {mode === "password" && (
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t.passwordPlaceholder}
+                className="w-36 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-2 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:border-stone-400"
+              />
+            )}
             <button
               type="submit"
               disabled={status === "sending"}
               className="rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 px-4 py-2 text-sm font-medium disabled:opacity-50 whitespace-nowrap"
             >
-              {status === "sending" ? t.sending : t.sendLink}
+              {status === "sending" ? t.sending : mode === "magic" ? t.sendLink : t.signInLink}
             </button>
           </div>
+        )}
+        {status !== "sent" && (
+          <button
+            type="button"
+            onClick={() => {
+              setMode((m) => (m === "magic" ? "password" : "magic"));
+              setStatus("idle");
+              setErrorDetail(null);
+            }}
+            className="text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2"
+          >
+            {mode === "magic" ? t.usePasswordInstead : t.useMagicLinkInstead}
+          </button>
         )}
         {status === "error" && (
           <span className="max-w-xs text-right text-xs text-red-600 dark:text-red-400">
