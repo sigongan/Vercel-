@@ -5,6 +5,7 @@ import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation } from "@/lib/i18n";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { RecipeEditForm } from "./RecipeEditForm";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -24,11 +25,18 @@ interface CardProps {
   t: Translation;
 }
 
-export function RecipeCard({ recipe }: { recipe: Recipe }) {
+export function RecipeCard({
+  recipe,
+  onRecipeChange,
+}: {
+  recipe: Recipe;
+  onRecipeChange?: (recipe: Recipe) => void;
+}) {
   const { language } = useLanguage();
   const t = translations[language];
   const [theme, setTheme] = useState<Theme>("classic");
   const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const steps = useMemo(() => [...recipe.steps].sort((a, b) => a.order - b.order), [recipe.steps]);
 
@@ -88,20 +96,43 @@ export function RecipeCard({ recipe }: { recipe: Recipe }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {SUPABASE_CONFIGURED && <SaveButton recipe={recipe} t={t} />}
+          {!editing && SUPABASE_CONFIGURED && <SaveButton recipe={recipe} t={t} />}
           <button
-            onClick={handleCopy}
+            onClick={() => setEditing((e) => !e)}
             className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
           >
-            <CopyIcon />
-            {copied ? t.copied : t.copy}
+            <EditIcon />
+            {editing ? t.editCancel : t.edit}
           </button>
+          {!editing && (
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+            >
+              <CopyIcon />
+              {copied ? t.copied : t.copy}
+            </button>
+          )}
         </div>
       </div>
 
-      {theme === "classic" && <ClassicCard recipe={recipe} steps={steps} metas={metas} t={t} />}
-      {theme === "magazine" && <MagazineCard recipe={recipe} steps={steps} metas={metas} t={t} />}
-      {theme === "dining" && <DiningCard recipe={recipe} steps={steps} metas={metas} t={t} />}
+      {editing ? (
+        <RecipeEditForm
+          recipe={recipe}
+          t={t}
+          onCancel={() => setEditing(false)}
+          onSave={(updated) => {
+            onRecipeChange?.(updated);
+            setEditing(false);
+          }}
+        />
+      ) : (
+        <>
+          {theme === "classic" && <ClassicCard recipe={recipe} steps={steps} metas={metas} t={t} />}
+          {theme === "magazine" && <MagazineCard recipe={recipe} steps={steps} metas={metas} t={t} />}
+          {theme === "dining" && <DiningCard recipe={recipe} steps={steps} metas={metas} t={t} />}
+        </>
+      )}
     </div>
   );
 }
@@ -157,7 +188,7 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
                       <span className="flex-1 border-b border-dotted border-stone-300 dark:border-stone-700" />
                       <span
                         title={ing.estimated ? t.estimatedShort : undefined}
-                        className={`text-sm tabular-nums ${
+                        className={`shrink-0 whitespace-nowrap text-sm tabular-nums ${
                           ing.estimated
                             ? "text-amber-600 dark:text-amber-400"
                             : "text-stone-500 dark:text-stone-400"
@@ -235,7 +266,7 @@ function MagazineCard({ recipe, steps, metas, t }: CardProps) {
                 {ing.amount && (
                   <span
                     title={ing.estimated ? t.estimatedShort : undefined}
-                    className={`font-semibold ${ing.estimated ? "text-amber-700 dark:text-amber-400" : ""}`}
+                    className={`whitespace-nowrap font-semibold ${ing.estimated ? "text-amber-700 dark:text-amber-400" : ""}`}
                   >
                     {formatAmount(ing)}{" "}
                   </span>
@@ -313,7 +344,7 @@ function DiningCard({ recipe, steps, metas, t }: CardProps) {
                     <span className="flex-1 border-b border-dotted border-stone-700" />
                     <span
                       title={ing.estimated ? t.estimatedShort : undefined}
-                      className="text-amber-300/90 tabular-nums"
+                      className="shrink-0 whitespace-nowrap text-amber-300/90 tabular-nums"
                     >
                       {formatAmount(ing)}
                     </span>
@@ -492,6 +523,23 @@ function GoldDivider() {
       <span className="text-[10px] text-amber-500">◆</span>
       <span className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-500/40" />
     </div>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    </svg>
   );
 }
 

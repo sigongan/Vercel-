@@ -129,7 +129,19 @@ export default function RecipesPage() {
                     </div>
                     {openId === r.id && (
                       <div className="border-t border-stone-200 dark:border-stone-800 p-5">
-                        <RecipeCard recipe={r.recipe} />
+                        <RecipeCard
+                          recipe={r.recipe}
+                          onRecipeChange={async (updated) => {
+                            setRecipes((prev) =>
+                              prev?.map((x) => (x.id === r.id ? { ...x, recipe: updated, title: updated.title } : x)) ?? null
+                            );
+                            await fetch(`/api/recipes/${r.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ recipe: updated }),
+                            });
+                          }}
+                        />
                       </div>
                     )}
                   </li>

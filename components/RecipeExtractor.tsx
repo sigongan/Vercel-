@@ -227,7 +227,7 @@ export function RecipeExtractor() {
 
       {recipe && (
         <div className="w-full max-w-3xl">
-          <RecipeCard recipe={recipe} />
+          <RecipeCard recipe={recipe} onRecipeChange={setRecipe} />
         </div>
       )}
     </div>
