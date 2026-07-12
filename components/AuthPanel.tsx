@@ -25,6 +25,7 @@ export function AuthPanel() {
 
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined); // undefined = loading
   const [expanded, setExpanded] = useState(false);
 
@@ -67,12 +68,19 @@ export function AuthPanel() {
   async function handleSendLink(e: React.FormEvent) {
     e.preventDefault();
     setStatus("sending");
+    setErrorDetail(null);
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
-    setStatus(error ? "error" : "sent");
+    if (error) {
+      console.error("signInWithOtp failed", error);
+      setErrorDetail(error.message);
+      setStatus("error");
+    } else {
+      setStatus("sent");
+    }
   }
 
   async function handleSignOut() {
@@ -104,11 +112,11 @@ export function AuthPanel() {
     }
 
     return (
-      <form onSubmit={handleSendLink} className="flex items-center gap-2">
+      <form onSubmit={handleSendLink} className="flex flex-col items-end gap-2">
         {status === "sent" ? (
-          <span className="text-xs text-stone-500 dark:text-stone-400">{t.checkEmail}</span>
+          <span className="text-sm text-stone-500 dark:text-stone-400">{t.checkEmail}</span>
         ) : (
-          <>
+          <div className="flex items-center gap-2">
             <input
               type="email"
               required
@@ -116,19 +124,21 @@ export function AuthPanel() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t.emailPlaceholder}
-              className="w-40 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3 py-1.5 text-xs text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:border-stone-400"
+              className="w-56 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-2 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:border-stone-400"
             />
             <button
               type="submit"
               disabled={status === "sending"}
-              className="rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 px-3 py-1.5 text-xs font-medium disabled:opacity-50 whitespace-nowrap"
+              className="rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 px-4 py-2 text-sm font-medium disabled:opacity-50 whitespace-nowrap"
             >
               {status === "sending" ? t.sending : t.sendLink}
             </button>
-          </>
+          </div>
         )}
         {status === "error" && (
-          <span className="text-xs text-red-600 dark:text-red-400">{t.genericAuthError}</span>
+          <span className="max-w-xs text-right text-xs text-red-600 dark:text-red-400">
+            {errorDetail || t.genericAuthError}
+          </span>
         )}
       </form>
     );
