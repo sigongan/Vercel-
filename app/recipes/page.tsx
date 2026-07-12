@@ -143,6 +143,12 @@ export default function RecipesPage() {
                       >
                         {r.title}
                       </button>
+                      <Link
+                        href={`/recipes/${r.id}`}
+                        className="text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 whitespace-nowrap underline underline-offset-2"
+                      >
+                        Costing →
+                      </Link>
                       <button
                         onClick={() => handleDelete(r.id)}
                         className="text-xs text-stone-400 hover:text-red-500 whitespace-nowrap"

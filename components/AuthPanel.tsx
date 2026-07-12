@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
@@ -151,12 +152,12 @@ export function AuthPanel() {
           {t.buyCredits}
         </button>
       )}
-      <a
+      <Link
         href="/recipes"
         className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2 whitespace-nowrap"
       >
         {profile.plan === "pro" ? tRoot.myRecipes : tRoot.myRecipesLocked}
-      </a>
+      </Link>
       <button
         onClick={handleSignOut}
         className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2 whitespace-nowrap"

@@ -6,6 +6,35 @@ import type { Recipe } from "@/lib/types/recipe";
 
 export const runtime = "nodejs";
 
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ error: "Not configured." }, { status: 503 });
+  }
+
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("saved_recipes")
+    .select("id, title, recipe, created_at")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  if (!data) {
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ recipe: data });
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ error: "Not configured." }, { status: 503 });
