@@ -99,6 +99,8 @@ export const translations = {
     editMoveUp: "Move up",
     editMoveDown: "Move down",
     subscribeUnavailable: "Subscriptions aren't available yet. Please try again later.",
+    authLinkFailed:
+      "That sign-in link didn't work — it may have expired, been used already, or been opened in a different browser than the one you requested it from. Try signing in again from this browser.",
   },
   ko: {
     title: "Avocato",
@@ -195,6 +197,8 @@ export const translations = {
     editMoveUp: "위로 이동",
     editMoveDown: "아래로 이동",
     subscribeUnavailable: "아직 구독 기능을 이용할 수 없어요. 나중에 다시 시도해 주세요.",
+    authLinkFailed:
+      "로그인 링크가 작동하지 않았어요 — 만료됐거나, 이미 사용됐거나, 요청했던 브라우저와 다른 브라우저에서 열렸을 수 있어요. 이 브라우저에서 다시 로그인을 시도해 주세요.",
   },
 } as const;
 
