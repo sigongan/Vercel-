@@ -98,6 +98,7 @@ export const translations = {
     editRemove: "Remove",
     editMoveUp: "Move up",
     editMoveDown: "Move down",
+    subscribeUnavailable: "Subscriptions aren't available yet. Please try again later.",
   },
   ko: {
     title: "Avocato",
@@ -193,6 +194,7 @@ export const translations = {
     editRemove: "삭제",
     editMoveUp: "위로 이동",
     editMoveDown: "아래로 이동",
+    subscribeUnavailable: "아직 구독 기능을 이용할 수 없어요. 나중에 다시 시도해 주세요.",
   },
 } as const;
 

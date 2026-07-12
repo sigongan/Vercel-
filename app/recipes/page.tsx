@@ -24,6 +24,7 @@ export default function RecipesPage() {
   const [plan, setPlan] = useState<Plan>("loading");
   const [recipes, setRecipes] = useState<SavedRecipe[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [billingError, setBillingError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -52,15 +53,33 @@ export default function RecipesPage() {
   }
 
   async function handleSubscribe() {
-    const res = await fetch("/api/stripe/subscribe", { method: "POST" });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    setBillingError(null);
+    try {
+      const res = await fetch("/api/stripe/subscribe", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setBillingError(data.error || t.subscribeUnavailable);
+      }
+    } catch {
+      setBillingError(t.subscribeUnavailable);
+    }
   }
 
   async function handleManage() {
-    const res = await fetch("/api/stripe/portal", { method: "POST" });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    setBillingError(null);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setBillingError(data.error || t.subscribeUnavailable);
+      }
+    } catch {
+      setBillingError(t.subscribeUnavailable);
+    }
   }
 
   return (
@@ -88,17 +107,21 @@ export default function RecipesPage() {
             >
               {t.subscribeButton}
             </button>
+            {billingError && <p className="text-xs text-red-600 dark:text-red-400">{billingError}</p>}
           </div>
         )}
 
         {plan === "pro" && (
           <div className="flex flex-col gap-6">
-            <button
-              onClick={handleManage}
-              className="self-start text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2"
-            >
-              {t.manageSubscription}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleManage}
+                className="self-start text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2"
+              >
+                {t.manageSubscription}
+              </button>
+              {billingError && <span className="text-xs text-red-600 dark:text-red-400">{billingError}</span>}
+            </div>
 
             {recipes === null && <div className="h-24" />}
 

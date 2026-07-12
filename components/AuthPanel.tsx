@@ -95,7 +95,7 @@ export function AuthPanel() {
       return (
         <button
           onClick={() => setExpanded(true)}
-          className="text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2 whitespace-nowrap"
+          className="rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 px-5 py-2.5 text-sm font-medium shadow-sm transition-colors hover:bg-stone-700 dark:hover:bg-stone-300 whitespace-nowrap"
         >
           {t.signInLink}
         </button>

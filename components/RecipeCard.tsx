@@ -409,6 +409,7 @@ function DiningCard({ recipe, steps, metas, t }: CardProps) {
 function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
   const [plan, setPlan] = useState<string | null | undefined>(undefined); // undefined = loading, null = signed out
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [subscribeError, setSubscribeError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -426,16 +427,28 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
 
   if (plan !== "pro") {
     return (
-      <button
-        onClick={async () => {
-          const res = await fetch("/api/stripe/subscribe", { method: "POST" });
-          const data = await res.json();
-          if (data.url) window.location.href = data.url;
-        }}
-        className="flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-400 transition-colors hover:border-amber-500"
-      >
-        {t.saveRequiresPro}
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={async () => {
+            setSubscribeError(null);
+            try {
+              const res = await fetch("/api/stripe/subscribe", { method: "POST" });
+              const data = await res.json();
+              if (data.url) {
+                window.location.href = data.url;
+              } else {
+                setSubscribeError(data.error || t.subscribeUnavailable);
+              }
+            } catch {
+              setSubscribeError(t.subscribeUnavailable);
+            }
+          }}
+          className="flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-400 transition-colors hover:border-amber-500"
+        >
+          {t.saveRequiresPro}
+        </button>
+        {subscribeError && <span className="text-xs text-red-600 dark:text-red-400">{subscribeError}</span>}
+      </div>
     );
   }
 

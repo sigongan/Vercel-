@@ -16,11 +16,9 @@ function subscribe(callback: () => void) {
 }
 
 function getSnapshot(): Language {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === "ko" ? "ko" : "en";
-  } catch {
-    return "en";
-  }
+  // English-only for now — language switching UI was removed, but this hook
+  // stays in place so components don't need to change.
+  return "en";
 }
 
 function getServerSnapshot(): Language {
