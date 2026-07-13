@@ -12,8 +12,11 @@ interface SavedRecipe {
   id: string;
   title: string;
   recipe: Recipe;
+  collection: string | null;
   created_at: string;
 }
+
+const UNCATEGORIZED = "Uncategorized";
 
 type Plan = "loading" | "signed-out" | "free" | "pro";
 
@@ -24,6 +27,8 @@ export default function RecipesPage() {
   const [plan, setPlan] = useState<Plan>("loading");
   const [recipes, setRecipes] = useState<SavedRecipe[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [editingCollectionId, setEditingCollectionId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null); // null = "All"
   const [billingError, setBillingError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -50,6 +55,17 @@ export default function RecipesPage() {
     setRecipes((prev) => prev?.filter((r) => r.id !== id) ?? null);
     if (openId === id) setOpenId(null);
     await fetch(`/api/recipes/${id}`, { method: "DELETE" });
+  }
+
+  async function handleSetCollection(id: string, collection: string) {
+    const value = collection.trim() || null;
+    setRecipes((prev) => prev?.map((r) => (r.id === id ? { ...r, collection: value } : r)) ?? null);
+    setEditingCollectionId(null);
+    await fetch(`/api/recipes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ collection: value }),
+    });
   }
 
   async function handleSubscribe() {
@@ -150,6 +166,14 @@ export default function RecipesPage() {
 
             {recipes === null && <div className="h-24" />}
 
+            {recipes !== null && recipes.length > 0 && (
+              <CollectionFilterPills
+                recipes={recipes}
+                activeFilter={activeFilter}
+                onSelect={setActiveFilter}
+              />
+            )}
+
             {recipes !== null && recipes.length === 0 && (
               <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-white/60 dark:bg-stone-900/40 px-8 py-14 text-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400">
@@ -167,7 +191,9 @@ export default function RecipesPage() {
 
             {recipes !== null && recipes.length > 0 && (
               <ul className="grid gap-4 sm:grid-cols-2">
-                {recipes.map((r) => (
+                {recipes
+                  .filter((r) => activeFilter === null || (r.collection || UNCATEGORIZED) === activeFilter)
+                  .map((r) => (
                   <li
                     key={r.id}
                     className="group flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-sm transition-shadow hover:shadow-md"
@@ -196,6 +222,29 @@ export default function RecipesPage() {
                       )}
                       <span>{new Date(r.created_at).toLocaleDateString()}</span>
                     </div>
+
+                    {editingCollectionId === r.id ? (
+                      <input
+                        type="text"
+                        autoFocus
+                        defaultValue={r.collection ?? ""}
+                        placeholder={UNCATEGORIZED}
+                        onBlur={(e) => handleSetCollection(r.id, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") e.currentTarget.blur();
+                          if (e.key === "Escape") setEditingCollectionId(null);
+                        }}
+                        className="w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 px-2.5 py-1 text-xs text-stone-900 dark:text-stone-100 outline-none focus:border-stone-500"
+                      />
+                    ) : (
+                      <button
+                        onClick={() => setEditingCollectionId(r.id)}
+                        className="flex w-fit items-center gap-1.5 rounded-full bg-stone-100 dark:bg-stone-800 px-2.5 py-1 text-[11px] font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+                      >
+                        <FolderIcon />
+                        {r.collection || UNCATEGORIZED}
+                      </button>
+                    )}
 
                     <div className="mt-1 flex items-center gap-3 border-t border-stone-100 dark:border-stone-800 pt-3">
                       <Link
@@ -240,6 +289,61 @@ export default function RecipesPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function CollectionFilterPills({
+  recipes,
+  activeFilter,
+  onSelect,
+}: {
+  recipes: SavedRecipe[];
+  activeFilter: string | null;
+  onSelect: (filter: string | null) => void;
+}) {
+  const counts = new Map<string, number>();
+  for (const r of recipes) {
+    const key = r.collection || UNCATEGORIZED;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const collections = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b));
+
+  if (collections.length <= 1) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <button
+        onClick={() => onSelect(null)}
+        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+          activeFilter === null
+            ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
+            : "bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+        }`}
+      >
+        All ({recipes.length})
+      </button>
+      {collections.map((c) => (
+        <button
+          key={c}
+          onClick={() => onSelect(c)}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            activeFilter === c
+              ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900"
+              : "bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+          }`}
+        >
+          {c} ({counts.get(c)})
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function FolderIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </svg>
   );
 }
 

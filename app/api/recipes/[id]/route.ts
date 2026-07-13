@@ -20,7 +20,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from("saved_recipes")
-    .select("id, title, recipe, created_at")
+    .select("id, title, recipe, collection, created_at")
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -45,18 +45,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
 
-  const body = (await request.json()) as { recipe: Recipe };
-  if (!body.recipe?.title) {
+  const body = (await request.json()) as { recipe?: Recipe; collection?: string | null };
+  if (body.recipe !== undefined && !body.recipe?.title) {
     return NextResponse.json({ error: "Invalid recipe." }, { status: 400 });
+  }
+  if (body.recipe === undefined && body.collection === undefined) {
+    return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
+  }
+
+  const update: { recipe?: Recipe; title?: string; collection?: string | null } = {};
+  if (body.recipe) {
+    update.recipe = body.recipe;
+    update.title = body.recipe.title;
+  }
+  if (body.collection !== undefined) {
+    update.collection = body.collection?.trim() || null;
   }
 
   const { id } = await params;
   const admin = createSupabaseAdminClient();
-  const { error } = await admin
-    .from("saved_recipes")
-    .update({ recipe: body.recipe, title: body.recipe.title })
-    .eq("id", id)
-    .eq("user_id", user.id);
+  const { error } = await admin.from("saved_recipes").update(update).eq("id", id).eq("user_id", user.id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

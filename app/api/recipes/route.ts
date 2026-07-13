@@ -19,7 +19,7 @@ export async function GET() {
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from("saved_recipes")
-    .select("id, title, recipe, created_at")
+    .select("id, title, recipe, collection, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
