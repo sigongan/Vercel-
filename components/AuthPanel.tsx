@@ -38,7 +38,7 @@ export function AuthPanel() {
     // sequential Supabase calls from the browser.
     async function loadProfile() {
       try {
-        const res = await fetch("/api/me");
+        const res = await fetch("/api/me", { cache: "no-store" });
         const body = await res.json();
         if (!body.signedIn) {
           setProfile(null);

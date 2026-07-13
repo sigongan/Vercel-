@@ -423,7 +423,7 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/me")
+    fetch("/api/me", { cache: "no-store" })
       .then((res) => res.json())
       .then((body) => setPlan(body.signedIn ? (body.plan ?? "free") : null))
       .catch(() => setPlan(null));

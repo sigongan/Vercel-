@@ -30,7 +30,7 @@ export default function RecipeDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`/api/recipes/${id}`)
+    fetch(`/api/recipes/${id}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((body) => {
         if (!body.signedIn) {

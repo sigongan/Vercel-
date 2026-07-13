@@ -5,15 +5,25 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Recipe } from "@/lib/types/recipe";
 
 export const runtime = "nodejs";
+// Per-user session state — must never be served from a shared cache. See
+// app/api/me/route.ts for why this matters.
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
+function noStore(body: unknown, init?: ResponseInit) {
+  const res = NextResponse.json(body, init);
+  res.headers.set("Cache-Control", "no-store, must-revalidate");
+  return res;
+}
 
 export async function GET() {
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: "Not configured." }, { status: 503 });
+    return noStore({ error: "Not configured." }, { status: 503 });
   }
 
   const user = await getSessionUser();
   if (!user) {
-    return NextResponse.json({ signedIn: false });
+    return noStore({ signedIn: false });
   }
 
   // Plan + recipes in one round trip (and in parallel) instead of making the
@@ -29,11 +39,11 @@ export async function GET() {
   ]);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return noStore({ error: error.message }, { status: 500 });
   }
 
   const plan = profile?.plan === "pro" ? "pro" : "free";
-  return NextResponse.json({ signedIn: true, plan, recipes: plan === "pro" ? (recipes ?? []) : [] });
+  return noStore({ signedIn: true, plan, recipes: plan === "pro" ? (recipes ?? []) : [] });
 }
 
 export async function POST(request: Request) {

@@ -31,7 +31,7 @@ export default function RecipesPage() {
   const [billingError, setBillingError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/recipes")
+    fetch("/api/recipes", { cache: "no-store" })
       .then((res) => res.json())
       .then((body) => {
         if (!body.signedIn) {

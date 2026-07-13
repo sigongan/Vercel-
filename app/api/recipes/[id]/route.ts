@@ -5,15 +5,25 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Recipe } from "@/lib/types/recipe";
 
 export const runtime = "nodejs";
+// Per-user session state — must never be served from a shared cache. See
+// app/api/me/route.ts for why this matters.
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
+function noStore(body: unknown, init?: ResponseInit) {
+  const res = NextResponse.json(body, init);
+  res.headers.set("Cache-Control", "no-store, must-revalidate");
+  return res;
+}
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: "Not configured." }, { status: 503 });
+    return noStore({ error: "Not configured." }, { status: 503 });
   }
 
   const user = await getSessionUser();
   if (!user) {
-    return NextResponse.json({ signedIn: false });
+    return noStore({ signedIn: false });
   }
 
   const { id } = await params;
@@ -29,13 +39,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   ]);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return noStore({ error: error.message }, { status: 500 });
   }
   if (!data) {
-    return NextResponse.json({ signedIn: true, notFound: true });
+    return noStore({ signedIn: true, notFound: true });
   }
 
-  return NextResponse.json({ signedIn: true, plan: profile?.plan === "pro" ? "pro" : "free", recipe: data });
+  return noStore({ signedIn: true, plan: profile?.plan === "pro" ? "pro" : "free", recipe: data });
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
