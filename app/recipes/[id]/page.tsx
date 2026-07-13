@@ -17,7 +17,7 @@ interface SavedRecipe {
   created_at: string;
 }
 
-type Status = "loading" | "signed-out" | "not-found" | "ready";
+type Status = "loading" | "signed-out" | "not-found" | "ready" | "error";
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,8 +31,13 @@ export default function RecipeDetailPage() {
   useEffect(() => {
     if (!id) return;
     fetch(`/api/recipes/${id}`, { cache: "no-store" })
-      .then((res) => res.json())
-      .then((body) => {
+      .then(async (res) => {
+        const body = await res.json();
+        if (!res.ok || body.error) {
+          console.error("GET /api/recipes/[id] failed", body.error);
+          setStatus("error");
+          return;
+        }
         if (!body.signedIn) {
           setStatus("signed-out");
           return;
@@ -45,7 +50,7 @@ export default function RecipeDetailPage() {
         setSaved(body.recipe);
         setStatus("ready");
       })
-      .catch(() => setStatus("not-found"));
+      .catch(() => setStatus("error"));
   }, [id]);
 
   async function handleRecipeChange(updated: Recipe) {
@@ -82,6 +87,20 @@ export default function RecipeDetailPage() {
               <div className="h-40 rounded-xl bg-stone-100 dark:bg-stone-800/70" />
               <div className="h-40 rounded-xl bg-stone-100 dark:bg-stone-800/70" />
             </div>
+          </div>
+        )}
+
+        {status === "error" && (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-red-300 dark:border-red-900 bg-red-50/60 dark:bg-red-950/20 px-8 py-14 text-center">
+            <p className="text-sm text-red-700 dark:text-red-400 max-w-sm">
+              Something went wrong loading this recipe. Please try again in a moment.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 px-4 py-2 text-xs font-semibold shadow-sm transition-colors hover:bg-stone-700 dark:hover:bg-stone-300"
+            >
+              Retry
+            </button>
           </div>
         )}
 

@@ -17,7 +17,7 @@ interface SavedRecipe {
 
 const UNCATEGORIZED = "Uncategorized";
 
-type Plan = "loading" | "signed-out" | "free" | "pro";
+type Plan = "loading" | "signed-out" | "free" | "pro" | "error";
 
 export default function RecipesPage() {
   const { language } = useLanguage();
@@ -32,8 +32,16 @@ export default function RecipesPage() {
 
   useEffect(() => {
     fetch("/api/recipes", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((body) => {
+      .then(async (res) => {
+        const body = await res.json();
+        // A failed request (500, etc.) has no `signedIn` field either, but
+        // it means something broke server-side — don't show that as "please
+        // sign in", which just hides the real problem.
+        if (!res.ok || body.error) {
+          console.error("GET /api/recipes failed", body.error);
+          setPlan("error");
+          return;
+        }
         if (!body.signedIn) {
           setPlan("signed-out");
           return;
@@ -41,7 +49,7 @@ export default function RecipesPage() {
         setPlan(body.plan);
         if (body.plan === "pro") setRecipes(body.recipes ?? []);
       })
-      .catch(() => setPlan("signed-out"));
+      .catch(() => setPlan("error"));
   }, []);
 
   async function handleDelete(id: string) {
@@ -119,6 +127,20 @@ export default function RecipesPage() {
         </div>
 
         {plan === "loading" && <RecipesSkeleton />}
+
+        {plan === "error" && (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-red-300 dark:border-red-900 bg-red-50/60 dark:bg-red-950/20 px-8 py-14 text-center">
+            <p className="text-sm text-red-700 dark:text-red-400 max-w-sm">
+              Something went wrong loading your recipes. Please try again in a moment.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 px-4 py-2 text-xs font-semibold shadow-sm transition-colors hover:bg-stone-700 dark:hover:bg-stone-300"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {plan === "signed-out" && (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-white/60 dark:bg-stone-900/40 px-8 py-14 text-center">
