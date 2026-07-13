@@ -7,6 +7,7 @@ import type { ExtractRecipeResult } from "@/lib/types/recipe";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getSessionUser, consumeQuota } from "@/lib/usage";
 import { consumeAnonQuota } from "@/lib/anonQuota";
+import { consumeAnonIpQuota, getClientIp } from "@/lib/anonIpQuota";
 import { isAdminEmail } from "@/lib/admin";
 import { ANON_COOKIE_NAME } from "@/lib/billingConstants";
 import { hashSource, getCachedRecipe, setCachedRecipe } from "@/lib/recipeCache";
@@ -98,6 +99,25 @@ export async function POST(req: NextRequest) {
               401
             );
           }
+
+          // Second, harder-to-bypass gate: a server-side counter keyed by
+          // IP hash, so clearing cookies / incognito doesn't reset the trial.
+          const ip = getClientIp(req);
+          if (ip) {
+            try {
+              const ipQuota = await consumeAnonIpQuota(ip);
+              if (!ipQuota.allowed) {
+                return fail(
+                  "무료 체험 횟수를 모두 사용했어요. 로그인하면 매달 5회 무료로 계속 이용하실 수 있어요.",
+                  "AUTH_REQUIRED",
+                  401
+                );
+              }
+            } catch (ipErr) {
+              console.error("anon IP quota check failed; allowing through on cookie check alone", ipErr);
+            }
+          }
+
           anonCookieToSet = anon.nextCookieValue;
         }
       } catch (gatingErr) {
