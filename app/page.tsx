@@ -3,6 +3,7 @@ import { RecipeExtractor } from "@/components/RecipeExtractor";
 import { AuthPanel } from "@/components/AuthPanel";
 import { LandingSections } from "@/components/LandingSections";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
+import { SOURCE_ICONS } from "@/components/SourceIcons";
 import { translations } from "@/lib/i18n";
 
 const t = translations.en;
@@ -32,8 +33,9 @@ export default function Home() {
           {t.sources.map((source) => (
             <li
               key={source}
-              className="text-xs text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-stone-800 bg-white/70 dark:bg-stone-900/70 rounded-full px-3 py-1"
+              className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-stone-800 bg-white/70 dark:bg-stone-900/70 rounded-full pl-2.5 pr-3 py-1"
             >
+              {SOURCE_ICONS[source]}
               {source}
             </li>
           ))}
