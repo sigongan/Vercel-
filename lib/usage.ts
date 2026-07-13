@@ -1,6 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { FREE_MONTHLY_LIMIT } from "@/lib/billingConstants";
+import { isAdminEmail } from "@/lib/admin";
 
 export { FREE_MONTHLY_LIMIT };
 
@@ -16,6 +17,19 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   } = await supabase.auth.getUser();
 
   if (!user) return null;
+
+  if (isAdminEmail(user.email)) {
+    // Admin accounts get every pro perk (save recipes, margin calculator)
+    // without ever going through Stripe — keep their plan in sync on every
+    // authenticated request rather than requiring a manual DB edit.
+    try {
+      const admin = createSupabaseAdminClient();
+      await admin.from("profiles").update({ plan: "pro" }).eq("id", user.id).neq("plan", "pro");
+    } catch (err) {
+      console.error("failed to sync admin plan", err);
+    }
+  }
+
   return { id: user.id, email: user.email ?? null };
 }
 
