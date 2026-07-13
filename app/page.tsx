@@ -51,6 +51,12 @@ export default function Home() {
       <LandingSections />
 
       <footer className="relative z-[1] flex items-center gap-4 text-xs text-stone-400 dark:text-stone-600 mt-4">
+        <Link
+          href="/margin-calculator"
+          className="hover:text-stone-600 dark:hover:text-stone-300 underline underline-offset-2"
+        >
+          Margin Calculator
+        </Link>
         <Link href="/terms" className="hover:text-stone-600 dark:hover:text-stone-300 underline underline-offset-2">
           {t.footerTerms}
         </Link>
