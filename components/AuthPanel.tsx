@@ -207,8 +207,13 @@ export function AuthPanel() {
       )}
       <Link
         href="/recipes"
-        className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2 whitespace-nowrap"
+        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium whitespace-nowrap shadow-sm transition-colors ${
+          profile.plan === "pro"
+            ? "bg-stone-900 text-stone-50 hover:bg-stone-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-300"
+            : "border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:border-amber-500"
+        }`}
       >
+        <BookmarkIcon />
         {profile.plan === "pro" ? tRoot.myRecipes : tRoot.myRecipesLocked}
       </Link>
       <button
@@ -218,5 +223,22 @@ export function AuthPanel() {
         {t.signOut}
       </button>
     </div>
+  );
+}
+
+function BookmarkIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
   );
 }

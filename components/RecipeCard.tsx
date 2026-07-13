@@ -443,8 +443,9 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
               setSubscribeError(t.subscribeUnavailable);
             }
           }}
-          className="flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-400 transition-colors hover:border-amber-500"
+          className="flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 shadow-sm transition-colors hover:border-amber-500"
         >
+          <BookmarkIcon />
           {t.saveRequiresPro}
         </button>
         {subscribeError && <span className="text-xs text-red-600 dark:text-red-400">{subscribeError}</span>}
@@ -470,10 +471,49 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
     <button
       onClick={handleSave}
       disabled={state === "saving" || state === "saved"}
-      className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600 disabled:opacity-60"
+      className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold shadow-sm transition-colors disabled:cursor-default ${
+        state === "saved"
+          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
+          : "bg-stone-900 text-stone-50 hover:bg-stone-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-300 disabled:opacity-70"
+      }`}
     >
+      {state === "saved" ? <CheckIcon /> : <BookmarkIcon />}
       {state === "saving" ? t.saving : state === "saved" ? t.saved : t.save}
     </button>
+  );
+}
+
+function BookmarkIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
   );
 }
 
