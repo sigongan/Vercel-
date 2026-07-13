@@ -10,19 +10,19 @@ const t = translations.en;
 
 export default function Home() {
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-12 px-5 pb-24 pt-20 bg-stone-50 dark:bg-stone-950">
+    <main className="relative flex-1 flex flex-col items-center gap-12 px-5 pb-24 pt-6 bg-stone-50 dark:bg-stone-950">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(70%_60%_at_50%_0%,rgba(234,88,12,0.07),transparent_70%)]"
       />
 
-      <div className="absolute top-5 right-5 z-10">
+      <div className="relative z-10 flex w-full max-w-2xl justify-end">
         <AuthPanel />
       </div>
 
       <AuthErrorBanner />
 
-      <header className="relative z-[1] flex flex-col items-center gap-5 text-center max-w-2xl pt-8">
+      <header className="relative z-[1] flex flex-col items-center gap-5 text-center max-w-2xl pt-4">
         <h1 className="font-display text-5xl sm:text-6xl tracking-tight text-stone-900 dark:text-stone-50">
           {t.title}
         </h1>
