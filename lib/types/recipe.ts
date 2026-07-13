@@ -35,7 +35,8 @@ export interface ExtractRecipeError {
     | "EXTRACTION_FAILED"
     | "UNSUPPORTED_SOURCE"
     | "AUTH_REQUIRED"
-    | "QUOTA_EXCEEDED";
+    | "QUOTA_EXCEEDED"
+    | "RATE_LIMITED";
 }
 
 export type ExtractRecipeResult =

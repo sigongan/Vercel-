@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import type { NextRequest } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { ANON_FREE_LIMIT } from "@/lib/billingConstants";
+import { ANON_FREE_LIMIT, TEXT_DAILY_IP_LIMIT } from "@/lib/billingConstants";
 
 /**
  * Second, harder-to-bypass gate on top of the cookie-based anon trial:
@@ -31,6 +31,24 @@ export async function consumeAnonIpQuota(ip: string): Promise<{ allowed: boolean
 
   if (error || !data) {
     throw new Error(`consume_anon_ip_quota RPC failed: ${error?.message ?? "no data"}`);
+  }
+
+  return { allowed: (data as { allowed: boolean }).allowed };
+}
+
+/**
+ * Daily per-IP cap on free pasted-text extractions — not a paywall, just a
+ * backstop so a script can't run up the AI bill on the unlimited-free tier.
+ * Resets every day (rows are keyed by ip_hash + date).
+ */
+export async function consumeTextIpQuota(ip: string): Promise<{ allowed: boolean }> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .rpc("consume_text_ip_quota", { p_ip_hash: hashIp(ip), p_limit: TEXT_DAILY_IP_LIMIT })
+    .single();
+
+  if (error || !data) {
+    throw new Error(`consume_text_ip_quota RPC failed: ${error?.message ?? "no data"}`);
   }
 
   return { allowed: (data as { allowed: boolean }).allowed };

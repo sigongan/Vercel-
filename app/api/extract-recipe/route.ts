@@ -7,7 +7,7 @@ import type { ExtractRecipeResult } from "@/lib/types/recipe";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getSessionUser, consumeQuota } from "@/lib/usage";
 import { consumeAnonQuota } from "@/lib/anonQuota";
-import { consumeAnonIpQuota, getClientIp } from "@/lib/anonIpQuota";
+import { consumeAnonIpQuota, consumeTextIpQuota, getClientIp } from "@/lib/anonIpQuota";
 import { isAdminEmail } from "@/lib/admin";
 import { ANON_COOKIE_NAME } from "@/lib/billingConstants";
 import { hashSource, getCachedRecipe, setCachedRecipe } from "@/lib/recipeCache";
@@ -21,7 +21,8 @@ type ErrorCode =
   | "EXTRACTION_FAILED"
   | "UNSUPPORTED_SOURCE"
   | "AUTH_REQUIRED"
-  | "QUOTA_EXCEEDED";
+  | "QUOTA_EXCEEDED"
+  | "RATE_LIMITED";
 
 type Input =
   | { kind: "file"; file: File; lang: Language }
@@ -65,11 +66,49 @@ export async function POST(req: NextRequest) {
     const contentHash = await hashInput(input);
     const gated = isSupabaseConfigured();
 
+    async function runExtraction() {
+      const content = await extract(input);
+      const recipe = await parseRecipeFromContent(content, input.lang);
+      if (content.warning) {
+        recipe.notes = recipe.notes ? `${recipe.notes}\n${content.warning}` : content.warning;
+      }
+
+      if (gated) {
+        await setCachedRecipe(contentHash, recipe);
+      }
+
+      const body: ExtractRecipeResult = { ok: true, recipe };
+      return withAnonCookie(NextResponse.json(body));
+    }
+
     if (gated) {
       const cached = await getCachedRecipe(contentHash);
       if (cached) {
         const body: ExtractRecipeResult = { ok: true, recipe: cached };
         return NextResponse.json(body);
+      }
+
+      // Pasted text is free and unlimited for everyone — signed in or not.
+      // It's cheap to process, and metering it just pushes people away
+      // before they see the product. The only gate is a generous per-IP
+      // daily cap as an abuse/cost backstop (fail-open like the rest).
+      if (input.kind === "text") {
+        const ip = getClientIp(req);
+        if (ip) {
+          try {
+            const cap = await consumeTextIpQuota(ip);
+            if (!cap.allowed) {
+              return fail(
+                "오늘 텍스트 추출 한도에 도달했어요. 텍스트 추출은 무료지만 악용 방지를 위해 하루 한도가 있어요. 내일 다시 이용해 주세요.",
+                "RATE_LIMITED",
+                429
+              );
+            }
+          } catch (capErr) {
+            console.error("text IP cap check failed; allowing through", capErr);
+          }
+        }
+        return await runExtraction();
       }
 
       // Auth/quota checks hit Supabase over the network (session lookup, the
@@ -85,7 +124,7 @@ export async function POST(req: NextRequest) {
           const quota = await consumeQuota(user.id);
           if (!quota.allowed) {
             return fail(
-              "이번 달 무료 추출 횟수를 모두 사용했어요. 크레딧을 구매하면 계속 이용하실 수 있어요.",
+              "이번 달 사진·영상·링크 추출 횟수를 모두 사용했어요. 크레딧을 구매하면 계속 이용할 수 있어요 — 텍스트 붙여넣기는 언제나 무료예요.",
               "QUOTA_EXCEEDED",
               402
             );
@@ -94,7 +133,7 @@ export async function POST(req: NextRequest) {
           const anon = consumeAnonQuota(req.cookies.get(ANON_COOKIE_NAME)?.value);
           if (!anon.allowed) {
             return fail(
-              "무료 체험 횟수를 모두 사용했어요. 로그인하면 매달 5회 무료로 계속 이용하실 수 있어요.",
+              "사진·영상·링크 무료 체험을 모두 사용했어요. 로그인하면 매달 5회 더 이용할 수 있어요 — 텍스트 붙여넣기는 언제나 무료예요.",
               "AUTH_REQUIRED",
               401
             );
@@ -108,7 +147,7 @@ export async function POST(req: NextRequest) {
               const ipQuota = await consumeAnonIpQuota(ip);
               if (!ipQuota.allowed) {
                 return fail(
-                  "무료 체험 횟수를 모두 사용했어요. 로그인하면 매달 5회 무료로 계속 이용하실 수 있어요.",
+                  "사진·영상·링크 무료 체험을 모두 사용했어요. 로그인하면 매달 5회 더 이용할 수 있어요 — 텍스트 붙여넣기는 언제나 무료예요.",
                   "AUTH_REQUIRED",
                   401
                 );
@@ -125,18 +164,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const content = await extract(input);
-    const recipe = await parseRecipeFromContent(content, input.lang);
-    if (content.warning) {
-      recipe.notes = recipe.notes ? `${recipe.notes}\n${content.warning}` : content.warning;
-    }
-
-    if (gated) {
-      await setCachedRecipe(contentHash, recipe);
-    }
-
-    const body: ExtractRecipeResult = { ok: true, recipe };
-    return withAnonCookie(NextResponse.json(body));
+    return await runExtraction();
   } catch (err) {
     if (err instanceof ExtractionError) {
       return fail(err.message, err.code, 422);
@@ -174,7 +202,16 @@ async function readJsonInput(req: NextRequest): Promise<Input> {
   const lang = asLanguage(body?.lang);
 
   if (typeof body?.text === "string" && body.text.trim()) {
-    return { kind: "text", text: body.text.trim(), lang };
+    const text = body.text.trim();
+    // Text is unmetered, so bound the AI cost of a single request. Real
+    // recipes (even blog posts with the recipe buried in them) fit easily.
+    if (text.length > 60_000) {
+      throw new ExtractionError(
+        "텍스트가 너무 깁니다. 레시피 부분만 잘라서 붙여넣어 주세요.",
+        "INVALID_INPUT"
+      );
+    }
+    return { kind: "text", text, lang };
   }
 
   const url = body?.url;
