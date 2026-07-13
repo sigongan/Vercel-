@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { RecipeCard } from "@/components/RecipeCard";
@@ -32,23 +31,17 @@ export default function RecipesPage() {
   const [billingError, setBillingError] = useState<string | null>(null);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) {
-        setPlan("signed-out");
-        return;
-      }
-      const { data } = await supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle();
-      setPlan(data?.plan === "pro" ? "pro" : "free");
-
-      if (data?.plan === "pro") {
-        const res = await fetch("/api/recipes");
-        if (res.ok) {
-          const body = await res.json();
-          setRecipes(body.recipes);
+    fetch("/api/recipes")
+      .then((res) => res.json())
+      .then((body) => {
+        if (!body.signedIn) {
+          setPlan("signed-out");
+          return;
         }
-      }
-    });
+        setPlan(body.plan);
+        if (body.plan === "pro") setRecipes(body.recipes ?? []);
+      })
+      .catch(() => setPlan("signed-out"));
   }, []);
 
   async function handleDelete(id: string) {
@@ -125,10 +118,18 @@ export default function RecipesPage() {
           </Link>
         </div>
 
-        {plan === "loading" && <div className="h-24" />}
+        {plan === "loading" && <RecipesSkeleton />}
 
         {plan === "signed-out" && (
-          <p className="text-sm text-stone-500 dark:text-stone-400">{t.auth.signInPrompt}</p>
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-white/60 dark:bg-stone-900/40 px-8 py-14 text-center">
+            <p className="text-sm text-stone-500 dark:text-stone-400 max-w-xs">{t.auth.signInPrompt}</p>
+            <Link
+              href="/"
+              className="rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 px-4 py-2 text-xs font-semibold shadow-sm transition-colors hover:bg-stone-700 dark:hover:bg-stone-300"
+            >
+              {t.auth.signInLink}
+            </Link>
+          </div>
         )}
 
         {plan === "free" && (
@@ -164,7 +165,7 @@ export default function RecipesPage() {
               {billingError && <span className="text-xs text-red-600 dark:text-red-400">{billingError}</span>}
             </div>
 
-            {recipes === null && <div className="h-24" />}
+            {recipes === null && <RecipesSkeleton />}
 
             {recipes !== null && recipes.length > 0 && (
               <CollectionFilterPills
@@ -266,6 +267,7 @@ export default function RecipesPage() {
                       <div className="border-t border-stone-100 dark:border-stone-800 pt-4">
                         <RecipeCard
                           recipe={r.recipe}
+                          saveable={false}
                           onRecipeChange={async (updated) => {
                             setRecipes((prev) =>
                               prev?.map((x) =>
@@ -289,6 +291,23 @@ export default function RecipesPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function RecipesSkeleton() {
+  return (
+    <div className="grid animate-pulse gap-4 sm:grid-cols-2" aria-hidden>
+      {[0, 1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5"
+        >
+          <div className="h-4 w-3/4 rounded bg-stone-200 dark:bg-stone-800" />
+          <div className="h-3 w-1/3 rounded bg-stone-100 dark:bg-stone-800/70" />
+          <div className="h-6 w-24 rounded-full bg-stone-100 dark:bg-stone-800/70" />
+        </div>
+      ))}
+    </div>
   );
 }
 

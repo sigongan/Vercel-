@@ -95,7 +95,7 @@ export function MarginCalculator({ recipe }: { recipe: Recipe }) {
   const achievedGp = priceExGst > 0 ? (marginPerPortion / priceExGst) * 100 : 0;
 
   return (
-    <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-8 flex flex-col gap-6">
+    <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 sm:p-8 flex flex-col gap-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-base font-semibold text-stone-900 dark:text-stone-50">
           Cost &amp; Margin Calculator

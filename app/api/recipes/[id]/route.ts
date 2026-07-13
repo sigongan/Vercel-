@@ -13,26 +13,29 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const user = await getSessionUser();
   if (!user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+    return NextResponse.json({ signedIn: false });
   }
 
   const { id } = await params;
   const admin = createSupabaseAdminClient();
-  const { data, error } = await admin
-    .from("saved_recipes")
-    .select("id, title, recipe, collection, created_at")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const [{ data, error }, { data: profile }] = await Promise.all([
+    admin
+      .from("saved_recipes")
+      .select("id, title, recipe, collection, created_at")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    admin.from("profiles").select("plan").eq("id", user.id).maybeSingle(),
+  ]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   if (!data) {
-    return NextResponse.json({ error: "Not found." }, { status: 404 });
+    return NextResponse.json({ signedIn: true, notFound: true });
   }
 
-  return NextResponse.json({ recipe: data });
+  return NextResponse.json({ signedIn: true, plan: profile?.plan === "pro" ? "pro" : "free", recipe: data });
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {

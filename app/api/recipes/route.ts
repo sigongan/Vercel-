@@ -13,21 +13,27 @@ export async function GET() {
 
   const user = await getSessionUser();
   if (!user) {
-    return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+    return NextResponse.json({ signedIn: false });
   }
 
+  // Plan + recipes in one round trip (and in parallel) instead of making the
+  // client separately query auth, then profile, then this route.
   const admin = createSupabaseAdminClient();
-  const { data, error } = await admin
-    .from("saved_recipes")
-    .select("id, title, recipe, collection, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  const [{ data: profile }, { data: recipes, error }] = await Promise.all([
+    admin.from("profiles").select("plan").eq("id", user.id).maybeSingle(),
+    admin
+      .from("saved_recipes")
+      .select("id, title, recipe, collection, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ recipes: data ?? [] });
+  const plan = profile?.plan === "pro" ? "pro" : "free";
+  return NextResponse.json({ signedIn: true, plan, recipes: plan === "pro" ? (recipes ?? []) : [] });
 }
 
 export async function POST(request: Request) {

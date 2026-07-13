@@ -33,34 +33,38 @@ export function AuthPanel() {
 
   useEffect(() => {
     if (!SUPABASE_CONFIGURED) return;
-    const supabase = createSupabaseBrowserClient();
 
+    // One server round trip (auth + profile together) instead of two
+    // sequential Supabase calls from the browser.
     async function loadProfile() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
+      try {
+        const res = await fetch("/api/me");
+        const body = await res.json();
+        if (!body.signedIn) {
+          setProfile(null);
+          return;
+        }
+        setProfile({
+          email: body.email ?? null,
+          credits: body.credits ?? 0,
+          free_used_this_period: body.free_used_this_period ?? 0,
+          plan: body.plan ?? "free",
+        });
+      } catch {
         setProfile(null);
-        return;
       }
-
-      const { data } = await supabase
-        .from("profiles")
-        .select("email, credits, free_used_this_period, plan")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      setProfile(
-        data ?? { email: user.email ?? null, credits: 0, free_used_this_period: 0, plan: "free" }
-      );
     }
 
     loadProfile();
 
+    const supabase = createSupabaseBrowserClient();
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => loadProfile());
+    } = supabase.auth.onAuthStateChange((event) => {
+      // INITIAL_SESSION fires immediately on mount — loadProfile() above
+      // already covers it, so skip the duplicate request.
+      if (event !== "INITIAL_SESSION") loadProfile();
+    });
 
     return () => subscription.unsubscribe();
   }, []);

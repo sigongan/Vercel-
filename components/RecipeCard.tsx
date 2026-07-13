@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation } from "@/lib/i18n";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { RecipeEditForm } from "./RecipeEditForm";
 
 const SUPABASE_CONFIGURED = Boolean(
@@ -28,9 +27,12 @@ interface CardProps {
 export function RecipeCard({
   recipe,
   onRecipeChange,
+  saveable = true,
 }: {
   recipe: Recipe;
   onRecipeChange?: (recipe: Recipe) => void;
+  /** Hide the Save button where the recipe is already saved (My Recipes). */
+  saveable?: boolean;
 }) {
   const { language } = useLanguage();
   const t = translations[language];
@@ -96,7 +98,7 @@ export function RecipeCard({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {!editing && SUPABASE_CONFIGURED && <SaveButton recipe={recipe} t={t} />}
+          {!editing && saveable && SUPABASE_CONFIGURED && <SaveButton recipe={recipe} t={t} />}
           <button
             onClick={() => setEditing((e) => !e)}
             className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
@@ -150,7 +152,7 @@ export function RecipeCard({
 
 function ClassicCard({ recipe, steps, metas, t }: CardProps) {
   return (
-    <article className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-8 sm:p-10 shadow-sm flex flex-col gap-8">
+    <article className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 sm:p-10 shadow-sm flex flex-col gap-6 sm:gap-8">
       <header className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-orange-700 dark:text-orange-400">
@@ -162,7 +164,7 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
             </span>
           )}
         </div>
-        <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
+        <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
           {recipe.title}
         </h2>
         {recipe.description && (
@@ -171,7 +173,7 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
         {metas.length > 0 && (
           <dl className="mt-3 flex divide-x divide-stone-200 dark:divide-stone-800 border-y border-stone-200 dark:border-stone-800">
             {metas.map((m) => (
-              <div key={m.label} className="flex-1 px-5 py-3 first:pl-0">
+              <div key={m.label} className="flex-1 px-3 py-2.5 first:pl-0 sm:px-5 sm:py-3">
                 <dt className="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-400">
                   {m.label}
                 </dt>
@@ -182,7 +184,7 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
         )}
       </header>
 
-      <div className="grid gap-10 sm:grid-cols-[minmax(220px,260px)_1fr]">
+      <div className="grid gap-8 sm:gap-10 sm:grid-cols-[minmax(220px,260px)_1fr]">
         {recipe.ingredients.length > 0 && (
           <section className="flex flex-col gap-4">
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">
@@ -242,18 +244,18 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
 
 function MagazineCard({ recipe, steps, metas, t }: CardProps) {
   return (
-    <article className="rounded-2xl border border-[#e8e0d2] dark:border-[#2e261d] bg-[#faf6ef] dark:bg-[#181310] p-8 sm:p-12 flex flex-col gap-9">
+    <article className="rounded-2xl border border-[#e8e0d2] dark:border-[#2e261d] bg-[#faf6ef] dark:bg-[#181310] p-5 sm:p-12 flex flex-col gap-7 sm:gap-9">
       <header className="flex flex-col items-center gap-5 text-center">
         <div className="w-full border-t-2 border-b border-stone-800 dark:border-stone-400 py-2.5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.45em] text-stone-700 dark:text-stone-300">
             {t.recipe}
           </p>
         </div>
-        <h2 className="font-display text-4xl sm:text-5xl leading-[1.08] text-stone-900 dark:text-stone-100 max-w-xl">
+        <h2 className="font-display text-3xl sm:text-5xl leading-[1.12] sm:leading-[1.08] text-stone-900 dark:text-stone-100 max-w-xl">
           {recipe.title}
         </h2>
         {recipe.description && (
-          <p className="font-display italic text-lg text-stone-600 dark:text-stone-400 max-w-lg leading-relaxed">
+          <p className="font-display italic text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-lg leading-relaxed">
             {recipe.description}
           </p>
         )}
@@ -293,13 +295,13 @@ function MagazineCard({ recipe, steps, metas, t }: CardProps) {
           <h3 className="text-xs font-bold uppercase tracking-[0.35em] text-stone-800 dark:text-stone-200">
             {t.steps}
           </h3>
-          <ol className="flex flex-col gap-7">
+          <ol className="flex flex-col gap-6 sm:gap-7">
             {steps.map((step) => (
-              <li key={step.order} className="flex gap-6">
-                <span className="font-display text-5xl leading-none text-stone-300 dark:text-stone-600 select-none">
+              <li key={step.order} className="flex gap-4 sm:gap-6">
+                <span className="font-display text-4xl sm:text-5xl leading-none text-stone-300 dark:text-stone-600 select-none">
                   {String(step.order).padStart(2, "0")}
                 </span>
-                <p className="pt-2 text-[15px] leading-relaxed text-stone-800 dark:text-stone-300">
+                <p className="pt-1.5 sm:pt-2 text-[15px] leading-relaxed text-stone-800 dark:text-stone-300">
                   {step.instruction}
                 </p>
               </li>
@@ -319,13 +321,13 @@ function MagazineCard({ recipe, steps, metas, t }: CardProps) {
 
 function DiningCard({ recipe, steps, metas, t }: CardProps) {
   return (
-    <article className="rounded-2xl border border-amber-500/20 bg-stone-950 p-8 sm:p-12 text-stone-200 flex flex-col gap-9">
+    <article className="rounded-2xl border border-amber-500/20 bg-stone-950 p-5 sm:p-12 text-stone-200 flex flex-col gap-7 sm:gap-9">
       <header className="flex flex-col items-center gap-4 text-center">
         <GoldDivider />
         <p className="text-[10px] font-semibold uppercase tracking-[0.5em] text-amber-500/90">
           {t.recipe}
         </p>
-        <h2 className="font-display italic text-4xl sm:text-5xl leading-tight text-stone-50 max-w-xl">
+        <h2 className="font-display italic text-3xl sm:text-5xl leading-tight text-stone-50 max-w-xl">
           {recipe.title}
         </h2>
         {recipe.description && (
@@ -421,15 +423,10 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) {
-        setPlan(null);
-        return;
-      }
-      const { data } = await supabase.from("profiles").select("plan").eq("id", user.id).maybeSingle();
-      setPlan(data?.plan ?? "free");
-    });
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((body) => setPlan(body.signedIn ? (body.plan ?? "free") : null))
+      .catch(() => setPlan(null));
   }, []);
 
   if (plan === undefined) return null;
