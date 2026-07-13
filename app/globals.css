@@ -26,10 +26,16 @@ body {
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Print: show only the recipe card (.print-area), hide everything else. */
+/* Print: show only the recipe card (.print-area), compacted and
+   ink-friendly so a typical recipe fits a single A4 sheet. */
 @media print {
+  @page {
+    size: A4;
+    margin: 10mm 12mm;
+  }
+
   body {
-    background: white;
+    background: #fff;
   }
   body * {
     visibility: hidden;
@@ -43,5 +49,59 @@ body {
     left: 0;
     top: 0;
     width: 100%;
+  }
+  /* visibility:hidden keeps layout space, which pads the page out to
+     several near-blank sheets — actually collapse everything outside
+     .print-area so the card is the whole document. (Falls back to the
+     visibility-only behavior above in browsers without :has().) */
+  body *:not(.print-area):not(:has(.print-area)):not(.print-area *) {
+    display: none !important;
+  }
+
+  /* Flatten the card: no borders/shadows/padding, white background,
+     dark text everywhere (fixes the dark Fine Dining theme, whose
+     background isn't printed by default). */
+  .print-area article {
+    border: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    gap: 10pt !important;
+  }
+  .print-area article * {
+    color: #1c1917 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Compact typography tuned for one page. */
+  .print-area article h2 {
+    font-size: 20pt !important;
+    line-height: 1.15 !important;
+  }
+  .print-area article h3 {
+    font-size: 8.5pt !important;
+  }
+  .print-area article p,
+  .print-area article li,
+  .print-area article span,
+  .print-area article dt,
+  .print-area article dd,
+  .print-area article a {
+    font-size: 9.5pt !important;
+    line-height: 1.45 !important;
+  }
+  .print-area article header,
+  .print-area article section,
+  .print-area article footer {
+    gap: 6pt !important;
+  }
+  .print-area article ol,
+  .print-area article ul {
+    gap: 4pt !important;
+  }
+  .print-area article li {
+    break-inside: avoid;
   }
 }
