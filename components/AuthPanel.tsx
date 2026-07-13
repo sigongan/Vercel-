@@ -65,6 +65,15 @@ export function AuthPanel() {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    // Fired by "Sign in to save" buttons elsewhere on the page.
+    function openSignIn() {
+      setExpanded(true);
+    }
+    window.addEventListener("avocato:open-signin", openSignIn);
+    return () => window.removeEventListener("avocato:open-signin", openSignIn);
+  }, []);
+
   if (!SUPABASE_CONFIGURED) return null;
 
   async function handleSendLink(e: React.FormEvent) {

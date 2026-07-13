@@ -72,8 +72,8 @@ export function RecipeCard({
   ];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="print-area flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div className="flex items-center gap-3">
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-400">
             {t.styleLabel}
@@ -111,6 +111,15 @@ export function RecipeCard({
             >
               <CopyIcon />
               {copied ? t.copied : t.copy}
+            </button>
+          )}
+          {!editing && (
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+            >
+              <PrintIcon />
+              {t.print}
             </button>
           )}
         </div>
@@ -423,7 +432,22 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
     });
   }, []);
 
-  if (plan === undefined || plan === null) return null;
+  if (plan === undefined) return null;
+
+  if (plan === null) {
+    return (
+      <button
+        onClick={() => {
+          window.dispatchEvent(new Event("avocato:open-signin"));
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        className="flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 shadow-sm transition-colors hover:border-amber-500"
+      >
+        <BookmarkIcon />
+        {t.signInToSave}
+      </button>
+    );
+  }
 
   if (plan !== "pro") {
     return (
@@ -513,6 +537,25 @@ function CheckIcon() {
       strokeLinejoin="round"
     >
       <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function PrintIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="6 9 6 2 18 2 18 9" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" />
     </svg>
   );
 }

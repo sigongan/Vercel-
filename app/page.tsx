@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { RecipeExtractor } from "@/components/RecipeExtractor";
 import { AuthPanel } from "@/components/AuthPanel";
+import { LandingSections } from "@/components/LandingSections";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 
@@ -72,6 +73,8 @@ export default function Home() {
       <p className="relative z-[1] text-xs text-stone-400 dark:text-stone-500 text-center max-w-md leading-relaxed">
         {t.tip}
       </p>
+
+      <LandingSections />
 
       <footer className="relative z-[1] flex items-center gap-4 text-xs text-stone-400 dark:text-stone-600 mt-4">
         <Link href="/terms" className="hover:text-stone-600 dark:hover:text-stone-300 underline underline-offset-2">
