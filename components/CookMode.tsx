@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import type { Translation } from "@/lib/i18n";
+import { nativeKeepAwake } from "@/lib/nativeApp";
 
 /** Best-effort duration hint from an instruction, e.g. "simmer for 10-12 minutes". */
 function parseDurationSeconds(text: string): number | null {
@@ -45,9 +46,10 @@ export function CookMode({
   const goNext = useCallback(() => setIndex((i) => Math.min(i + 1, steps.length - 1)), [steps.length]);
   const goPrev = useCallback(() => setIndex((i) => Math.max(i - 1, 0)), []);
 
-  // Keep the screen awake for as long as Cook Mode is open — best effort,
-  // silently does nothing on browsers without the Wake Lock API (older
-  // Safari) or if the user denies it.
+  // Keep the screen awake for as long as Cook Mode is open. The native app
+  // (nativeKeepAwake) is the reliable path inside the Capacitor WKWebView,
+  // where the web Wake Lock API is spotty; both run so the plain website
+  // keeps working the same as before on real browsers.
   useEffect(() => {
     let cancelled = false;
 
@@ -62,6 +64,7 @@ export function CookMode({
     }
 
     requestLock();
+    nativeKeepAwake(true);
 
     function handleVisibility() {
       if (document.visibilityState === "visible" && !cancelled) requestLock();
@@ -73,6 +76,7 @@ export function CookMode({
       document.removeEventListener("visibilitychange", handleVisibility);
       wakeLockRef.current?.release().catch(() => {});
       wakeLockRef.current = null;
+      nativeKeepAwake(false);
     };
   }, []);
 
@@ -113,7 +117,7 @@ export function CookMode({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4">
+      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <button
           onClick={onClose}
           aria-label={t.cookModeExit}

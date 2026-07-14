@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { SITE_NAME, SITE_TAGLINE_EN, SITE_URL } from "@/lib/siteConfig";
+import { NativeAppInit } from "@/components/NativeAppInit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,6 +56,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <NativeAppInit />
         {children}
         <Analytics />
         <SpeedInsights />

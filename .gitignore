@@ -40,3 +40,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Capacitor iOS (generated on `npx cap add ios` — the ios/ project itself
+# should be committed, just not these CocoaPods/Xcode build artifacts)
+ios/App/Pods/
+ios/App/build/
+ios/App/DerivedData/
+ios/.build/
+xcuserdata/
+*.xcuserstate
