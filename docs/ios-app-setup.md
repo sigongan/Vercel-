@@ -4,6 +4,23 @@ Everything that can be prepared without a Mac is already done and pushed
 (Capacitor config, app icon/splash source images, native plugin wiring).
 This is the part that has to run on your Mac, in order.
 
+## Fast path: one script
+
+If you just want this done with minimal typing, open **Terminal** (Cmd+Space,
+type "Terminal") and paste this single line:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sigongan/Vercel-/claude/recipe-extraction-tool-hui8ci/scripts/setup-ios.sh | bash
+```
+
+It clones the project to `~/Desktop/avocato-app`, installs everything,
+generates the app icons, sets up the iOS project, and opens Xcode for you.
+It'll ask for your Mac password once (for CocoaPods, if not already
+installed). When Xcode opens, skip to **step 4** below (Signing & Capabilities).
+
+If you'd rather run each command yourself and see what's happening, or the
+script hits an error, follow the manual steps below instead.
+
 ## 0. Prerequisites
 
 - **Xcode** installed from the Mac App Store (free, but a large download — start it early)
