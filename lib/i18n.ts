@@ -35,7 +35,7 @@ export const translations = {
       AUTH_REQUIRED:
         "You've used your free trial for photos, videos & links. Sign in to get 5 more every month — pasting text stays free & unlimited.",
       QUOTA_EXCEEDED:
-        "You've used this month's photo, video & link extractions. Buy credits to keep going — pasting text stays free & unlimited.",
+        "You've used this month's photo, video & link extractions. Buy avocados to keep going (1 🥑 = 1 extraction) — pasting text stays free & unlimited.",
       RATE_LIMITED:
         "That's a lot of recipes for one day! Text extraction is free — the daily cap just prevents abuse. Please come back tomorrow.",
     },
@@ -47,8 +47,8 @@ export const translations = {
       signOut: "Sign out",
       signedInAs: "Signed in as",
       freeRemaining: (n: number) => `${n} free left this month`,
-      credits: (n: number) => `${n} credit${n === 1 ? "" : "s"}`,
-      buyCredits: `Buy ${CREDIT_PACK_SIZE} credits — $${CREDIT_PACK_PRICE_USD}`,
+      credits: (n: number) => `🥑 ${n} avocado${n === 1 ? "" : "s"}`,
+      buyCredits: `Buy ${CREDIT_PACK_SIZE} avocados — $${CREDIT_PACK_PRICE_USD}`,
       buying: "Redirecting…",
       signInPrompt: "Sign in to start extracting recipes",
       genericAuthError: "Something went wrong. Please try again.",
@@ -139,16 +139,16 @@ export const translations = {
       "Edit, copy & print",
     ],
     planFreeCta: "Start free",
-    planCreditsName: "Credit pack",
+    planCreditsName: "Avocado pack 🥑",
     planCreditsPrice: `$${CREDIT_PACK_PRICE_USD}`,
     planCreditsUnit: "one-time",
     planCreditsFeatures: [
-      `${CREDIT_PACK_SIZE} extractions`,
-      "Never expire",
+      `${CREDIT_PACK_SIZE} avocados = ${CREDIT_PACK_SIZE} extractions`,
+      "Avocados never expire",
       "Stack on top of free quota",
       "No subscription needed",
     ],
-    planCreditsCta: "Buy credits",
+    planCreditsCta: "Buy avocados",
     planProName: "Pro",
     planProPrice: `$${SUBSCRIPTION_PRICE_USD}`,
     planProUnit: "/month",
@@ -177,7 +177,7 @@ export const translations = {
       },
       {
         q: "Do unused free extractions roll over?",
-        a: "The monthly free allowance resets each month. Purchased credits never expire.",
+        a: "The monthly free allowance resets each month. Purchased avocados never expire.",
       },
     ],
     authLinkFailed:
@@ -214,7 +214,7 @@ export const translations = {
       AUTH_REQUIRED:
         "사진·영상·링크 무료 체험을 모두 사용했어요. 로그인하면 매달 5회 더 이용할 수 있어요 — 텍스트 붙여넣기는 언제나 무료예요.",
       QUOTA_EXCEEDED:
-        "이번 달 사진·영상·링크 추출 횟수를 모두 사용했어요. 크레딧을 구매하면 계속 이용할 수 있어요 — 텍스트 붙여넣기는 언제나 무료예요.",
+        "이번 달 사진·영상·링크 추출 횟수를 모두 사용했어요. 아보카도를 구매하면 계속 이용할 수 있어요 (🥑 1개 = 추출 1회) — 텍스트 붙여넣기는 언제나 무료예요.",
       RATE_LIMITED:
         "오늘 텍스트 추출 한도에 도달했어요. 텍스트 추출은 무료지만 악용 방지를 위해 하루 한도가 있어요. 내일 다시 이용해 주세요.",
     },
@@ -226,8 +226,8 @@ export const translations = {
       signOut: "로그아웃",
       signedInAs: "로그인:",
       freeRemaining: (n: number) => `이번 달 무료 ${n}회 남음`,
-      credits: (n: number) => `크레딧 ${n}개`,
-      buyCredits: `크레딧 ${CREDIT_PACK_SIZE}개 구매 — $${CREDIT_PACK_PRICE_USD}`,
+      credits: (n: number) => `🥑 아보카도 ${n}개`,
+      buyCredits: `아보카도 ${CREDIT_PACK_SIZE}개 구매 — $${CREDIT_PACK_PRICE_USD}`,
       buying: "이동 중…",
       signInPrompt: "레시피 추출을 시작하려면 로그인하세요",
       genericAuthError: "오류가 발생했습니다. 다시 시도해 주세요.",
@@ -318,16 +318,16 @@ export const translations = {
       "수정 · 복사 · 인쇄",
     ],
     planFreeCta: "무료로 시작",
-    planCreditsName: "크레딧 팩",
+    planCreditsName: "아보카도 팩 🥑",
     planCreditsPrice: `$${CREDIT_PACK_PRICE_USD}`,
     planCreditsUnit: "1회 결제",
     planCreditsFeatures: [
-      `추출 ${CREDIT_PACK_SIZE}회`,
-      "유효기간 없음",
+      `아보카도 ${CREDIT_PACK_SIZE}개 = 추출 ${CREDIT_PACK_SIZE}회`,
+      "아보카도는 유효기간 없음",
       "무료 횟수와 함께 사용",
       "구독 불필요",
     ],
-    planCreditsCta: "크레딧 구매",
+    planCreditsCta: "아보카도 구매",
     planProName: "Pro",
     planProPrice: `$${SUBSCRIPTION_PRICE_USD}`,
     planProUnit: "/월",
@@ -356,7 +356,7 @@ export const translations = {
       },
       {
         q: "안 쓴 무료 횟수는 이월되나요?",
-        a: "매달 무료 횟수는 매월 초기화됩니다. 구매한 크레딧은 유효기간이 없어요.",
+        a: "매달 무료 횟수는 매월 초기화됩니다. 구매한 아보카도는 유효기간이 없어요.",
       },
     ],
     authLinkFailed:

@@ -31,7 +31,7 @@ export async function POST(request: Request) {
             currency: "usd",
             unit_amount: CREDIT_PACK_PRICE_USD * 100,
             product_data: {
-              name: `${CREDIT_PACK_SIZE} recipe extraction credits`,
+              name: `${CREDIT_PACK_SIZE} avocados 🥑 (recipe extractions)`,
             },
           },
         },
