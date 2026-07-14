@@ -37,6 +37,11 @@ export const metadata: Metadata = {
     title: `${SITE_NAME} — Recipe Extractor`,
     description: SITE_TAGLINE_EN,
   },
+  appleWebApp: {
+    capable: true,
+    title: SITE_NAME,
+    statusBarStyle: "default",
+  },
 };
 
 export default function RootLayout({
