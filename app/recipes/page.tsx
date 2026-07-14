@@ -219,7 +219,9 @@ export default function RecipesPage() {
                   .map((r) => (
                   <li
                     key={r.id}
-                    className="group flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-sm transition-shadow hover:shadow-md"
+                    className={`group flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-sm transition-shadow hover:shadow-md ${
+                      openId === r.id ? "sm:col-span-2" : ""
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <button
