@@ -57,6 +57,12 @@ export default function Home() {
         >
           Margin Calculator
         </Link>
+        <Link
+          href="/alternatives"
+          className="hover:text-stone-600 dark:hover:text-stone-300 underline underline-offset-2"
+        >
+          Alternatives
+        </Link>
         <Link href="/terms" className="hover:text-stone-600 dark:hover:text-stone-300 underline underline-offset-2">
           {t.footerTerms}
         </Link>
