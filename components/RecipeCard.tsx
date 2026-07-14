@@ -6,6 +6,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation } from "@/lib/i18n";
 import { RecipeEditForm } from "./RecipeEditForm";
 import { CookMode } from "./CookMode";
+import { fitPrintArea, resetPrintArea } from "@/lib/printFit";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -43,6 +44,15 @@ export function RecipeCard({
   const [cookModeOpen, setCookModeOpen] = useState(false);
 
   const steps = useMemo(() => [...recipe.steps].sort((a, b) => a.order - b.order), [recipe.steps]);
+
+  useEffect(() => {
+    window.addEventListener("beforeprint", fitPrintArea);
+    window.addEventListener("afterprint", resetPrintArea);
+    return () => {
+      window.removeEventListener("beforeprint", fitPrintArea);
+      window.removeEventListener("afterprint", resetPrintArea);
+    };
+  }, []);
 
   const metas: Meta[] = [];
   if (recipe.servings) metas.push({ label: t.serves, value: recipe.servings });

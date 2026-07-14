@@ -67,7 +67,7 @@ body {
     background: #fff !important;
     box-shadow: none !important;
     padding: 0 !important;
-    gap: 10pt !important;
+    gap: calc(10pt * var(--print-scale, 1)) !important;
   }
   .print-area article * {
     color: #1c1917 !important;
@@ -75,13 +75,16 @@ body {
     box-shadow: none !important;
   }
 
-  /* Compact typography tuned for one page. */
+  /* Compact typography tuned for one page. Sizes scale down from these
+     bases via --print-scale, set by fitPrintArea() (lib/printFit.ts) right
+     before printing — a fixed size only fits a "typical" recipe; longer
+     ones need to shrink further to still land on a single sheet. */
   .print-area article h2 {
-    font-size: 20pt !important;
+    font-size: calc(20pt * var(--print-scale, 1)) !important;
     line-height: 1.15 !important;
   }
   .print-area article h3 {
-    font-size: 8.5pt !important;
+    font-size: calc(8.5pt * var(--print-scale, 1)) !important;
   }
   .print-area article p,
   .print-area article li,
@@ -89,17 +92,17 @@ body {
   .print-area article dt,
   .print-area article dd,
   .print-area article a {
-    font-size: 9.5pt !important;
+    font-size: calc(9.5pt * var(--print-scale, 1)) !important;
     line-height: 1.45 !important;
   }
   .print-area article header,
   .print-area article section,
   .print-area article footer {
-    gap: 6pt !important;
+    gap: calc(6pt * var(--print-scale, 1)) !important;
   }
   .print-area article ol,
   .print-area article ul {
-    gap: 4pt !important;
+    gap: calc(4pt * var(--print-scale, 1)) !important;
   }
   .print-area article li {
     break-inside: avoid;
