@@ -63,6 +63,9 @@ export default function Home() {
         >
           Alternatives
         </Link>
+        <Link href="/blog" className="hover:text-stone-600 dark:hover:text-stone-300 underline underline-offset-2">
+          Blog
+        </Link>
         <Link href="/terms" className="hover:text-stone-600 dark:hover:text-stone-300 underline underline-offset-2">
           {t.footerTerms}
         </Link>
