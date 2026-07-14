@@ -5,6 +5,7 @@ import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation } from "@/lib/i18n";
 import { RecipeEditForm } from "./RecipeEditForm";
+import { CookMode } from "./CookMode";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -39,6 +40,7 @@ export function RecipeCard({
   const [theme, setTheme] = useState<Theme>("classic");
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [cookModeOpen, setCookModeOpen] = useState(false);
 
   const steps = useMemo(() => [...recipe.steps].sort((a, b) => a.order - b.order), [recipe.steps]);
 
@@ -97,7 +99,16 @@ export function RecipeCard({
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {!editing && steps.length > 0 && (
+            <button
+              onClick={() => setCookModeOpen(true)}
+              className="flex items-center gap-1.5 rounded-full bg-orange-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-orange-700"
+            >
+              <CookIcon />
+              {t.cookMode}
+            </button>
+          )}
           {!editing && saveable && SUPABASE_CONFIGURED && <SaveButton recipe={recipe} t={t} />}
           <button
             onClick={() => setEditing((e) => !e)}
@@ -143,6 +154,10 @@ export function RecipeCard({
           {theme === "magazine" && <MagazineCard recipe={recipe} steps={steps} metas={metas} t={t} />}
           {theme === "dining" && <DiningCard recipe={recipe} steps={steps} metas={metas} t={t} />}
         </>
+      )}
+
+      {cookModeOpen && (
+        <CookMode recipe={recipe} steps={steps} t={t} onClose={() => setCookModeOpen(false)} />
       )}
     </div>
   );
@@ -534,6 +549,23 @@ function CheckIcon() {
       strokeLinejoin="round"
     >
       <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function CookIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none" />
     </svg>
   );
 }
