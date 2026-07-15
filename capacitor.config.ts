@@ -25,12 +25,12 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: "always",
-    backgroundColor: "#fafaf9",
+    backgroundColor: "#fdf3ec",
   },
   plugins: {
     SplashScreen: {
       launchAutoHide: false, // hidden manually once the first page finishes loading — see lib/nativeApp.ts
-      backgroundColor: "#fafaf9",
+      backgroundColor: "#fdf3ec",
     },
   },
 };
