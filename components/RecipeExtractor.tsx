@@ -7,6 +7,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { compressImageFile } from "@/lib/compressImage";
 import { AvocadoMark } from "@/lib/avocadoMark";
+import { SOURCE_ICONS } from "@/components/SourceIcons";
 
 type Tab = "file" | "url" | "text";
 
@@ -82,12 +83,16 @@ export function RecipeExtractor() {
   const [error, setError] = useState<SubmitError | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const recipeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (recipe)
-      recipeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (recipe) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [recipe]);
+
+  function backToStart() {
+    setRecipe(null);
+    setError(null);
+    setStatus("idle");
+  }
 
   async function handleFileSelected(selected: File | null) {
     if (!selected) {
@@ -199,8 +204,41 @@ export function RecipeExtractor() {
     return startExtraction({ kind: "text", text: text.trim() });
   }
 
+  if (recipe) {
+    return (
+      <div className="relative z-[1] w-full max-w-3xl flex flex-col gap-4 animate-fade-in-up">
+        <button
+          type="button"
+          onClick={backToStart}
+          className="self-start flex items-center gap-1.5 text-sm font-medium text-[#c98a6f] hover:text-[#7a4a3a] dark:hover:text-stone-200 transition-colors"
+        >
+          <BackIcon />
+          {t.backToStart}
+        </button>
+        <RecipeCard recipe={recipe} onRecipeChange={setRecipe} />
+      </div>
+    );
+  }
+
   return (
     <div className="relative z-[1] w-full flex flex-col items-center gap-10">
+      <header className="flex flex-col items-center gap-3 text-center max-w-2xl">
+        <p className="text-base sm:text-lg text-[#a97e6b] dark:text-stone-400 leading-relaxed max-w-xl">
+          {t.tagline}
+        </p>
+        <ul className="flex flex-wrap justify-center gap-2 mt-1">
+          {t.sources.map((source) => (
+            <li
+              key={source}
+              className="flex items-center gap-1.5 text-xs font-medium text-[#a97e6b] dark:text-stone-400 bg-white dark:bg-stone-900/70 shadow-[0_2px_8px_rgba(180,120,90,0.10)] dark:shadow-none border border-transparent dark:border-stone-800 rounded-full pl-2.5 pr-3 py-1"
+            >
+              {SOURCE_ICONS[source]}
+              {source}
+            </li>
+          ))}
+        </ul>
+      </header>
+
       <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_10px_34px_rgba(190,130,100,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
         {status === "loading" ? (
           <div className="flex flex-col items-center gap-4 py-14 animate-fade-in-up">
@@ -345,19 +383,17 @@ export function RecipeExtractor() {
               </button>
             </form>
 
-            {!recipe && (
-              <button
-                type="button"
-                onClick={() => {
-                  setRecipe(EXAMPLE_RECIPE);
-                  setError(null);
-                  setStatus("idle");
-                }}
-                className="self-center text-xs font-medium text-[#c98a6f] hover:text-[#7a4a3a] dark:hover:text-stone-200 underline underline-offset-2"
-              >
-                ✨ {t.tryExample}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                setRecipe(EXAMPLE_RECIPE);
+                setError(null);
+                setStatus("idle");
+              }}
+              className="self-center text-xs font-medium text-[#c98a6f] hover:text-[#7a4a3a] dark:hover:text-stone-200 underline underline-offset-2"
+            >
+              ✨ {t.tryExample}
+            </button>
           </>
         )}
       </div>
@@ -370,14 +406,9 @@ export function RecipeExtractor() {
         </div>
       )}
 
-      {recipe && (
-        <div
-          ref={recipeRef}
-          className="w-full max-w-3xl animate-fade-in-up scroll-mt-6"
-        >
-          <RecipeCard recipe={recipe} onRecipeChange={setRecipe} />
-        </div>
-      )}
+      <p className="text-xs text-[#c3a08d] dark:text-stone-500 text-center max-w-md leading-relaxed">
+        {t.tip}
+      </p>
     </div>
   );
 }
@@ -461,6 +492,24 @@ function TextIcon() {
       <line x1="4" y1="6" x2="20" y2="6" />
       <line x1="4" y1="12" x2="20" y2="12" />
       <line x1="4" y1="18" x2="14" y2="18" />
+    </svg>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
     </svg>
   );
 }

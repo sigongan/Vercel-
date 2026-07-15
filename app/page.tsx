@@ -2,7 +2,6 @@ import Link from "next/link";
 import { RecipeExtractor } from "@/components/RecipeExtractor";
 import { AuthPanel } from "@/components/AuthPanel";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
-import { SOURCE_ICONS } from "@/components/SourceIcons";
 import { translations } from "@/lib/i18n";
 import { AvocadoMark } from "@/lib/avocadoMark";
 
@@ -37,28 +36,7 @@ export default function Home() {
 
       <AuthErrorBanner />
 
-      <header className="relative z-[1] flex flex-col items-center gap-3 text-center max-w-2xl pt-2">
-        <p className="text-base sm:text-lg text-[#a97e6b] dark:text-stone-400 leading-relaxed max-w-xl">
-          {t.tagline}
-        </p>
-        <ul className="flex flex-wrap justify-center gap-2 mt-1">
-          {t.sources.map((source) => (
-            <li
-              key={source}
-              className="flex items-center gap-1.5 text-xs font-medium text-[#a97e6b] dark:text-stone-400 bg-white dark:bg-stone-900/70 shadow-[0_2px_8px_rgba(180,120,90,0.10)] dark:shadow-none border border-transparent dark:border-stone-800 rounded-full pl-2.5 pr-3 py-1"
-            >
-              {SOURCE_ICONS[source]}
-              {source}
-            </li>
-          ))}
-        </ul>
-      </header>
-
       <RecipeExtractor />
-
-      <p className="relative z-[1] text-xs text-[#c3a08d] dark:text-stone-500 text-center max-w-md leading-relaxed">
-        {t.tip}
-      </p>
 
       <footer className="relative z-[1] flex items-center gap-4 text-xs text-[#c3a08d] dark:text-stone-600 mt-4">
         <Link
