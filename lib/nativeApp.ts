@@ -59,6 +59,64 @@ export async function registerNativeShareListener() {
   }
 }
 
+const RECIPE_LINK_PATTERN =
+  /^https?:\/\/([a-z0-9-]+\.)*(youtube\.com|youtu\.be|tiktok\.com|instagram\.com|docs\.google\.com)\//i;
+
+// Tracks the last clipboard value we already prompted about, so resuming
+// the app repeatedly with the same link copied doesn't nag every time.
+// Resets on a fresh app launch (module state), which is fine — a slightly
+// stale prompt after a cold start is harmless.
+let lastPromptedClipboardValue: string | null = null;
+
+/**
+ * Many apps (YouTube's iOS app most notably) use their own custom share
+ * sheet instead of the system one, so our Share Extension never appears
+ * there no matter how it's configured. Clipboard detection sidesteps that
+ * entirely: works for any app whose "Copy link" a user taps, not just ones
+ * that use the system share sheet. Never auto-submits — always requires a
+ * tap, since silently acting on clipboard contents would be surprising.
+ */
+export async function checkClipboardForRecipeLink(): Promise<string | null> {
+  if (!isNativeApp()) return null;
+  try {
+    const { Clipboard } = await import("@capacitor/clipboard");
+    const { value } = await Clipboard.read();
+    const trimmed = value?.trim();
+    if (!trimmed || !RECIPE_LINK_PATTERN.test(trimmed)) return null;
+    if (trimmed === lastPromptedClipboardValue) return null;
+    lastPromptedClipboardValue = trimmed;
+    return trimmed;
+  } catch {
+    // Plugin not available, or the OS declined the read — skip silently.
+    return null;
+  }
+}
+
+/**
+ * Re-checks the clipboard every time the app returns to the foreground —
+ * exactly the moment right after someone copies a link in another app and
+ * switches back to Avocato. Also checks once immediately for a cold start
+ * right after copying.
+ */
+export async function registerClipboardWatcher(onDetect: (url: string) => void) {
+  if (!isNativeApp()) return;
+  try {
+    const { App } = await import("@capacitor/app");
+
+    async function check() {
+      const url = await checkClipboardForRecipeLink();
+      if (url) onDetect(url);
+    }
+
+    App.addListener("appStateChange", ({ isActive }) => {
+      if (isActive) check();
+    });
+    check();
+  } catch {
+    // Plugin not available — clipboard detection just won't fire.
+  }
+}
+
 /**
  * Cook Mode's screen-stays-awake guarantee. The web Wake Lock API
  * (wired in components/CookMode.tsx) works in Mobile Safari but is

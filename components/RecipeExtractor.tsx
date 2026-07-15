@@ -8,6 +8,7 @@ import { translations } from "@/lib/i18n";
 import { compressImageFile } from "@/lib/compressImage";
 import { AvocadoMark } from "@/lib/avocadoMark";
 import { SOURCE_ICONS } from "@/components/SourceIcons";
+import { registerClipboardWatcher } from "@/lib/nativeApp";
 
 type Tab = "file" | "url" | "text";
 
@@ -82,11 +83,20 @@ export function RecipeExtractor() {
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<SubmitError | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (recipe) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [recipe]);
+
+  // Covers apps (YouTube's iOS app most notably) that use their own custom
+  // share sheet instead of the system one, so our Share Extension never
+  // gets a chance to appear there. Re-checks the clipboard every time the
+  // app returns to the foreground; only offers to extract, never auto-runs.
+  useEffect(() => {
+    registerClipboardWatcher((detected) => setClipboardUrl(detected));
+  }, []);
 
   function backToStart() {
     setRecipe(null);
@@ -238,6 +248,36 @@ export function RecipeExtractor() {
           ))}
         </ul>
       </header>
+
+      {clipboardUrl && (
+        <div className="w-full max-w-2xl flex items-center gap-3 rounded-2xl border border-[#f0d2c0] bg-white dark:bg-stone-900 dark:border-stone-800 px-4 py-3 shadow-[0_4px_16px_rgba(190,130,100,0.10)]">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fbe4d5] dark:bg-stone-800 text-[#c98a6f] dark:text-stone-400">
+            <LinkIcon />
+          </span>
+          <p className="flex-1 text-sm text-[#7a4a3a] dark:text-stone-200">{t.clipboardLinkFound}</p>
+          <button
+            type="button"
+            onClick={() => {
+              const link = clipboardUrl;
+              setClipboardUrl(null);
+              setTab("url");
+              setUrl(link);
+              startExtraction({ kind: "url", url: link });
+            }}
+            className="shrink-0 rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+          >
+            {t.clipboardLinkExtract}
+          </button>
+          <button
+            type="button"
+            onClick={() => setClipboardUrl(null)}
+            aria-label={t.clipboardLinkDismiss}
+            className="shrink-0 text-[#c3a08d] hover:text-[#7a4a3a] dark:hover:text-stone-200 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_10px_34px_rgba(190,130,100,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
         {status === "loading" ? (

@@ -3,12 +3,23 @@
 The goal: watching a recipe on TikTok/YouTube → tap **Share** → tap
 **Avocato** → the app opens and starts extracting the recipe automatically.
 
-The web and Capacitor sides are already done and deployed:
+**Important limitation**: some apps (YouTube's iOS app being the biggest
+one) use their own custom share sheet instead of the system one — no
+third-party extension, ours included, can appear there no matter how it's
+configured. That's an Apple platform restriction, not something fixable on
+our end. To cover those apps too, the app also does **clipboard
+detection**: copy a link anywhere (e.g. YouTube's own "Copy link" button),
+switch to Avocato, and it offers a one-tap "Extract" banner. This works
+everywhere, including YouTube, and needs no Xcode setup beyond a normal
+`npm install` + `cap sync` — see the bottom of this doc.
+
+The web and Capacitor sides of the *share sheet* (Part 1/2 below) are
+already done and deployed:
 - `/?url=<link>` on the site auto-fills the Link tab and starts extraction
 - The app listens for `avocato://share?url=<link>` and navigates there
   (`lib/nativeApp.ts` → `registerNativeShareListener`)
 
-What's left needs Xcode. Two parts, ~10 minutes.
+What's left for the share sheet needs Xcode. Two parts, ~10 minutes.
 
 ## Part 1 — Give the app its `avocato://` URL scheme
 
@@ -74,3 +85,19 @@ What's left needs Xcode. Two parts, ~10 minutes.
 - **App opens but doesn't start extracting**: the app build is older than
   the deployed site. The site side updates automatically (remote-URL app),
   but force-quit and reopen the app once to pick up a fresh page load.
+
+## Clipboard detection (covers YouTube and anything without a real share sheet)
+
+No Xcode work needed for this one — it's pure web code, already pushed. Just
+pull it in:
+
+```bash
+git pull
+npm install
+npx cap sync ios
+```
+
+Then rebuild in Xcode. To test: in YouTube's app, tap **Share** → **Copy
+link**, switch to Avocato, and a "Found a recipe link on your clipboard"
+banner should appear with an **Extract** button. It re-checks every time the
+app comes back to the foreground, and never extracts without a tap.
