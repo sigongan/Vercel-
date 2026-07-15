@@ -30,6 +30,36 @@ export async function configureNativeStatusBar() {
 }
 
 /**
+ * Handles avocato://share?url=<link> — what the iOS share extension opens
+ * when someone shares a TikTok/YouTube link to Avocato. Navigates the
+ * webview to /?url=<link>, where RecipeExtractor auto-starts extraction.
+ * Covers both the warm case (app already running → appUrlOpen event) and
+ * the cold case (app launched by the URL → getLaunchUrl).
+ */
+export async function registerNativeShareListener() {
+  if (!isNativeApp()) return;
+  try {
+    const { App } = await import("@capacitor/app");
+
+    function handle(openedUrl: string | undefined) {
+      if (!openedUrl) return;
+      try {
+        const shared = new URL(openedUrl).searchParams.get("url");
+        if (shared) window.location.href = `/?url=${encodeURIComponent(shared)}`;
+      } catch {
+        // Not a URL we understand — ignore.
+      }
+    }
+
+    App.addListener("appUrlOpen", ({ url }) => handle(url));
+    const launch = await App.getLaunchUrl();
+    handle(launch?.url);
+  } catch {
+    // Plugin not available — share-sheet deep links just won't fire.
+  }
+}
+
+/**
  * Cook Mode's screen-stays-awake guarantee. The web Wake Lock API
  * (wired in components/CookMode.tsx) works in Mobile Safari but is
  * unreliable inside a Capacitor WKWebView — this native plugin is the

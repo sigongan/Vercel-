@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ExtractRecipeResult, Recipe } from "@/lib/types/recipe";
 import { RecipeCard } from "./RecipeCard";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -92,20 +92,19 @@ export function RecipeExtractor() {
       : error.message
     : null;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!canSubmit || status === "loading") return;
-
+  async function startExtraction(
+    input: { kind: "file"; file: File } | { kind: "url"; url: string } | { kind: "text"; text: string }
+  ) {
     setStatus("loading");
     setError(null);
     setRecipe(null);
 
     try {
-      const response = await (tab === "file"
-        ? submitFile(file as File, language)
-        : tab === "url"
-          ? submitJson({ url: url.trim(), lang: language })
-          : submitJson({ text: text.trim(), lang: language }));
+      const response = await (input.kind === "file"
+        ? submitFile(input.file, language)
+        : input.kind === "url"
+          ? submitJson({ url: input.url, lang: language })
+          : submitJson({ text: input.text, lang: language }));
 
       const rawBody = await response.text();
       let data: ExtractRecipeResult;
@@ -136,6 +135,32 @@ export function RecipeExtractor() {
       });
       setStatus("error");
     }
+  }
+
+  // Deep-link entry: /?url=<shared link> switches to the Link tab, fills it
+  // in, and starts extraction immediately. This is what the iOS share sheet
+  // ("Share → Avocato" from TikTok/YouTube) lands on, and it also makes
+  // shareable marketing links that demo the product in one tap.
+  useEffect(() => {
+    const shared = new URLSearchParams(window.location.search).get("url")?.trim();
+    if (!shared) return;
+    // Clear the query so a reload doesn't re-consume quota.
+    window.history.replaceState(null, "", window.location.pathname);
+    queueMicrotask(() => {
+      setTab("url");
+      setUrl(shared);
+      startExtraction({ kind: "url", url: shared });
+    });
+    // Run once on mount only — startExtraction is stable in practice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit || status === "loading") return;
+    if (tab === "file") return startExtraction({ kind: "file", file: file as File });
+    if (tab === "url") return startExtraction({ kind: "url", url: url.trim() });
+    return startExtraction({ kind: "text", text: text.trim() });
   }
 
   return (
