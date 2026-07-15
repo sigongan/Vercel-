@@ -19,8 +19,8 @@ export const translations = {
     urlPlaceholder: "https://youtube.com/watch?v=…  ·  TikTok  ·  Instagram  ·  Google Docs",
     textLabel: "Recipe text — always free, no limits",
     textPlaceholder: "Paste the recipe here — ingredients, steps, anything you've copied…",
-    extract: "Extract recipe",
-    extracting: "Extracting…",
+    extract: "Get my recipe",
+    extracting: "Whipping up your recipe…",
     tip: "Tip: screenshots and photos give the most accurate results. Links must be public or link-shared.",
     errors: {
       AI_NOT_CONFIGURED:
@@ -199,8 +199,8 @@ export const translations = {
     urlPlaceholder: "https://youtube.com/watch?v=…  ·  틱톡  ·  인스타그램  ·  구글 Docs",
     textLabel: "레시피 텍스트 — 언제나 무료, 무제한",
     textPlaceholder: "레시피 내용을 붙여넣어 주세요 — 재료, 만드는 법 등 복사한 글 무엇이든 좋아요…",
-    extract: "레시피 추출하기",
-    extracting: "추출 중…",
+    extract: "레시피 받기",
+    extracting: "레시피 만드는 중…",
     tip: "팁: 스크린샷과 사진이 가장 정확해요. 링크는 공개 또는 링크 공유 상태여야 합니다.",
     errors: {
       AI_NOT_CONFIGURED:

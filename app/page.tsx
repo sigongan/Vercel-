@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { RecipeExtractor } from "@/components/RecipeExtractor";
 import { AuthPanel } from "@/components/AuthPanel";
-import { LandingSections } from "@/components/LandingSections";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
 import { SOURCE_ICONS } from "@/components/SourceIcons";
 import { translations } from "@/lib/i18n";
@@ -11,7 +10,7 @@ const t = translations.en;
 
 export default function Home() {
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-12 px-5 pb-24 pt-6 bg-gradient-to-b from-[#fdf3ec] via-[#fbe9e2] to-[#fdf3ec] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
+    <main className="relative flex-1 flex flex-col items-center gap-10 px-5 pb-24 pt-6 bg-gradient-to-b from-[#fdf3ec] via-[#fbe9e2] to-[#fdf3ec] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
       <div
         aria-hidden
         className="pointer-events-none fixed top-[-60px] right-[-60px] h-56 w-56 rounded-full bg-[#ffd4c2] opacity-40 blur-3xl dark:hidden"
@@ -21,19 +20,21 @@ export default function Home() {
         className="pointer-events-none fixed bottom-24 left-[-60px] h-44 w-44 rounded-full bg-[#d9e8c4] opacity-40 blur-3xl dark:hidden"
       />
 
-      <div className="relative z-10 flex w-full max-w-2xl justify-end">
+      <nav className="relative z-10 flex w-full max-w-2xl items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#f7dcc8] to-[#f3c9ae] shadow-[0_4px_12px_rgba(210,140,100,0.25)] dark:from-stone-800 dark:to-stone-800">
+            <AvocadoMark size={22} />
+          </span>
+          <span className="font-display italic text-xl text-[#7a4a3a] dark:text-stone-50">
+            {t.title}
+          </span>
+        </Link>
         <AuthPanel />
-      </div>
+      </nav>
 
       <AuthErrorBanner />
 
-      <header className="relative z-[1] flex flex-col items-center gap-5 text-center max-w-2xl pt-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-gradient-to-br from-[#f7dcc8] to-[#f3c9ae] shadow-[0_8px_20px_rgba(210,140,100,0.25)] dark:from-stone-800 dark:to-stone-800">
-          <AvocadoMark size={38} />
-        </div>
-        <h1 className="font-display italic text-5xl sm:text-6xl tracking-tight text-[#7a4a3a] dark:text-stone-50">
-          {t.title}
-        </h1>
+      <header className="relative z-[1] flex flex-col items-center gap-3 text-center max-w-2xl pt-2">
         <p className="text-base sm:text-lg text-[#a97e6b] dark:text-stone-400 leading-relaxed max-w-xl">
           {t.tagline}
         </p>
@@ -56,8 +57,6 @@ export default function Home() {
         {t.tip}
       </p>
 
-      <LandingSections />
-
       <footer className="relative z-[1] flex items-center gap-4 text-xs text-[#c3a08d] dark:text-stone-600 mt-4">
         <Link
           href="/margin-calculator"
@@ -71,13 +70,22 @@ export default function Home() {
         >
           Alternatives
         </Link>
-        <Link href="/blog" className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2">
+        <Link
+          href="/blog"
+          className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2"
+        >
           Blog
         </Link>
-        <Link href="/terms" className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2">
+        <Link
+          href="/terms"
+          className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2"
+        >
           {t.footerTerms}
         </Link>
-        <Link href="/privacy" className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2">
+        <Link
+          href="/privacy"
+          className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2"
+        >
           {t.footerPrivacy}
         </Link>
       </footer>

@@ -6,6 +6,7 @@ import { RecipeCard } from "./RecipeCard";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { compressImageFile } from "@/lib/compressImage";
+import { AvocadoMark } from "@/lib/avocadoMark";
 
 type Tab = "file" | "url" | "text";
 
@@ -36,11 +37,30 @@ const EXAMPLE_RECIPE: Recipe = {
     { name: "salt & black pepper", amount: "to taste" },
   ],
   steps: [
-    { order: 1, instruction: "Cook spaghetti in well-salted water until al dente. Reserve a cup of pasta water." },
-    { order: 2, instruction: "Melt butter in a large pan over medium heat. Add garlic and chili flakes; cook 30 seconds until fragrant." },
-    { order: 3, instruction: "Add shrimp and cook 1–2 minutes per side until just pink." },
-    { order: 4, instruction: "Toss in the pasta with a splash of pasta water; swirl until the sauce turns glossy." },
-    { order: 5, instruction: "Finish with lemon juice and parsley. Season and serve immediately." },
+    {
+      order: 1,
+      instruction:
+        "Cook spaghetti in well-salted water until al dente. Reserve a cup of pasta water.",
+    },
+    {
+      order: 2,
+      instruction:
+        "Melt butter in a large pan over medium heat. Add garlic and chili flakes; cook 30 seconds until fragrant.",
+    },
+    {
+      order: 3,
+      instruction: "Add shrimp and cook 1–2 minutes per side until just pink.",
+    },
+    {
+      order: 4,
+      instruction:
+        "Toss in the pasta with a splash of pasta water; swirl until the sauce turns glossy.",
+    },
+    {
+      order: 5,
+      instruction:
+        "Finish with lemon juice and parsley. Season and serve immediately.",
+    },
   ],
   tags: ["pasta", "seafood", "quick", "weeknight"],
   confidence: "high",
@@ -62,6 +82,12 @@ export function RecipeExtractor() {
   const [error, setError] = useState<SubmitError | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recipeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (recipe)
+      recipeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [recipe]);
 
   async function handleFileSelected(selected: File | null) {
     if (!selected) {
@@ -93,7 +119,10 @@ export function RecipeExtractor() {
     : null;
 
   async function startExtraction(
-    input: { kind: "file"; file: File } | { kind: "url"; url: string } | { kind: "text"; text: string }
+    input:
+      | { kind: "file"; file: File }
+      | { kind: "url"; url: string }
+      | { kind: "text"; text: string },
   ) {
     setStatus("loading");
     setError(null);
@@ -111,11 +140,15 @@ export function RecipeExtractor() {
       try {
         data = JSON.parse(rawBody);
       } catch {
-        console.error("extract-recipe: non-JSON response", response.status, rawBody.slice(0, 500));
+        console.error(
+          "extract-recipe: non-JSON response",
+          response.status,
+          rawBody.slice(0, 500),
+        );
         throw new Error(
           response.status === 504 || response.status === 408
             ? "TIMEOUT"
-            : `HTTP_${response.status}`
+            : `HTTP_${response.status}`,
         );
       }
 
@@ -142,7 +175,9 @@ export function RecipeExtractor() {
   // ("Share → Avocato" from TikTok/YouTube) lands on, and it also makes
   // shareable marketing links that demo the product in one tap.
   useEffect(() => {
-    const shared = new URLSearchParams(window.location.search).get("url")?.trim();
+    const shared = new URLSearchParams(window.location.search)
+      .get("url")
+      ?.trim();
     if (!shared) return;
     // Clear the query so a reload doesn't re-consume quota.
     window.history.replaceState(null, "", window.location.pathname);
@@ -158,7 +193,8 @@ export function RecipeExtractor() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit || status === "loading") return;
-    if (tab === "file") return startExtraction({ kind: "file", file: file as File });
+    if (tab === "file")
+      return startExtraction({ kind: "file", file: file as File });
     if (tab === "url") return startExtraction({ kind: "url", url: url.trim() });
     return startExtraction({ kind: "text", text: text.trim() });
   }
@@ -166,141 +202,179 @@ export function RecipeExtractor() {
   return (
     <div className="relative z-[1] w-full flex flex-col items-center gap-10">
       <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_10px_34px_rgba(190,130,100,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
-        <div className="grid grid-cols-3 gap-1 rounded-full bg-[#fbeee6] dark:bg-stone-800 p-1">
-          <TabButton active={tab === "file"} onClick={() => setTab("file")} icon={<UploadIcon />}>
-            {t.tabFile}
-          </TabButton>
-          <TabButton active={tab === "url"} onClick={() => setTab("url")} icon={<LinkIcon />}>
-            {t.tabUrl}
-          </TabButton>
-          <TabButton active={tab === "text"} onClick={() => setTab("text")} icon={<TextIcon />}>
-            {t.tabText}
-            <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-              {t.tabTextFreeBadge}
-            </span>
-          </TabButton>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          {tab === "file" && (
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => fileInputRef.current?.click()}
-              onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const dropped = e.dataTransfer.files?.[0];
-                if (dropped) handleFileSelected(dropped);
-              }}
-              className="rounded-[24px] border-2 border-dashed border-[#f0d2c0] dark:border-stone-700 bg-[#fef8f4] dark:bg-stone-950/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-[#e0785680] hover:bg-[#fbeee6] dark:hover:bg-stone-800/50"
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={ACCEPTED_FILE_TYPES}
-                className="hidden"
-                onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)}
-              />
-              <span className="flex items-center justify-center w-13 h-13 rounded-full bg-[#fbe4d5] dark:bg-stone-800 text-[#c98a6f] dark:text-stone-400">
-                <UploadIcon size={22} />
-              </span>
-              {preparingFile ? (
-                <span className="text-sm text-[#a97e6b] dark:text-stone-400">{t.preparingFile}</span>
-              ) : file ? (
-                <span className="flex items-center gap-2 text-sm font-medium text-[#7a4a3a] dark:text-stone-200">
-                  {file.name}
-                  <span className="text-[#c3a08d] font-normal">
-                    {(file.size / 1024).toFixed(0)} KB
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={t.clearFile}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setFile(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                    className="text-[#c3a08d] hover:text-[#7a4a3a] dark:hover:text-stone-200 transition-colors"
-                  >
-                    ✕
-                  </button>
-                </span>
-              ) : (
-                <>
-                  <span className="text-[15px] font-medium text-[#7a4a3a] dark:text-stone-200">
-                    {t.uploadTitle}
-                  </span>
-                  <span className="text-xs text-[#c3a08d]">{t.uploadHint}</span>
-                </>
-              )}
+        {status === "loading" ? (
+          <div className="flex flex-col items-center gap-4 py-14 animate-fade-in-up">
+            <div className="animate-avocado-spin">
+              <AvocadoMark size={56} />
             </div>
-          )}
+            <p className="text-sm font-medium text-[#a97e6b] dark:text-stone-400">
+              {t.extracting}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-3 gap-1 rounded-full bg-[#fbeee6] dark:bg-stone-800 p-1">
+              <TabButton
+                active={tab === "file"}
+                onClick={() => setTab("file")}
+                icon={<UploadIcon />}
+              >
+                {t.tabFile}
+              </TabButton>
+              <TabButton
+                active={tab === "url"}
+                onClick={() => setTab("url")}
+                icon={<LinkIcon />}
+              >
+                {t.tabUrl}
+              </TabButton>
+              <TabButton
+                active={tab === "text"}
+                onClick={() => setTab("text")}
+                icon={<TextIcon />}
+              >
+                {t.tabText}
+                <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+                  {t.tabTextFreeBadge}
+                </span>
+              </TabButton>
+            </div>
 
-          {tab === "url" && (
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#7a4a3a] dark:text-stone-300">{t.urlLabel}</span>
-              <input
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder={t.urlPlaceholder}
-                className="w-full rounded-xl border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm text-[#6b4a3f] dark:text-stone-100 placeholder-[#c3a08d] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10 dark:focus:ring-stone-100/5"
-              />
-            </label>
-          )}
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              {tab === "file" && (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => fileInputRef.current?.click()}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && fileInputRef.current?.click()
+                  }
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const dropped = e.dataTransfer.files?.[0];
+                    if (dropped) handleFileSelected(dropped);
+                  }}
+                  className="rounded-[24px] border-2 border-dashed border-[#f0d2c0] dark:border-stone-700 bg-[#fef8f4] dark:bg-stone-950/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-[#e0785680] hover:bg-[#fbeee6] dark:hover:bg-stone-800/50"
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ACCEPTED_FILE_TYPES}
+                    className="hidden"
+                    onChange={(e) =>
+                      handleFileSelected(e.target.files?.[0] ?? null)
+                    }
+                  />
+                  <span className="flex items-center justify-center w-13 h-13 rounded-full bg-[#fbe4d5] dark:bg-stone-800 text-[#c98a6f] dark:text-stone-400">
+                    <UploadIcon size={22} />
+                  </span>
+                  {preparingFile ? (
+                    <span className="text-sm text-[#a97e6b] dark:text-stone-400">
+                      {t.preparingFile}
+                    </span>
+                  ) : file ? (
+                    <span className="flex items-center gap-2 text-sm font-medium text-[#7a4a3a] dark:text-stone-200">
+                      {file.name}
+                      <span className="text-[#c3a08d] font-normal">
+                        {(file.size / 1024).toFixed(0)} KB
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={t.clearFile}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFile(null);
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = "";
+                        }}
+                        className="text-[#c3a08d] hover:text-[#7a4a3a] dark:hover:text-stone-200 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-[15px] font-medium text-[#7a4a3a] dark:text-stone-200">
+                        {t.uploadTitle}
+                      </span>
+                      <span className="text-xs text-[#c3a08d]">
+                        {t.uploadHint}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
 
-          {tab === "text" && (
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#7a4a3a] dark:text-stone-300">{t.textLabel}</span>
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder={t.textPlaceholder}
-                rows={8}
-                className="w-full resize-y rounded-xl border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm leading-relaxed text-[#6b4a3f] dark:text-stone-100 placeholder-[#c3a08d] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10 dark:focus:ring-stone-100/5"
-              />
-            </label>
-          )}
+              {tab === "url" && (
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-[#7a4a3a] dark:text-stone-300">
+                    {t.urlLabel}
+                  </span>
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder={t.urlPlaceholder}
+                    className="w-full rounded-xl border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm text-[#6b4a3f] dark:text-stone-100 placeholder-[#c3a08d] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10 dark:focus:ring-stone-100/5"
+                  />
+                </label>
+              )}
 
-          <button
-            type="submit"
-            disabled={!canSubmit || status === "loading"}
-            className="w-full rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] text-white dark:bg-stone-100 dark:text-stone-900 py-3.5 text-[15px] font-semibold shadow-[0_8px_20px_rgba(224,120,86,0.35)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
-          >
-            {status === "loading" && (
-              <span className="inline-block animate-spin text-lg leading-none" aria-hidden>
-                🥑
-              </span>
+              {tab === "text" && (
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-[#7a4a3a] dark:text-stone-300">
+                    {t.textLabel}
+                  </span>
+                  <textarea
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder={t.textPlaceholder}
+                    rows={8}
+                    className="w-full resize-y rounded-xl border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm leading-relaxed text-[#6b4a3f] dark:text-stone-100 placeholder-[#c3a08d] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10 dark:focus:ring-stone-100/5"
+                  />
+                </label>
+              )}
+
+              <button
+                type="submit"
+                disabled={!canSubmit}
+                className="w-full rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] text-white dark:bg-stone-100 dark:text-stone-900 py-3.5 text-[15px] font-semibold shadow-[0_8px_20px_rgba(224,120,86,0.35)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
+              >
+                {t.extract}
+              </button>
+            </form>
+
+            {!recipe && (
+              <button
+                type="button"
+                onClick={() => {
+                  setRecipe(EXAMPLE_RECIPE);
+                  setError(null);
+                  setStatus("idle");
+                }}
+                className="self-center text-xs font-medium text-[#c98a6f] hover:text-[#7a4a3a] dark:hover:text-stone-200 underline underline-offset-2"
+              >
+                ✨ {t.tryExample}
+              </button>
             )}
-            {status === "loading" ? t.extracting : t.extract}
-          </button>
-        </form>
-
-        {!recipe && status !== "loading" && (
-          <button
-            type="button"
-            onClick={() => {
-              setRecipe(EXAMPLE_RECIPE);
-              setError(null);
-              setStatus("idle");
-            }}
-            className="self-center text-xs font-medium text-[#c98a6f] hover:text-[#7a4a3a] dark:hover:text-stone-200 underline underline-offset-2"
-          >
-            ✨ {t.tryExample}
-          </button>
+          </>
         )}
       </div>
 
       {status === "error" && errorMessage && (
         <div className="w-full max-w-2xl rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 px-5 py-4">
-          <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed">{errorMessage}</p>
+          <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed">
+            {errorMessage}
+          </p>
         </div>
       )}
 
       {recipe && (
-        <div className="w-full max-w-3xl">
+        <div
+          ref={recipeRef}
+          className="w-full max-w-3xl animate-fade-in-up scroll-mt-6"
+        >
           <RecipeCard recipe={recipe} onRecipeChange={setRecipe} />
         </div>
       )}
