@@ -454,22 +454,10 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
       .catch(() => setPlan(null));
   }, []);
 
-  if (plan === undefined) return null;
-
-  if (plan === null) {
-    return (
-      <button
-        onClick={() => {
-          window.dispatchEvent(new Event("avocato:open-signin"));
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
-        className="flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 shadow-sm transition-colors hover:border-amber-500"
-      >
-        <BookmarkIcon />
-        {t.signInToSave}
-      </button>
-    );
-  }
+  // Signed out: no sign-in UI exists right now (removed from the top nav
+  // for now), so there's nowhere for this button to send people — hide it
+  // rather than show a dead end.
+  if (plan === undefined || plan === null) return null;
 
   if (plan !== "pro") {
     return (

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { RecipeExtractor } from "@/components/RecipeExtractor";
-import { AuthPanel } from "@/components/AuthPanel";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
 import { translations } from "@/lib/i18n";
 import { AvocadoMark } from "@/lib/avocadoMark";
@@ -20,9 +19,6 @@ export default function Home() {
       />
 
       <nav className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-3">
-        <div className="flex w-full justify-end">
-          <AuthPanel />
-        </div>
         <Link href="/" className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f7dcc8] to-[#f3c9ae] shadow-[0_4px_12px_rgba(210,140,100,0.25)] dark:from-stone-800 dark:to-stone-800">
             <AvocadoMark size={30} />
