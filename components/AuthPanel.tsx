@@ -134,9 +134,10 @@ export function AuthPanel() {
       return (
         <button
           onClick={() => setExpanded(true)}
-          className="rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 px-5 py-2.5 text-sm font-medium shadow-sm transition-colors hover:bg-stone-700 dark:hover:bg-stone-300 whitespace-nowrap"
+          aria-label={t.signInLink}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600 dark:hover:bg-stone-900 dark:hover:text-stone-300"
         >
-          {t.signInLink}
+          <PersonIcon />
         </button>
       );
     }
@@ -236,6 +237,24 @@ export function AuthPanel() {
         {t.signOut}
       </button>
     </div>
+  );
+}
+
+function PersonIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" />
+    </svg>
   );
 }
 
