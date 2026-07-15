@@ -17,13 +17,13 @@ export function NativeAppInit() {
     configureNativeStatusBar();
     registerNativeShareListener();
 
-    // Let the spinning avocado play for a beat so the handoff from the
+    // Let the bouncing avocado play a couple hops so the handoff from the
     // native launch image doesn't feel like an abrupt cut, then hand off
     // to the real page.
     const timer = setTimeout(() => {
       hideNativeSplashScreen();
       setShowSplash(false);
-    }, 700);
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -32,11 +32,12 @@ export function NativeAppInit() {
   return (
     <div
       aria-hidden
-      className="fixed inset-0 z-[999] flex items-center justify-center bg-[#fdf3ec]"
+      className="fixed inset-0 z-[999] flex flex-col items-center justify-center gap-4 bg-[#fdf3ec]"
     >
-      <div className="animate-avocado-spin">
+      <div className="animate-avocado-bounce">
         <AvocadoMark size={64} />
       </div>
+      <div className="h-2.5 w-11 rounded-full bg-[#b5573b] animate-avocado-bounce-shadow" />
     </div>
   );
 }
