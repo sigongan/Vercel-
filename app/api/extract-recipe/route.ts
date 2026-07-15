@@ -5,11 +5,7 @@ import { parseRecipeFromContent, AiNotConfiguredError, RecipeParseError } from "
 import type { Language } from "@/lib/i18n";
 import type { ExtractRecipeResult } from "@/lib/types/recipe";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getSessionUser, consumeQuota } from "@/lib/usage";
-import { consumeAnonQuota } from "@/lib/anonQuota";
-import { consumeAnonIpQuota, consumeTextIpQuota, getClientIp } from "@/lib/anonIpQuota";
-import { isAdminEmail } from "@/lib/admin";
-import { ANON_COOKIE_NAME } from "@/lib/billingConstants";
+import { consumeTextIpQuota, getClientIp } from "@/lib/anonIpQuota";
 import { hashSource, getCachedRecipe, setCachedRecipe } from "@/lib/recipeCache";
 
 export const runtime = "nodejs";
@@ -36,26 +32,9 @@ function asLanguage(value: unknown): Language {
 export async function POST(req: NextRequest) {
   const contentType = req.headers.get("content-type") ?? "";
 
-  // Set only once an anonymous trial use has actually been consumed, so it's
-  // persisted on every response from that point on — success or failure —
-  // matching how a logged-in user's DB quota is decremented up front too.
-  let anonCookieToSet: string | null = null;
-
   function fail(error: string, code: ErrorCode, status: number) {
     const body: ExtractRecipeResult = { ok: false, error: { error, code } };
-    return withAnonCookie(NextResponse.json(body, { status }));
-  }
-
-  function withAnonCookie(response: NextResponse) {
-    if (anonCookieToSet) {
-      response.cookies.set(ANON_COOKIE_NAME, anonCookieToSet, {
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 365,
-        path: "/",
-      });
-    }
-    return response;
+    return NextResponse.json(body, { status });
   }
 
   try {
@@ -78,7 +57,7 @@ export async function POST(req: NextRequest) {
       }
 
       const body: ExtractRecipeResult = { ok: true, recipe };
-      return withAnonCookie(NextResponse.json(body));
+      return NextResponse.json(body);
     }
 
     if (gated) {
@@ -88,10 +67,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(body);
       }
 
-      // Pasted text is free and unlimited for everyone — signed in or not.
-      // It's cheap to process, and metering it just pushes people away
-      // before they see the product. The only gate is a generous per-IP
-      // daily cap as an abuse/cost backstop (fail-open like the rest).
+      // Extraction is unmetered for everyone right now — no login wall, no
+      // monthly quota — while we figure out what a real limits/pricing
+      // design should look like. Text keeps a generous per-IP daily cap as
+      // an abuse/cost backstop; file/URL extraction has none yet, so revisit
+      // this if usage spikes before a real design is in place.
       if (input.kind === "text") {
         const ip = getClientIp(req);
         if (ip) {
@@ -108,59 +88,6 @@ export async function POST(req: NextRequest) {
             console.error("text IP cap check failed; allowing through", capErr);
           }
         }
-        return await runExtraction();
-      }
-
-      // Auth/quota checks hit Supabase over the network (session lookup, the
-      // consume_quota RPC). Login/billing is a value-add, not the core
-      // product — if Supabase is misconfigured or unreachable, let the
-      // request through rather than 500ing an otherwise-working extraction.
-      try {
-        const user = await getSessionUser();
-
-        if (user && isAdminEmail(user.email)) {
-          // Admin accounts skip quota entirely — no free-limit or credit checks.
-        } else if (user) {
-          const quota = await consumeQuota(user.id);
-          if (!quota.allowed) {
-            return fail(
-              "이번 달 사진·영상·링크 추출 횟수를 모두 사용했어요. 크레딧을 구매하면 계속 이용할 수 있어요 — 텍스트 붙여넣기는 언제나 무료예요.",
-              "QUOTA_EXCEEDED",
-              402
-            );
-          }
-        } else {
-          const anon = consumeAnonQuota(req.cookies.get(ANON_COOKIE_NAME)?.value);
-          if (!anon.allowed) {
-            return fail(
-              "사진·영상·링크 무료 체험을 모두 사용했어요. 로그인하면 매달 5회 더 이용할 수 있어요 — 텍스트 붙여넣기는 언제나 무료예요.",
-              "AUTH_REQUIRED",
-              401
-            );
-          }
-
-          // Second, harder-to-bypass gate: a server-side counter keyed by
-          // IP hash, so clearing cookies / incognito doesn't reset the trial.
-          const ip = getClientIp(req);
-          if (ip) {
-            try {
-              const ipQuota = await consumeAnonIpQuota(ip);
-              if (!ipQuota.allowed) {
-                return fail(
-                  "사진·영상·링크 무료 체험을 모두 사용했어요. 로그인하면 매달 5회 더 이용할 수 있어요 — 텍스트 붙여넣기는 언제나 무료예요.",
-                  "AUTH_REQUIRED",
-                  401
-                );
-              }
-            } catch (ipErr) {
-              console.error("anon IP quota check failed; allowing through on cookie check alone", ipErr);
-            }
-          }
-
-          anonCookieToSet = anon.nextCookieValue;
-        }
-      } catch (gatingErr) {
-        console.error("auth/quota check failed; allowing request through ungated", gatingErr);
       }
     }
 

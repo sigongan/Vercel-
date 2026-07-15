@@ -272,9 +272,6 @@ export function RecipeExtractor() {
                 icon={<TextIcon />}
               >
                 {t.tabText}
-                <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/60 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-                  {t.tabTextFreeBadge}
-                </span>
               </TabButton>
             </div>
 
