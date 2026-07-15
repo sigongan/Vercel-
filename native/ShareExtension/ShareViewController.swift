@@ -42,12 +42,24 @@ class ShareViewController: UIViewController {
     }
 
     private func openInAvocato(_ shared: String) {
-        let encoded = shared.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? shared
+        // TikTok/Instagram sometimes share a caption + link as plain text
+        // instead of a proper URL attachment — pull just the link out, since
+        // the server rejects anything that isn't a clean URL outright.
+        let link = firstURL(in: shared) ?? shared
+        let encoded = link.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? link
         guard let url = URL(string: "avocato://share?url=\(encoded)") else { return complete() }
         DispatchQueue.main.async {
             self.openURLViaResponderChain(url)
             self.complete()
         }
+    }
+
+    private func firstURL(in text: String) -> String? {
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
+            return nil
+        }
+        let range = NSRange(text.startIndex..., in: text)
+        return detector.firstMatch(in: text, options: [], range: range)?.url?.absoluteString
     }
 
     /// Extensions can't use UIApplication.shared, but the hosting app's
