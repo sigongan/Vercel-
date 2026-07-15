@@ -36,39 +36,6 @@ export default function Home() {
       <AuthErrorBanner />
 
       <RecipeExtractor />
-
-      <footer className="relative z-[1] flex items-center gap-4 text-xs text-[#c3a08d] dark:text-stone-600 mt-4">
-        <Link
-          href="/margin-calculator"
-          className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2"
-        >
-          Margin Calculator
-        </Link>
-        <Link
-          href="/alternatives"
-          className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2"
-        >
-          Alternatives
-        </Link>
-        <Link
-          href="/blog"
-          className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2"
-        >
-          Blog
-        </Link>
-        <Link
-          href="/terms"
-          className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2"
-        >
-          {t.footerTerms}
-        </Link>
-        <Link
-          href="/privacy"
-          className="hover:text-[#7a4a3a] dark:hover:text-stone-300 underline underline-offset-2"
-        >
-          {t.footerPrivacy}
-        </Link>
-      </footer>
     </main>
   );
 }

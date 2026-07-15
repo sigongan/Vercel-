@@ -405,10 +405,6 @@ export function RecipeExtractor() {
           </p>
         </div>
       )}
-
-      <p className="text-xs text-[#c3a08d] dark:text-stone-500 text-center max-w-md leading-relaxed">
-        {t.tip}
-      </p>
     </div>
   );
 }
