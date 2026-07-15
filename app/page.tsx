@@ -8,7 +8,7 @@ const t = translations.en;
 
 export default function Home() {
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-10 px-5 pb-24 pt-6 bg-gradient-to-b from-[#fdf3ec] via-[#fbe9e2] to-[#fdf3ec] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
+    <main className="relative flex-1 flex flex-col items-center justify-center gap-8 px-5 py-10 bg-gradient-to-b from-[#fdf3ec] via-[#fbe9e2] to-[#fdf3ec] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
       <div
         aria-hidden
         className="pointer-events-none fixed top-[-60px] right-[-60px] h-56 w-56 rounded-full bg-[#ffd4c2] opacity-40 blur-3xl dark:hidden"
