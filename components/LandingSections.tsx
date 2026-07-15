@@ -8,7 +8,7 @@ export function LandingSections() {
     <div className="relative z-[1] w-full flex flex-col items-center gap-24 pt-12">
       {/* How it works */}
       <section className="w-full max-w-4xl flex flex-col items-center gap-10">
-        <h2 className="font-display text-3xl sm:text-4xl tracking-tight text-stone-900 dark:text-stone-50">
+        <h2 className="font-display italic text-3xl sm:text-4xl tracking-tight text-[#7a4a3a] dark:text-stone-50">
           {t.howTitle}
         </h2>
         <ol className="grid w-full gap-4 sm:grid-cols-3">
@@ -19,18 +19,18 @@ export function LandingSections() {
           ].map((step, i) => (
             <li
               key={step.title}
-              className="flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6"
+              className="flex flex-col gap-3 rounded-3xl border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 p-6 shadow-[0_6px_20px_rgba(190,130,100,0.10)] dark:shadow-none"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] dark:bg-stone-100 text-white dark:text-stone-900">
                   {step.icon}
                 </span>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-400">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#d9b8a8]">
                   {String(i + 1).padStart(2, "0")}
                 </span>
               </div>
-              <h3 className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">{step.title}</h3>
-              <p className="text-sm leading-relaxed text-stone-500 dark:text-stone-400">{step.desc}</p>
+              <h3 className="text-[15px] font-semibold text-[#7a4a3a] dark:text-stone-100">{step.title}</h3>
+              <p className="text-sm leading-relaxed text-[#a97e6b] dark:text-stone-400">{step.desc}</p>
             </li>
           ))}
         </ol>
@@ -40,14 +40,14 @@ export function LandingSections() {
 
       {/* FAQ */}
       <section className="w-full max-w-2xl flex flex-col items-center gap-8">
-        <h2 className="font-display text-3xl sm:text-4xl tracking-tight text-stone-900 dark:text-stone-50">
+        <h2 className="font-display italic text-3xl sm:text-4xl tracking-tight text-[#7a4a3a] dark:text-stone-50">
           {t.faqTitle}
         </h2>
-        <dl className="w-full flex flex-col divide-y divide-stone-200 dark:divide-stone-800 border-y border-stone-200 dark:border-stone-800">
+        <dl className="w-full flex flex-col divide-y divide-[#f3ddce] dark:divide-stone-800 border-y border-[#f3ddce] dark:border-stone-800">
           {t.faq.map((item) => (
             <div key={item.q} className="py-5 flex flex-col gap-1.5">
-              <dt className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">{item.q}</dt>
-              <dd className="text-sm leading-relaxed text-stone-500 dark:text-stone-400">{item.a}</dd>
+              <dt className="text-[15px] font-semibold text-[#7a4a3a] dark:text-stone-100">{item.q}</dt>
+              <dd className="text-sm leading-relaxed text-[#a97e6b] dark:text-stone-400">{item.a}</dd>
             </div>
           ))}
         </dl>

@@ -31,10 +31,10 @@ export function PricingSection() {
 
   return (
     <section className="w-full max-w-4xl flex flex-col items-center gap-3">
-      <h2 className="font-display text-3xl sm:text-4xl tracking-tight text-stone-900 dark:text-stone-50">
+      <h2 className="font-display italic text-3xl sm:text-4xl tracking-tight text-[#7a4a3a] dark:text-stone-50">
         {t.pricingTitle}
       </h2>
-      <p className="text-sm text-stone-500 dark:text-stone-400">{t.pricingSubtitle}</p>
+      <p className="text-sm text-[#a97e6b] dark:text-stone-400">{t.pricingSubtitle}</p>
 
       <div className="mt-7 grid w-full gap-4 sm:grid-cols-3">
         <PlanCard
@@ -63,7 +63,7 @@ export function PricingSection() {
           onClick={() => startCheckout("/api/stripe/checkout")}
         />
       </div>
-      {billingMsg && <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{billingMsg}</p>}
+      {billingMsg && <p className="mt-2 text-xs text-[#c98a6f] dark:text-amber-400">{billingMsg}</p>}
     </section>
   );
 }
@@ -89,27 +89,27 @@ function PlanCard({
 }) {
   return (
     <div
-      className={`relative flex flex-col gap-5 rounded-2xl border p-6 ${
+      className={`relative flex flex-col gap-5 rounded-3xl border p-6 ${
         highlight
-          ? "border-amber-400 dark:border-amber-600 bg-gradient-to-b from-amber-50 to-white dark:from-amber-950/40 dark:to-stone-900 shadow-[0_8px_30px_rgba(245,158,11,0.15)]"
-          : "border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900"
+          ? "border-[#f3a480] dark:border-amber-600 bg-gradient-to-b from-[#fdf3ec] to-white dark:from-amber-950/40 dark:to-stone-900 shadow-[0_10px_30px_rgba(224,120,86,0.18)]"
+          : "border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_6px_20px_rgba(190,130,100,0.10)] dark:shadow-none"
       }`}
     >
       {badge && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-500 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
           {badge}
         </span>
       )}
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-400">{name}</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-[#d9b8a8]">{name}</h3>
         <p className="flex items-baseline gap-1">
-          <span className="text-3xl font-semibold tabular-nums text-stone-900 dark:text-stone-50">{price}</span>
-          {unit && <span className="text-xs text-stone-400">{unit}</span>}
+          <span className="text-3xl font-semibold tabular-nums text-[#7a4a3a] dark:text-stone-50">{price}</span>
+          {unit && <span className="text-xs text-[#c3a08d]">{unit}</span>}
         </p>
       </div>
       <ul className="flex flex-1 flex-col gap-2.5">
         {features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-sm text-stone-600 dark:text-stone-300">
+          <li key={f} className="flex items-start gap-2 text-sm text-[#8a6555] dark:text-stone-300">
             <CheckIcon highlight={highlight} />
             {f}
           </li>
@@ -117,10 +117,10 @@ function PlanCard({
       </ul>
       <button
         onClick={onClick}
-        className={`w-full rounded-full py-2.5 text-sm font-semibold shadow-sm transition-colors ${
+        className={`w-full rounded-full py-2.5 text-sm font-semibold shadow-sm transition-opacity hover:opacity-90 ${
           highlight
-            ? "bg-amber-500 text-white hover:bg-amber-600"
-            : "bg-stone-900 text-stone-50 hover:bg-stone-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-300"
+            ? "bg-gradient-to-br from-[#f3a480] to-[#e07856] text-white"
+            : "bg-[#6b4a3f] text-stone-50 dark:bg-stone-100 dark:text-stone-900"
         }`}
       >
         {cta}

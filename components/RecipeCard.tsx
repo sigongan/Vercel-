@@ -89,18 +89,18 @@ export function RecipeCard({
     <div className="print-area flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div className="flex items-center gap-3">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-400">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c3a08d]">
             {t.styleLabel}
           </span>
-          <div className="flex rounded-full border border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 p-1">
+          <div className="flex rounded-full border border-transparent dark:border-stone-800 bg-[#fbeee6] dark:bg-stone-900 p-1">
             {themes.map(({ id, label, premium }) => (
               <button
                 key={id}
                 onClick={() => setTheme(id)}
                 className={`flex items-center gap-1 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                   theme === id
-                    ? "bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm"
-                    : "text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
+                    ? "bg-white dark:bg-stone-700 text-[#b5573b] dark:text-stone-100 shadow-sm"
+                    : "text-[#b48a76] hover:text-[#7a4a3a] dark:hover:text-stone-300"
                 }`}
               >
                 {label}
@@ -113,7 +113,7 @@ export function RecipeCard({
           {!editing && steps.length > 0 && (
             <button
               onClick={() => setCookModeOpen(true)}
-              className="flex items-center gap-1.5 rounded-full bg-orange-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-orange-700"
+              className="flex items-center gap-1.5 rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             >
               <CookIcon />
               {t.cookMode}
@@ -177,32 +177,32 @@ export function RecipeCard({
 
 function ClassicCard({ recipe, steps, metas, t }: CardProps) {
   return (
-    <article className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 sm:p-10 shadow-sm flex flex-col gap-6 sm:gap-8">
+    <article className="rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 p-5 sm:p-10 shadow-[0_10px_34px_rgba(190,130,100,0.14)] dark:shadow-sm flex flex-col gap-6 sm:gap-8">
       <header className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-orange-700 dark:text-orange-400">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#b5573b] dark:text-orange-400">
             {t.recipe}
           </p>
           {recipe.confidence && (
-            <span className="text-[11px] font-medium rounded-full px-2.5 py-1 bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400">
+            <span className="text-[11px] font-medium rounded-full px-2.5 py-1 bg-[#fbeee6] dark:bg-stone-800 text-[#a97e6b] dark:text-stone-400">
               {t.confidence[recipe.confidence]}
             </span>
           )}
         </div>
-        <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-stone-900 dark:text-stone-50">
+        <h2 className="font-display italic text-2xl sm:text-4xl font-semibold tracking-tight text-[#6b4a3f] dark:text-stone-50">
           {recipe.title}
         </h2>
         {recipe.description && (
-          <p className="text-stone-600 dark:text-stone-400 leading-relaxed">{recipe.description}</p>
+          <p className="text-[#a97e6b] dark:text-stone-400 leading-relaxed">{recipe.description}</p>
         )}
         {metas.length > 0 && (
-          <dl className="mt-3 flex divide-x divide-stone-200 dark:divide-stone-800 border-y border-stone-200 dark:border-stone-800">
+          <dl className="mt-3 flex divide-x divide-[#f3ddce] dark:divide-stone-800 border-y border-[#f3ddce] dark:border-stone-800">
             {metas.map((m) => (
               <div key={m.label} className="flex-1 px-3 py-2.5 first:pl-0 sm:px-5 sm:py-3">
-                <dt className="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-400">
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c98a6f]">
                   {m.label}
                 </dt>
-                <dd className="mt-1 text-sm font-medium text-stone-800 dark:text-stone-200">{m.value}</dd>
+                <dd className="mt-1 text-sm font-medium text-[#7a4a3a] dark:text-stone-200">{m.value}</dd>
               </div>
             ))}
           </dl>
@@ -212,22 +212,22 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
       <div className="grid gap-8 sm:gap-10 sm:grid-cols-[minmax(220px,260px)_1fr]">
         {recipe.ingredients.length > 0 && (
           <section className="flex flex-col gap-4">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d98a5f]">
               {t.ingredients}
             </h3>
             <ul className="flex flex-col gap-2.5">
               {recipe.ingredients.map((ing, i) => (
                 <li key={i} className="flex items-baseline gap-1.5 text-[15px]">
-                  <span className="text-stone-800 dark:text-stone-200">{ing.name}</span>
+                  <span className="text-[#6b4a3f] dark:text-stone-200">{ing.name}</span>
                   {ing.amount && (
                     <>
-                      <span className="flex-1 border-b border-dotted border-stone-300 dark:border-stone-700" />
+                      <span className="flex-1 border-b border-dotted border-[#f0d2c0] dark:border-stone-700" />
                       <span
                         title={ing.estimated ? t.estimatedShort : undefined}
                         className={`shrink-0 whitespace-nowrap text-sm tabular-nums ${
                           ing.estimated
                             ? "text-amber-600 dark:text-amber-400"
-                            : "text-stone-500 dark:text-stone-400"
+                            : "text-[#b48a76] dark:text-stone-400"
                         }`}
                       >
                         {formatAmount(ing)}
@@ -243,14 +243,14 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
 
         {steps.length > 0 && (
           <section className="flex flex-col gap-4">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">{t.steps}</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d98a5f]">{t.steps}</h3>
             <ol className="flex flex-col gap-4">
               {steps.map((step) => (
                 <li key={step.order} className="flex gap-4">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-900 dark:bg-stone-100 text-[11px] font-semibold text-stone-50 dark:text-stone-900">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] dark:bg-stone-100 text-[11px] font-semibold text-white dark:text-stone-900">
                     {step.order}
                   </span>
-                  <p className="text-[15px] leading-relaxed text-stone-700 dark:text-stone-300">
+                  <p className="text-[15px] leading-relaxed text-[#6b4a3f] dark:text-stone-300">
                     {step.instruction}
                   </p>
                 </li>

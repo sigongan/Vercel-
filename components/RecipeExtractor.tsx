@@ -165,8 +165,8 @@ export function RecipeExtractor() {
 
   return (
     <div className="relative z-[1] w-full flex flex-col items-center gap-10">
-      <div className="w-full max-w-2xl rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
-        <div className="grid grid-cols-3 gap-1 rounded-xl bg-stone-100 dark:bg-stone-800 p-1">
+      <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_10px_34px_rgba(190,130,100,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
+        <div className="grid grid-cols-3 gap-1 rounded-full bg-[#fbeee6] dark:bg-stone-800 p-1">
           <TabButton active={tab === "file"} onClick={() => setTab("file")} icon={<UploadIcon />}>
             {t.tabFile}
           </TabButton>
@@ -194,7 +194,7 @@ export function RecipeExtractor() {
                 const dropped = e.dataTransfer.files?.[0];
                 if (dropped) handleFileSelected(dropped);
               }}
-              className="rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-700 bg-stone-50/60 dark:bg-stone-950/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-orange-600/50 hover:bg-orange-50/40 dark:hover:bg-stone-800/50"
+              className="rounded-[24px] border-2 border-dashed border-[#f0d2c0] dark:border-stone-700 bg-[#fef8f4] dark:bg-stone-950/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-[#e0785680] hover:bg-[#fbeee6] dark:hover:bg-stone-800/50"
             >
               <input
                 ref={fileInputRef}
@@ -203,15 +203,15 @@ export function RecipeExtractor() {
                 className="hidden"
                 onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)}
               />
-              <span className="flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400">
+              <span className="flex items-center justify-center w-13 h-13 rounded-full bg-[#fbe4d5] dark:bg-stone-800 text-[#c98a6f] dark:text-stone-400">
                 <UploadIcon size={22} />
               </span>
               {preparingFile ? (
-                <span className="text-sm text-stone-500 dark:text-stone-400">{t.preparingFile}</span>
+                <span className="text-sm text-[#a97e6b] dark:text-stone-400">{t.preparingFile}</span>
               ) : file ? (
-                <span className="flex items-center gap-2 text-sm font-medium text-stone-800 dark:text-stone-200">
+                <span className="flex items-center gap-2 text-sm font-medium text-[#7a4a3a] dark:text-stone-200">
                   {file.name}
-                  <span className="text-stone-400 font-normal">
+                  <span className="text-[#c3a08d] font-normal">
                     {(file.size / 1024).toFixed(0)} KB
                   </span>
                   <button
@@ -222,17 +222,17 @@ export function RecipeExtractor() {
                       setFile(null);
                       if (fileInputRef.current) fileInputRef.current.value = "";
                     }}
-                    className="text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors"
+                    className="text-[#c3a08d] hover:text-[#7a4a3a] dark:hover:text-stone-200 transition-colors"
                   >
                     ✕
                   </button>
                 </span>
               ) : (
                 <>
-                  <span className="text-[15px] font-medium text-stone-800 dark:text-stone-200">
+                  <span className="text-[15px] font-medium text-[#7a4a3a] dark:text-stone-200">
                     {t.uploadTitle}
                   </span>
-                  <span className="text-xs text-stone-400">{t.uploadHint}</span>
+                  <span className="text-xs text-[#c3a08d]">{t.uploadHint}</span>
                 </>
               )}
             </div>
@@ -240,26 +240,26 @@ export function RecipeExtractor() {
 
           {tab === "url" && (
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-stone-700 dark:text-stone-300">{t.urlLabel}</span>
+              <span className="text-sm font-medium text-[#7a4a3a] dark:text-stone-300">{t.urlLabel}</span>
               <input
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder={t.urlPlaceholder}
-                className="w-full rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-600 outline-none transition-shadow focus:border-stone-500 focus:ring-4 focus:ring-stone-900/5 dark:focus:ring-stone-100/5"
+                className="w-full rounded-xl border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm text-[#6b4a3f] dark:text-stone-100 placeholder-[#c3a08d] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10 dark:focus:ring-stone-100/5"
               />
             </label>
           )}
 
           {tab === "text" && (
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-stone-700 dark:text-stone-300">{t.textLabel}</span>
+              <span className="text-sm font-medium text-[#7a4a3a] dark:text-stone-300">{t.textLabel}</span>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder={t.textPlaceholder}
                 rows={8}
-                className="w-full resize-y rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm leading-relaxed text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-600 outline-none transition-shadow focus:border-stone-500 focus:ring-4 focus:ring-stone-900/5 dark:focus:ring-stone-100/5"
+                className="w-full resize-y rounded-xl border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm leading-relaxed text-[#6b4a3f] dark:text-stone-100 placeholder-[#c3a08d] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10 dark:focus:ring-stone-100/5"
               />
             </label>
           )}
@@ -267,7 +267,7 @@ export function RecipeExtractor() {
           <button
             type="submit"
             disabled={!canSubmit || status === "loading"}
-            className="w-full rounded-xl bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900 py-3.5 text-[15px] font-medium transition-colors hover:bg-stone-700 dark:hover:bg-stone-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
+            className="w-full rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] text-white dark:bg-stone-100 dark:text-stone-900 py-3.5 text-[15px] font-semibold shadow-[0_8px_20px_rgba(224,120,86,0.35)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
           >
             {status === "loading" && (
               <span className="inline-block animate-spin text-lg leading-none" aria-hidden>
@@ -286,7 +286,7 @@ export function RecipeExtractor() {
               setError(null);
               setStatus("idle");
             }}
-            className="self-center text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 underline underline-offset-2"
+            className="self-center text-xs font-medium text-[#c98a6f] hover:text-[#7a4a3a] dark:hover:text-stone-200 underline underline-offset-2"
           >
             ✨ {t.tryExample}
           </button>
@@ -323,10 +323,10 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-colors ${
+      className={`flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition-colors ${
         active
-          ? "bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-sm"
-          : "text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
+          ? "bg-white dark:bg-stone-900 text-[#b5573b] dark:text-stone-100 shadow-[0_2px_8px_rgba(180,120,90,0.15)]"
+          : "text-[#b48a76] hover:text-[#7a4a3a] dark:hover:text-stone-300"
       }`}
     >
       {icon}
