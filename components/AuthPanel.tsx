@@ -8,7 +8,8 @@ import { translations } from "@/lib/i18n";
 import { FREE_MONTHLY_LIMIT } from "@/lib/billingConstants";
 
 const SUPABASE_CONFIGURED = Boolean(
-  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 );
 
 interface Profile {
@@ -26,7 +27,9 @@ export function AuthPanel() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"magic" | "password">("magic");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle",
+  );
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined); // undefined = loading
   const [expanded, setExpanded] = useState(false);
@@ -103,7 +106,10 @@ export function AuthPanel() {
     setStatus("sending");
     setErrorDetail(null);
     const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) {
       console.error("signInWithPassword failed", error);
       setErrorDetail(error.message);
@@ -145,12 +151,14 @@ export function AuthPanel() {
     return (
       <form
         onSubmit={mode === "magic" ? handleSendLink : handlePasswordSignIn}
-        className="flex flex-col items-end gap-2"
+        className="flex max-w-[min(85vw,22rem)] flex-col items-end gap-2"
       >
         {status === "sent" ? (
-          <span className="text-sm text-stone-500 dark:text-stone-400">{t.checkEmail}</span>
+          <span className="text-sm text-stone-500 dark:text-stone-400">
+            {t.checkEmail}
+          </span>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <input
               type="email"
               required
@@ -158,7 +166,7 @@ export function AuthPanel() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t.emailPlaceholder}
-              className="w-48 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-2 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:border-stone-400"
+              className="w-40 min-w-0 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-2 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:border-stone-400"
             />
             {mode === "password" && (
               <input
@@ -167,7 +175,7 @@ export function AuthPanel() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t.passwordPlaceholder}
-                className="w-36 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-2 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:border-stone-400"
+                className="w-32 min-w-0 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-4 py-2 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 outline-none focus:border-stone-400"
               />
             )}
             <button
@@ -175,7 +183,11 @@ export function AuthPanel() {
               disabled={status === "sending"}
               className="rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 px-4 py-2 text-sm font-medium disabled:opacity-50 whitespace-nowrap"
             >
-              {status === "sending" ? t.sending : mode === "magic" ? t.sendLink : t.signInLink}
+              {status === "sending"
+                ? t.sending
+                : mode === "magic"
+                  ? t.sendLink
+                  : t.signInLink}
             </button>
           </div>
         )}
@@ -201,14 +213,19 @@ export function AuthPanel() {
     );
   }
 
-  const freeRemaining = Math.max(0, FREE_MONTHLY_LIMIT - profile.free_used_this_period);
+  const freeRemaining = Math.max(
+    0,
+    FREE_MONTHLY_LIMIT - profile.free_used_this_period,
+  );
 
   return (
-    <div className="flex items-center gap-3 text-xs">
+    <div className="flex max-w-[min(90vw,26rem)] flex-wrap items-center justify-end gap-3 text-xs">
       <div className="flex flex-col items-end text-stone-500 dark:text-stone-400 leading-tight">
         <span>{profile.email}</span>
         <span>
-          {freeRemaining > 0 ? t.freeRemaining(freeRemaining) : t.credits(profile.credits)}
+          {freeRemaining > 0
+            ? t.freeRemaining(freeRemaining)
+            : t.credits(profile.credits)}
         </span>
       </div>
       {freeRemaining === 0 && (

@@ -19,19 +19,18 @@ export default function Home() {
         className="pointer-events-none fixed bottom-24 left-[-60px] h-44 w-44 rounded-full bg-[#d9e8c4] opacity-40 blur-3xl dark:hidden"
       />
 
-      <nav className="relative z-10 flex w-full max-w-2xl items-center justify-end">
-        <Link
-          href="/"
-          className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2.5"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#f7dcc8] to-[#f3c9ae] shadow-[0_4px_12px_rgba(210,140,100,0.25)] dark:from-stone-800 dark:to-stone-800">
-            <AvocadoMark size={22} />
+      <nav className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-3">
+        <div className="flex w-full justify-end">
+          <AuthPanel />
+        </div>
+        <Link href="/" className="flex items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f7dcc8] to-[#f3c9ae] shadow-[0_4px_12px_rgba(210,140,100,0.25)] dark:from-stone-800 dark:to-stone-800">
+            <AvocadoMark size={30} />
           </span>
-          <span className="font-display italic text-xl text-[#7a4a3a] dark:text-stone-50">
+          <span className="font-display italic text-3xl text-[#7a4a3a] dark:text-stone-50">
             {t.title}
           </span>
         </Link>
-        <AuthPanel />
       </nav>
 
       <AuthErrorBanner />
