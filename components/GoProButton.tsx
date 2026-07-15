@@ -2,9 +2,20 @@
 
 import { useState } from "react";
 import { SUBSCRIPTION_PRICE_USD } from "@/lib/billingConstants";
+import { isNativeApp } from "@/lib/nativeApp";
+import { useLanguage } from "@/hooks/useLanguage";
+import { translations } from "@/lib/i18n";
 
 export function GoProButton() {
+  const { language } = useLanguage();
+  const t = translations[language];
   const [msg, setMsg] = useState<string | null>(null);
+
+  // Apple bars linking to external purchase flows from inside the native
+  // app (Guideline 3.1.1) — Pro sign-up stays a web-only action there.
+  if (isNativeApp()) {
+    return <p className="text-xs text-stone-500 dark:text-stone-400 text-center">{t.manageOnWeb}</p>;
+  }
 
   async function handleClick() {
     setMsg(null);

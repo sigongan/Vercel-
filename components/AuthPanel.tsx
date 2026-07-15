@@ -6,6 +6,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { FREE_MONTHLY_LIMIT } from "@/lib/billingConstants";
+import { isNativeApp } from "@/lib/nativeApp";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -228,7 +229,7 @@ export function AuthPanel() {
             : t.credits(profile.credits)}
         </span>
       </div>
-      {freeRemaining === 0 && (
+      {freeRemaining === 0 && !isNativeApp() && (
         <button
           onClick={handleBuyCredits}
           className="rounded-full bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 font-medium whitespace-nowrap transition-colors"

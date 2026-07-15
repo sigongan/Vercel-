@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { SUBSCRIPTION_PRICE_USD } from "@/lib/billingConstants";
+import { isNativeApp } from "@/lib/nativeApp";
+import { useLanguage } from "@/hooks/useLanguage";
+import { translations } from "@/lib/i18n";
 
 /**
  * Blurs its children and overlays a subscribe CTA when locked.
@@ -9,8 +12,11 @@ import { SUBSCRIPTION_PRICE_USD } from "@/lib/billingConstants";
  * Use it for tools/UI, not for withholding genuinely secret data.
  */
 export function PaywallGate({ locked, children }: { locked: boolean; children: React.ReactNode }) {
+  const { language } = useLanguage();
+  const t = translations[language];
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const native = isNativeApp();
 
   if (!locked) return <>{children}</>;
 
@@ -50,13 +56,19 @@ export function PaywallGate({ locked, children }: { locked: boolean; children: R
             recipes to your library.
           </p>
         </div>
-        <button
-          onClick={handleSubscribe}
-          disabled={redirecting}
-          className="rounded-full bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
-        >
-          {redirecting ? "Redirecting…" : `Subscribe Now — $${SUBSCRIPTION_PRICE_USD}/month`}
-        </button>
+        {native ? (
+          // Apple bars linking to external purchase flows from inside the
+          // native app (Guideline 3.1.1) — no Stripe redirect here.
+          <p className="text-xs text-stone-500 dark:text-stone-400">{t.manageOnWeb}</p>
+        ) : (
+          <button
+            onClick={handleSubscribe}
+            disabled={redirecting}
+            className="rounded-full bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
+          >
+            {redirecting ? "Redirecting…" : `Subscribe Now — $${SUBSCRIPTION_PRICE_USD}/month`}
+          </button>
+        )}
         {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
     </div>

@@ -74,6 +74,35 @@ In Xcode:
 2. Under **Team**, select your Apple Developer account (sign in via Xcode → Settings → Accounts if it's not listed yet)
 3. Xcode should auto-generate a provisioning profile once a team is selected — if it shows a red error instead, check that **Bundle Identifier** reads `app.avocato.ios` and isn't already taken by another app in your account (change it in `capacitor.config.ts`'s `appId` and re-run `npx cap sync ios` if you need a different one)
 
+## 4a. Add camera & photo library permission strings
+
+The recipe upload feature lets people take a photo or pick one from their
+library. iOS requires an explanation string for each — without these, the
+app **crashes instantly** the moment someone taps "Take Photo" or "Photo
+Library" in the upload sheet (not a review rejection, an actual crash on
+your own test device), so this has to be done before step 5.
+
+1. In the left sidebar, click **Info.plist** under the **App** target (the
+   main app, not "Share to Avocato")
+2. Hover any existing row and click the **+** that appears, then add two
+   rows:
+   - Key: `Privacy - Camera Usage Description` → Value: `Avocato needs camera access so you can photograph a recipe to extract.`
+   - Key: `Privacy - Photo Library Usage Description` → Value: `Avocato needs photo library access so you can pick a recipe screenshot or photo to extract.`
+3. Save (Cmd+S)
+
+These are flat string keys (not nested, unlike the Share Extension's
+`Info.plist` from the other doc), so the `+` button should behave normally.
+If it still adds rows in the wrong place, use the same fix as the Share
+Extension setup: right-click **Info.plist** → **Open As** → **Source
+Code**, and paste these two lines inside the outer `<dict>...</dict>`:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Avocato needs camera access so you can photograph a recipe to extract.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Avocato needs photo library access so you can pick a recipe screenshot or photo to extract.</string>
+```
+
 ## 5. Run it
 
 - Plug in your iPhone (or use a Simulator from the device dropdown at the top of Xcode)
@@ -87,7 +116,7 @@ If anything looks wrong (blank screen, network error), the most common cause is 
 - **Swap the domain**: once your custom domain is live, update `server.url` in `capacitor.config.ts` to it, run `npx cap sync ios`, commit, and rebuild in Xcode. Submitting with the `vercel-ecru-iota-55.vercel.app` URL works but looks unprofessional in review and isn't stable long-term.
 - **Screenshots**: Apple requires screenshots for the largest iPhone size at minimum. Run the app on an iPhone 15 Pro Max simulator and use Xcode's screenshot tool (Cmd+S in the simulator window).
 - **App Store Connect listing**: create the app at [appstoreconnect.apple.com](https://appstoreconnect.apple.com), matching bundle ID `app.avocato.ios`. You'll need: a short/full description, keywords, a support URL (once the domain exists), and a privacy policy URL (`/privacy` on the live site already works for this).
-- **Payment note**: this build does not add Apple in-app purchase — Pro subscriptions still go through the Stripe checkout already in the web app, opened in the system browser. This is allowed for a "reader"-style app in most cases, but if Apple's review flags it, the fallback is either removing purchase mentions from the app entirely (subscribe only via the website) or adding StoreKit in-app purchase — a separate follow-up if it comes up.
+- **Payment note**: the app doesn't use Apple in-app purchase, and all Stripe purchase buttons (Go Pro, buy avocados, the margin-calculator paywall) are hidden when running inside the native shell (`isNativeApp()` in `lib/nativeApp.ts`) — this follows Apple's "reader app" exception (Guideline 3.1.3(a)), which requires that the app not offer any way to purchase from within it. Upgrading only works on the website. If you ever want to sell subscriptions from inside the app itself, that requires real StoreKit in-app purchase — a separate, bigger follow-up.
 - **Review notes**: mention in App Store Connect's review notes that account creation uses a magic-link email (reviewers sometimes get stuck if they don't have inbox access during review) — provide a working test login if you have one, or explain the flow clearly.
 
 ## What's already done (don't redo these)
