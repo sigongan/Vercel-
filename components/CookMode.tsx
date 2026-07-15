@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import type { Translation } from "@/lib/i18n";
 import { nativeKeepAwake } from "@/lib/nativeApp";
@@ -111,9 +112,15 @@ export function CookMode({
 
   if (!step) return null;
 
-  return (
+  // Rendered via a portal straight onto <body> — CookMode's siblings use
+  // CSS animations that leave a lingering `transform` after they finish
+  // (needed to keep the animation's final frame), which creates a new
+  // containing block for any `position: fixed` descendant and would
+  // otherwise shrink this overlay down to that ancestor's box instead of
+  // the real viewport.
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-stone-950 text-stone-50"
+      className="fixed inset-0 z-50 flex flex-col bg-[#241a16] text-[#fdf3ec]"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -121,14 +128,14 @@ export function CookMode({
         <button
           onClick={onClose}
           aria-label={t.cookModeExit}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-stone-200 transition-colors hover:bg-white/20"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-[#f0ddd0] transition-colors hover:bg-white/20"
         >
           <CloseIcon />
         </button>
-        <p className="flex-1 truncate text-center text-sm font-medium text-stone-300">{recipe.title}</p>
+        <p className="flex-1 truncate text-center text-sm font-medium text-[#d9bfae]">{recipe.title}</p>
         <button
           onClick={() => setShowIngredients((s) => !s)}
-          className="shrink-0 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-medium text-stone-200 transition-colors hover:bg-white/20"
+          className="shrink-0 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-medium text-[#f0ddd0] transition-colors hover:bg-white/20"
         >
           {t.cookModeIngredients}
         </button>
@@ -138,13 +145,13 @@ export function CookMode({
         {steps.map((s, i) => (
           <span
             key={s.order}
-            className={`h-1 flex-1 rounded-full transition-colors ${i <= index ? "bg-orange-500" : "bg-white/15"}`}
+            className={`h-1 flex-1 rounded-full transition-colors ${i <= index ? "bg-[#e07856]" : "bg-white/15"}`}
           />
         ))}
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-8 overflow-y-auto px-6 py-8 text-center">
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-400">
+        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#f3a480]">
           {t.cookModeStepOf(index + 1, steps.length)}
         </span>
         <p className="max-w-xl text-2xl sm:text-4xl leading-snug font-medium">{step.instruction}</p>
@@ -156,7 +163,7 @@ export function CookMode({
         <button
           onClick={goPrev}
           disabled={index === 0}
-          className="flex-1 rounded-full border border-white/20 py-3 text-sm font-medium text-stone-100 transition-colors hover:border-white/40 disabled:opacity-30"
+          className="flex-1 rounded-full border border-white/20 py-3 text-sm font-medium text-[#f0ddd0] transition-colors hover:border-white/40 disabled:opacity-30"
         >
           {t.cookModePrev}
         </button>
@@ -170,7 +177,7 @@ export function CookMode({
         ) : (
           <button
             onClick={goNext}
-            className="flex-1 rounded-full bg-white py-3 text-sm font-semibold text-stone-900 shadow-sm transition-colors hover:bg-stone-200"
+            className="flex-1 rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
           >
             {t.cookModeNext}
           </button>
@@ -178,13 +185,13 @@ export function CookMode({
       </div>
 
       {showIngredients && (
-        <div className="absolute inset-x-0 bottom-0 max-h-[65vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-stone-900 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.4)]">
+        <div className="absolute inset-x-0 bottom-0 max-h-[65vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#2f221b] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.4)]">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-300">{t.ingredients}</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-[#d9bfae]">{t.ingredients}</h3>
             <button
               onClick={() => setShowIngredients(false)}
               aria-label={t.cookModeExit}
-              className="text-stone-400 transition-colors hover:text-white"
+              className="text-[#b89a89] transition-colors hover:text-white"
             >
               <CloseIcon size={16} />
             </button>
@@ -193,16 +200,17 @@ export function CookMode({
             {recipe.ingredients.map((ing, i) => (
               <li
                 key={i}
-                className="flex items-baseline justify-between gap-3 border-b border-white/5 pb-2.5 text-sm text-stone-200"
+                className="flex items-baseline justify-between gap-3 border-b border-white/5 pb-2.5 text-sm text-[#f0ddd0]"
               >
                 <span>{ing.name}</span>
-                {ing.amount && <span className="shrink-0 tabular-nums text-stone-400">{ing.amount}</span>}
+                {ing.amount && <span className="shrink-0 tabular-nums text-[#b89a89]">{ing.amount}</span>}
               </li>
             ))}
           </ul>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -255,7 +263,7 @@ function StepTimer({ duration, t }: { duration: number; t: Translation }) {
       <span className="text-4xl sm:text-5xl font-semibold tabular-nums">{formatClock(secondsLeft)}</span>
       <button
         onClick={handleClick}
-        className="rounded-full bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-600"
+        className="rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
       >
         {label}
       </button>
