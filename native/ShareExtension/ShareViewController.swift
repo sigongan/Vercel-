@@ -1,4 +1,5 @@
 import UIKit
+import SwiftUI
 import UniformTypeIdentifiers
 
 /// "Share → Avocato" from TikTok/YouTube/Safari/anywhere. Grabs the shared
@@ -96,40 +97,25 @@ class ShareViewController: UIViewController {
         return detector.firstMatch(in: text, options: [], range: range)?.url?.absoluteString
     }
 
-    /// Extensions can't use UIApplication.shared, so this tries the two
-    /// known handoff paths in order:
-    /// 1. extensionContext.open — the official API; not guaranteed for
-    ///    share extensions but works on many iOS versions.
-    /// 2. Walking the responder chain to the hosting UIApplication and
-    ///    calling openURL: on it — the long-standing fallback pattern.
+    /// UIApplication.shared.open(_:) is unavailable at compile time inside
+    /// extension targets, which is why this needs a workaround at all.
+    /// Tries two paths:
+    /// 1. SwiftUI's OpenURLAction, read directly off a fresh EnvironmentValues
+    ///    instance (no View needed) instead of via @Environment. This is a
+    ///    public, App-Store-safe API that — unlike extensionContext.open —
+    ///    has been reported to actually work from Share Extensions on
+    ///    current iOS versions.
+    /// 2. extensionContext.open — the older documented API, kept as a
+    ///    backup in case it fires on some OS version where SwiftUI's path
+    ///    doesn't.
     private func openURL(_ url: URL) {
-        guard let context = extensionContext else {
-            print("Avocato: no extensionContext, falling back to responder chain")
-            openURLViaResponderChain(url)
-            return
-        }
-        context.open(url) { [weak self] success in
-            print("Avocato: extensionContext.open success=\(success)")
-            if !success {
-                DispatchQueue.main.async {
-                    self?.openURLViaResponderChain(url)
-                }
-            }
-        }
-    }
+        print("Avocato: calling EnvironmentValues openURL action")
+        let action = EnvironmentValues().openURL
+        action(url)
 
-    private func openURLViaResponderChain(_ url: URL) {
-        let selector = sel_registerName("openURL:")
-        var responder: UIResponder? = self
-        while let current = responder {
-            if current.responds(to: selector) {
-                print("Avocato: found responder \(type(of: current)) that responds to openURL:, calling it")
-                current.perform(selector, with: url)
-                return
-            }
-            responder = current.next
+        extensionContext?.open(url) { success in
+            print("Avocato: extensionContext.open success=\(success)")
         }
-        print("Avocato: no responder in chain responds to openURL: — chain was empty/exhausted")
     }
 
     private func complete() {
