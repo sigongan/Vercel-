@@ -167,6 +167,38 @@ export async function registerClipboardWatcher(onDetect: (url: string) => void) 
   }
 }
 
+/**
+ * Opens the system share sheet with the recipe text. Native plugin inside
+ * the app (reliable in WKWebView), Web Share API in browsers that have it,
+ * and a clipboard copy as the last resort. Returns how it was delivered so
+ * the button can show the right confirmation.
+ */
+export async function shareText(title: string, text: string): Promise<"shared" | "copied" | "failed"> {
+  if (isNativeApp()) {
+    try {
+      const { Share } = await import("@capacitor/share");
+      await Share.share({ title, text });
+      return "shared";
+    } catch {
+      // Plugin missing or user dismissed the sheet — fall through to web paths.
+    }
+  }
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, text });
+      return "shared";
+    }
+  } catch {
+    // Dismissed or unsupported — fall through.
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    return "copied";
+  } catch {
+    return "failed";
+  }
+}
+
 /** Light tap feedback — button presses, tab switches, step navigation. */
 export async function hapticTap() {
   if (!isNativeApp()) return;

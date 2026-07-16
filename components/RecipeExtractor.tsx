@@ -15,6 +15,11 @@ import {
   hapticSuccess,
   hapticError,
 } from "@/lib/nativeApp";
+import {
+  useRecentRecipes,
+  addRecentRecipe,
+  removeRecentRecipe,
+} from "@/lib/recentRecipes";
 
 type Tab = "file" | "url" | "text";
 
@@ -90,6 +95,7 @@ export function RecipeExtractor() {
   const [error, setError] = useState<SubmitError | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
+  const recent = useRecentRecipes();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -178,6 +184,7 @@ export function RecipeExtractor() {
         setRecipe(data.recipe);
         setStatus("idle");
         hapticSuccess();
+        addRecentRecipe(data.recipe);
       } else {
         setError({ message: data.error.error, code: data.error.code });
         setStatus("error");
@@ -299,9 +306,7 @@ export function RecipeExtractor() {
             <div className="animate-avocado-spin">
               <AvocadoMark size={56} />
             </div>
-            <p className="text-sm font-medium text-[#a97e6b] dark:text-stone-400">
-              {t.extracting}
-            </p>
+            <LoadingMessages messages={t.extractingSteps} />
           </div>
         ) : (
           <>
@@ -456,8 +461,80 @@ export function RecipeExtractor() {
           </p>
         </div>
       )}
+
+      {status !== "loading" && recent.length > 0 && (
+        <section className="w-full max-w-2xl flex flex-col gap-3">
+          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c3a08d]">
+            {t.recentTitle}
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {recent.map((item) => (
+              <li key={item.id}>
+                <div className="flex items-center gap-3 rounded-2xl border border-transparent bg-white px-4 py-3 shadow-[0_4px_14px_rgba(190,130,100,0.08)] transition-shadow hover:shadow-[0_6px_20px_rgba(190,130,100,0.16)]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hapticTap();
+                      setError(null);
+                      setStatus("idle");
+                      setRecipe(item.recipe);
+                    }}
+                    className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left"
+                  >
+                    <span className="w-full truncate text-sm font-medium text-[#6b4a3f]">
+                      {item.recipe.title}
+                    </span>
+                    <span className="text-xs text-[#c3a08d]">
+                      {timeAgo(item.savedAt, language)}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={t.recentRemove}
+                    onClick={() => removeRecentRecipe(item.id)}
+                    className="shrink-0 text-[#c3a08d] transition-colors hover:text-[#7a4a3a]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
+}
+
+/** Cycles through the playful extraction-progress lines while loading. */
+function LoadingMessages({ messages }: { messages: readonly string[] }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(
+      () => setIndex((i) => (i + 1) % messages.length),
+      2200,
+    );
+    return () => clearInterval(id);
+  }, [messages.length]);
+
+  return (
+    <p
+      key={index}
+      className="animate-fade-in-up text-sm font-medium text-[#a97e6b] dark:text-stone-400"
+    >
+      {messages[index]}
+    </p>
+  );
+}
+
+function timeAgo(timestamp: number, language: string): string {
+  const rtf = new Intl.RelativeTimeFormat(language, { numeric: "auto" });
+  const minutes = Math.round((timestamp - Date.now()) / 60_000);
+  if (minutes > -60) return rtf.format(minutes, "minute");
+  const hours = Math.round(minutes / 60);
+  if (hours > -24) return rtf.format(hours, "hour");
+  return rtf.format(Math.round(hours / 24), "day");
 }
 
 function TabButton({

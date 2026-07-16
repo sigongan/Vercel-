@@ -7,7 +7,7 @@ import { translations, type Translation } from "@/lib/i18n";
 import { RecipeEditForm } from "./RecipeEditForm";
 import { CookMode } from "./CookMode";
 import { fitPrintArea, resetPrintArea } from "@/lib/printFit";
-import { hapticTap, hapticSuccess } from "@/lib/nativeApp";
+import { hapticTap, hapticSuccess, shareText } from "@/lib/nativeApp";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -60,8 +60,8 @@ export function RecipeCard({
   if (recipe.prepTime) metas.push({ label: t.prep, value: recipe.prepTime });
   if (recipe.cookTime) metas.push({ label: t.cook, value: recipe.cookTime });
 
-  async function handleCopy() {
-    const lines = [
+  function recipeAsText(): string {
+    return [
       recipe.title,
       recipe.description ?? "",
       "",
@@ -70,14 +70,28 @@ export function RecipeCard({
       "",
       `${t.steps}:`,
       ...steps.map((s) => `${s.order}. ${s.instruction}`),
-    ];
+    ].join("\n");
+  }
+
+  async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(lines.join("\n"));
+      await navigator.clipboard.writeText(recipeAsText());
       setCopied(true);
       hapticSuccess();
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // clipboard unavailable — silently ignore
+    }
+  }
+
+  async function handleShare() {
+    hapticTap();
+    const outcome = await shareText(recipe.title, recipeAsText());
+    if (outcome === "copied") {
+      // No share sheet on this platform — the text landed on the clipboard
+      // instead, so show the Copy button's confirmation.
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   }
 
@@ -138,6 +152,15 @@ export function RecipeCard({
             <EditIcon />
             {editing ? t.editCancel : t.edit}
           </button>
+          {!editing && (
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+            >
+              <ShareIcon />
+              {t.share}
+            </button>
+          )}
           {!editing && (
             <button
               onClick={handleCopy}
@@ -696,6 +719,25 @@ function CopyIcon() {
     >
       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3v13" />
+      <polyline points="7 8 12 3 17 8" />
+      <path d="M20 13v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6" />
     </svg>
   );
 }

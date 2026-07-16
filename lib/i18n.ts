@@ -20,6 +20,16 @@ export const translations = {
     textPlaceholder: "Paste the recipe here — ingredients, steps, anything you've copied…",
     extract: "Get my recipe",
     extracting: "Whipping up your recipe…",
+    extractingSteps: [
+      "Reading your recipe…",
+      "Measuring the ingredients…",
+      "Writing down the steps…",
+      "Plating it up…",
+    ],
+    recentTitle: "Recent recipes",
+    recentRemove: "Remove",
+    share: "Share",
+    shared: "Shared",
     tip: "Tip: screenshots and photos give the most accurate results. Links must be public or link-shared.",
     errors: {
       AI_NOT_CONFIGURED:
@@ -204,6 +214,16 @@ export const translations = {
     textPlaceholder: "레시피 내용을 붙여넣어 주세요 — 재료, 만드는 법 등 복사한 글 무엇이든 좋아요…",
     extract: "레시피 받기",
     extracting: "레시피 만드는 중…",
+    extractingSteps: [
+      "레시피 읽는 중…",
+      "재료 계량하는 중…",
+      "만드는 법 정리하는 중…",
+      "플레이팅 하는 중…",
+    ],
+    recentTitle: "최근 레시피",
+    recentRemove: "삭제",
+    share: "공유",
+    shared: "공유됨",
     tip: "팁: 스크린샷과 사진이 가장 정확해요. 링크는 공개 또는 링크 공유 상태여야 합니다.",
     errors: {
       AI_NOT_CONFIGURED:
