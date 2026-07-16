@@ -90,19 +90,41 @@ export async function registerNativeShareListener() {
 const RECIPE_LINK_PATTERN =
   /^https?:\/\/([a-z0-9-]+\.)*(youtube\.com|youtu\.be|tiktok\.com|instagram\.com|docs\.google\.com)\//i;
 
-// Tracks the last clipboard value we already prompted about, so resuming
-// the app repeatedly with the same link copied doesn't nag every time.
-// Resets on a fresh app launch (module state), which is fine — a slightly
-// stale prompt after a cold start is harmless.
-let lastPromptedClipboardValue: string | null = null;
+// Tracks clipboard values we already prompted about (or already extracted
+// via the share-sheet deep link, which also copies the link as its safety
+// net), so resuming the app repeatedly with the same link copied doesn't
+// nag every time. sessionStorage rather than module state because the
+// deep-link navigation is a full reload — module state wouldn't survive it
+// and the banner would pop up redundantly mid-extraction.
+const PROMPTED_CLIPBOARD_KEY = "avocato:prompted-clipboard";
+
+function alreadyPrompted(value: string): boolean {
+  try {
+    return sessionStorage.getItem(PROMPTED_CLIPBOARD_KEY) === value;
+  } catch {
+    return false;
+  }
+}
+
+/** Marks a link as handled so the clipboard watcher won't re-offer it. */
+export function suppressClipboardPrompt(value: string) {
+  try {
+    sessionStorage.setItem(PROMPTED_CLIPBOARD_KEY, value.trim());
+  } catch {
+    // Storage unavailable — worst case is a redundant banner.
+  }
+}
 
 /**
  * Many apps (YouTube's iOS app most notably) use their own custom share
  * sheet instead of the system one, so our Share Extension never appears
  * there no matter how it's configured. Clipboard detection sidesteps that
  * entirely: works for any app whose "Copy link" a user taps, not just ones
- * that use the system share sheet. Never auto-submits — always requires a
- * tap, since silently acting on clipboard contents would be surprising.
+ * that use the system share sheet. It's also the guaranteed fallback for
+ * the share extension itself, which always copies the shared link before
+ * attempting the (best-effort, sometimes flaky on iOS) app auto-open.
+ * Never auto-submits — always requires a tap, since silently acting on
+ * clipboard contents would be surprising.
  */
 export async function checkClipboardForRecipeLink(): Promise<string | null> {
   if (!isNativeApp()) return null;
@@ -111,8 +133,8 @@ export async function checkClipboardForRecipeLink(): Promise<string | null> {
     const { value } = await Clipboard.read();
     const trimmed = value?.trim();
     if (!trimmed || !RECIPE_LINK_PATTERN.test(trimmed)) return null;
-    if (trimmed === lastPromptedClipboardValue) return null;
-    lastPromptedClipboardValue = trimmed;
+    if (alreadyPrompted(trimmed)) return null;
+    suppressClipboardPrompt(trimmed);
     return trimmed;
   } catch {
     // Plugin not available, or the OS declined the read — skip silently.

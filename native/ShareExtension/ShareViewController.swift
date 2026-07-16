@@ -83,15 +83,26 @@ class ShareViewController: UIViewController {
         // instead of a proper URL attachment — pull just the link out, since
         // the server rejects anything that isn't a clean URL outright.
         let link = firstURL(in: shared) ?? shared
+
+        // Safety net FIRST, and unconditionally: put the link on the
+        // pasteboard. UIPasteboard always works from extensions (unlike the
+        // app-open APIs below, which iOS treats as best-effort from a share
+        // extension and which have proven intermittent on device). If the
+        // auto-open doesn't fire, the app's existing clipboard banner offers
+        // one-tap extraction the moment the user opens Avocato — the share
+        // is never just lost.
+        UIPasteboard.general.string = link
+
         let encoded = link.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? link
-        guard let url = URL(string: "https://\(Self.host)/?url=\(encoded)") else {
-            print("Avocato: failed to build universal link URL from: \(link)")
+        guard let schemeURL = URL(string: "avocato://share?url=\(encoded)"),
+              let universalURL = URL(string: "https://\(Self.host)/?url=\(encoded)") else {
+            print("Avocato: failed to build handoff URLs from: \(link)")
             return complete()
         }
-        print("Avocato: opening \(url.absoluteString)")
+        print("Avocato: opening \(schemeURL.absoluteString)")
 
         DispatchQueue.main.async {
-            self.openURL(url)
+            self.openURL(scheme: schemeURL, universal: universalURL)
             // Don't tear the extension down in the same runloop tick as the
             // open call — on recent iOS that can cancel the still-pending
             // app launch, which reads as "tapped Avocato, nothing happened".
@@ -111,20 +122,25 @@ class ShareViewController: UIViewController {
     }
 
     /// UIApplication.shared.open(_:) is unavailable at compile time inside
-    /// extension targets, which is why this needs a workaround at all.
-    /// Fires both known handoff paths — extensionContext.open is the
-    /// documented API and, for a real https:// Universal Link (as opposed
-    /// to a custom scheme), is the one Apple's own examples use; SwiftUI's
-    /// OpenURLAction read off a fresh EnvironmentValues instance is a second
-    /// attempt in case the OS resolves it differently.
-    private func openURL(_ url: URL) {
-        extensionContext?.open(url) { success in
-            print("Avocato: extensionContext.open success=\(success)")
+    /// extension targets, which is why this needs workarounds at all.
+    /// Fires both known handoff paths:
+    /// - SwiftUI's OpenURLAction (read off a fresh EnvironmentValues, no
+    ///   View needed) with the custom avocato:// scheme — works today
+    ///   without any domain setup, but iOS treats it as best-effort from a
+    ///   share extension (intermittent on device).
+    /// - extensionContext.open with the https:// Universal Link — becomes
+    ///   the reliable path once the domain association is live (Team ID in
+    ///   app/.well-known/apple-app-site-association + the Associated
+    ///   Domains capability in Xcode); until then it just reports false
+    ///   and does nothing, so it's safe to always attempt.
+    private func openURL(scheme schemeURL: URL, universal universalURL: URL) {
+        extensionContext?.open(universalURL) { success in
+            print("Avocato: extensionContext.open(universal) success=\(success)")
         }
 
-        print("Avocato: calling EnvironmentValues openURL action")
+        print("Avocato: calling EnvironmentValues openURL action with custom scheme")
         let action = EnvironmentValues().openURL
-        action(url)
+        action(schemeURL)
     }
 
     private func complete() {

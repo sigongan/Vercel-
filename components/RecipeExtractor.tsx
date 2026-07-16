@@ -8,7 +8,7 @@ import { translations } from "@/lib/i18n";
 import { compressImageFile } from "@/lib/compressImage";
 import { AvocadoMark } from "@/lib/avocadoMark";
 import { SOURCE_ICONS } from "@/components/SourceIcons";
-import { registerClipboardWatcher } from "@/lib/nativeApp";
+import { registerClipboardWatcher, suppressClipboardPrompt } from "@/lib/nativeApp";
 
 type Tab = "file" | "url" | "text";
 
@@ -196,6 +196,10 @@ export function RecipeExtractor() {
     if (!shared) return;
     // Clear the query so a reload doesn't re-consume quota.
     window.history.replaceState(null, "", window.location.pathname);
+    // The share extension also copies the link to the clipboard as its
+    // safety net — since we're extracting it right now, stop the clipboard
+    // watcher from offering the same link again in a banner.
+    suppressClipboardPrompt(shared);
     queueMicrotask(() => {
       setTab("url");
       setUrl(shared);
