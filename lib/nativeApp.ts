@@ -45,9 +45,23 @@ export async function registerNativeShareListener() {
       if (!openedUrl) return;
       try {
         const shared = new URL(openedUrl).searchParams.get("url");
-        if (shared) window.location.href = `/?url=${encodeURIComponent(shared)}`;
+        if (!shared) return;
+
+        // `window.location.href` below is a full page reload, which
+        // re-mounts this whole listener from scratch. Capacitor's
+        // getLaunchUrl() can keep returning the same cold-launch URL on
+        // that fresh mount, which would otherwise redirect again, causing
+        // another reload, re-mounting again — an infinite reload loop that
+        // looks like the app flashing open and shut. sessionStorage
+        // survives the reload (cleared only when the app is fully killed),
+        // so the same shared link only ever triggers one redirect.
+        const key = `avocato:handled-share:${shared}`;
+        if (sessionStorage.getItem(key)) return;
+        sessionStorage.setItem(key, "1");
+
+        window.location.href = `/?url=${encodeURIComponent(shared)}`;
       } catch {
-        // Not a URL we understand — ignore.
+        // Not a URL we understand, or storage unavailable — ignore.
       }
     }
 
