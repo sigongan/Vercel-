@@ -24,6 +24,9 @@ class ShareViewController: UIViewController {
             provider.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] data, _ in
                 if let url = data as? URL {
                     self?.openInAvocato(url.absoluteString)
+                } else if let data = data as? Data, let url = URL(dataRepresentation: data, relativeTo: nil) {
+                    // Some hosts hand the URL over as raw data instead.
+                    self?.openInAvocato(url.absoluteString)
                 } else {
                     self?.complete()
                 }
@@ -48,9 +51,15 @@ class ShareViewController: UIViewController {
         let link = firstURL(in: shared) ?? shared
         let encoded = link.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? link
         guard let url = URL(string: "avocato://share?url=\(encoded)") else { return complete() }
+
         DispatchQueue.main.async {
-            self.openURLViaResponderChain(url)
-            self.complete()
+            self.openURL(url)
+            // Don't tear the extension down in the same runloop tick as the
+            // open call — on recent iOS that can cancel the still-pending
+            // app launch, which reads as "tapped Avocato, nothing happened".
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.complete()
+            }
         }
     }
 
@@ -62,9 +71,22 @@ class ShareViewController: UIViewController {
         return detector.firstMatch(in: text, options: [], range: range)?.url?.absoluteString
     }
 
-    /// Extensions can't use UIApplication.shared, but the hosting app's
-    /// UIApplication instance is reachable through the responder chain —
-    /// the long-standing pattern share extensions use to open their app.
+    /// Extensions can't use UIApplication.shared, so this tries the two
+    /// known handoff paths in order:
+    /// 1. extensionContext.open — the official API; not guaranteed for
+    ///    share extensions but works on many iOS versions.
+    /// 2. Walking the responder chain to the hosting UIApplication and
+    ///    calling openURL: on it — the long-standing fallback pattern.
+    private func openURL(_ url: URL) {
+        extensionContext?.open(url) { [weak self] success in
+            if !success {
+                DispatchQueue.main.async {
+                    self?.openURLViaResponderChain(url)
+                }
+            }
+        }
+    }
+
     private func openURLViaResponderChain(_ url: URL) {
         let selector = sel_registerName("openURL:")
         var responder: UIResponder? = self
