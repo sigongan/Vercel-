@@ -30,11 +30,13 @@ export async function configureNativeStatusBar() {
 }
 
 /**
- * Handles avocato://share?url=<link> — what the iOS share extension opens
- * when someone shares a TikTok/YouTube link to Avocato. Navigates the
- * webview to /?url=<link>, where RecipeExtractor auto-starts extraction.
- * Covers both the warm case (app already running → appUrlOpen event) and
- * the cold case (app launched by the URL → getLaunchUrl).
+ * Handles the Universal Link (https://<domain>/?url=<link>) the iOS share
+ * extension opens when someone shares a TikTok/YouTube link to Avocato —
+ * navigates the webview to /?url=<link>, where RecipeExtractor auto-starts
+ * extraction. Covers both the warm case (app already running → appUrlOpen
+ * event) and the cold case (app launched by the URL → getLaunchUrl). Scheme-
+ * agnostic parsing, so this also still handles the old avocato:// custom
+ * scheme if anything ever opens that instead.
  */
 export async function registerNativeShareListener() {
   if (!isNativeApp()) return;

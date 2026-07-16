@@ -16,12 +16,43 @@ everywhere, including YouTube, and needs no Xcode setup beyond a normal
 The web and Capacitor sides of the *share sheet* (Part 1/2 below) are
 already done and deployed:
 - `/?url=<link>` on the site auto-fills the Link tab and starts extraction
-- The app listens for `avocato://share?url=<link>` and navigates there
+- The app listens for the Universal Link and navigates there
   (`lib/nativeApp.ts` → `registerNativeShareListener`)
 
-What's left for the share sheet needs Xcode. Two parts, ~10 minutes.
+**Why Universal Links, not a custom `avocato://` scheme**: the extension
+originally opened a custom scheme, but the handoff from a Share Extension
+to the containing app proved unreliable that way (intermittent "flashes and
+nothing happens" — a widely-reported iOS quirk, not something wrong with
+our setup). Universal Links are Apple's actual recommended mechanism for
+this exact handoff — the same one Safari's "Open in App" banner and
+Messages/Mail links use — and they degrade gracefully to opening Safari on
+the real page instead of a hard failure if the domain association isn't
+configured right. Three parts now, ~15 minutes.
 
-## Part 1 — Give the app its `avocato://` URL scheme
+## Part 1 — Associated Domains (Universal Links)
+
+1. Find your **Team ID** (10 characters, e.g. `A1B2C3D4E5`): Xcode → App
+   target → **Signing & Capabilities** tab → shown next to **Team**, or
+   under your name at [developer.apple.com/account](https://developer.apple.com/account)
+   → **Membership details**.
+2. Tell me that Team ID — I'll fill it into
+   `app/.well-known/apple-app-site-association` (already scaffolded, just
+   has a placeholder) and push it. This file has to be live on the site
+   before Part 2 will actually work.
+3. In Xcode: App target → **Signing & Capabilities** → **+ Capability** →
+   **Associated Domains** → **+** → add:
+   ```
+   applinks:vercel-ecru-iota-55.vercel.app
+   ```
+4. Build & run once. (There's no quick Safari test for this one the way
+   the old URL scheme had — Universal Link association takes a short time
+   for iOS to verify after the AASA file goes live, and is easiest to just
+   test end-to-end in Part 2's test steps below.)
+
+## Part 2 — Give the app its `avocato://` URL scheme too (fallback)
+
+Keeping this as a backup in case Universal Link resolution is ever slow to
+kick in (e.g. right after Part 1's file first goes live).
 
 1. Open the project (`npx cap open ios` from the project folder, or open
    `ios/App/App.xcworkspace`)
@@ -32,10 +63,12 @@ What's left for the share sheet needs Xcode. Two parts, ~10 minutes.
 5. Fill in:
    - **Identifier**: `app.avocato.ios`
    - **URL Schemes**: `avocato`
-6. That's it for part 1. (Quick test: build & run once, then open Safari on
-   the iPhone and go to `avocato://share` — the app should open.)
+6. That's it for part 2. (Quick test: build & run once, then open Safari on
+   the iPhone and go to `avocato://share` — the app should open, though
+   nothing in the app currently opens this scheme directly anymore — this
+   is just kept registered as a fallback.)
 
-## Part 2 — Add the Share Extension
+## Part 3 — Add the Share Extension
 
 1. Menu bar: **File → New → Target…**
 2. In the sheet, search for **Share Extension** (iOS section) → **Next**
@@ -80,8 +113,10 @@ What's left for the share sheet needs Xcode. Two parts, ~10 minutes.
 - **Avocato doesn't appear in the share sheet**: it only shows when sharing
   a *link or text* (not a photo). Also check the extension target actually
   built — it should be listed under TARGETS.
-- **Tapping it does nothing / app doesn't open**: Part 1's URL scheme is
-  missing or misspelled — it must be exactly `avocato`.
+- **Tapping it does nothing / app doesn't open**: most likely the Team ID in
+  the AASA file (Part 1) isn't set yet, or the Associated Domains capability
+  wasn't added — double check both. It can also take iOS a little while to
+  verify a freshly-published AASA file the very first time.
 - **App opens but doesn't start extracting**: the app build is older than
   the deployed site. The site side updates automatically (remote-URL app),
   but force-quit and reopen the app once to pick up a fresh page load.

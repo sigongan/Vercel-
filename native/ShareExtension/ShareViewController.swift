@@ -3,9 +3,19 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 /// "Share → Avocato" from TikTok/YouTube/Safari/anywhere. Grabs the shared
-/// link (or plain text containing one), hands it to the main app via the
-/// avocato:// URL scheme, and dismisses itself — the app then lands on
-/// /?url=<link>, which auto-starts recipe extraction.
+/// link (or plain text containing one), hands it to the main app via a
+/// Universal Link (a real https:// URL on our own domain, resolved by iOS
+/// itself rather than a custom URL scheme), and dismisses itself — the app
+/// then lands on /?url=<link>, which auto-starts recipe extraction.
+///
+/// Universal Links instead of a custom avocato:// scheme: custom-scheme
+/// handoff from a Share Extension proved unreliable in testing (intermittent
+/// "flashes and nothing happens"), which matches widely-reported iOS
+/// behavior. Universal Links are Apple's actual recommended mechanism for
+/// this — the same one Safari's "Open in App" banner and Messages/Mail
+/// links use — and degrade gracefully to opening Safari on the real page
+/// if the domain association (see app/.well-known/apple-app-site-association)
+/// isn't set up right, instead of a hard "can't open page" failure.
 ///
 /// This file replaces the ShareViewController.swift that Xcode generates
 /// when you add a Share Extension target. See docs/ios-share-extension.md.
@@ -14,6 +24,9 @@ import UniformTypeIdentifiers
 /// nothing happens" issue. Once the handoff works reliably, these can come
 /// out — see docs/ios-share-extension.md's troubleshooting section.
 class ShareViewController: UIViewController {
+
+    /// Must match capacitor.config.ts's server.url.
+    private static let host = "vercel-ecru-iota-55.vercel.app"
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -71,8 +84,8 @@ class ShareViewController: UIViewController {
         // the server rejects anything that isn't a clean URL outright.
         let link = firstURL(in: shared) ?? shared
         let encoded = link.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? link
-        guard let url = URL(string: "avocato://share?url=\(encoded)") else {
-            print("Avocato: failed to build avocato:// URL from: \(link)")
+        guard let url = URL(string: "https://\(Self.host)/?url=\(encoded)") else {
+            print("Avocato: failed to build universal link URL from: \(link)")
             return complete()
         }
         print("Avocato: opening \(url.absoluteString)")
@@ -99,23 +112,19 @@ class ShareViewController: UIViewController {
 
     /// UIApplication.shared.open(_:) is unavailable at compile time inside
     /// extension targets, which is why this needs a workaround at all.
-    /// Tries two paths:
-    /// 1. SwiftUI's OpenURLAction, read directly off a fresh EnvironmentValues
-    ///    instance (no View needed) instead of via @Environment. This is a
-    ///    public, App-Store-safe API that — unlike extensionContext.open —
-    ///    has been reported to actually work from Share Extensions on
-    ///    current iOS versions.
-    /// 2. extensionContext.open — the older documented API, kept as a
-    ///    backup in case it fires on some OS version where SwiftUI's path
-    ///    doesn't.
+    /// Fires both known handoff paths — extensionContext.open is the
+    /// documented API and, for a real https:// Universal Link (as opposed
+    /// to a custom scheme), is the one Apple's own examples use; SwiftUI's
+    /// OpenURLAction read off a fresh EnvironmentValues instance is a second
+    /// attempt in case the OS resolves it differently.
     private func openURL(_ url: URL) {
-        print("Avocato: calling EnvironmentValues openURL action")
-        let action = EnvironmentValues().openURL
-        action(url)
-
         extensionContext?.open(url) { success in
             print("Avocato: extensionContext.open success=\(success)")
         }
+
+        print("Avocato: calling EnvironmentValues openURL action")
+        let action = EnvironmentValues().openURL
+        action(url)
     }
 
     private func complete() {
