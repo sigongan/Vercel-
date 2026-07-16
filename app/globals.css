@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
+/* The warm redesign only ever had a light theme — force light mode
+   everywhere (site and native app) instead of falling back to the old
+   pre-redesign dark palette on devices set to Dark Mode, which read as
+   half-updated (warm accent colors on a black background). `dark:` utility
+   classes across the app now require an explicit .dark ancestor class,
+   which nothing adds, so they're effectively inert. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #fdf3ec;
   --foreground: #6b4a3f;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -11,13 +20,6 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-playfair);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0c0a09;
-    --foreground: #e7e5e4;
-  }
 }
 
 body {
