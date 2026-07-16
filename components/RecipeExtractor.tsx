@@ -142,6 +142,11 @@ export function RecipeExtractor() {
     setStatus("loading");
     setError(null);
     setRecipe(null);
+    // Lets the native splash (shown while a shared link is still being
+    // routed in) hand off the instant real extraction work begins, instead
+    // of waiting out its own fixed timer and flashing the plain input
+    // screen in between.
+    window.dispatchEvent(new Event("avocato:extraction-started"));
 
     try {
       const response = await (input.kind === "file"
