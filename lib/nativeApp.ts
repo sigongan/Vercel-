@@ -43,33 +43,45 @@ export async function registerNativeShareListener() {
   try {
     const { App } = await import("@capacitor/app");
 
-    function handle(openedUrl: string | undefined) {
-      if (!openedUrl) return;
+    function sharedLinkFrom(openedUrl: string | undefined): string | null {
+      if (!openedUrl) return null;
       try {
-        const shared = new URL(openedUrl).searchParams.get("url");
-        if (!shared) return;
-
-        // `window.location.href` below is a full page reload, which
-        // re-mounts this whole listener from scratch. Capacitor's
-        // getLaunchUrl() can keep returning the same cold-launch URL on
-        // that fresh mount, which would otherwise redirect again, causing
-        // another reload, re-mounting again — an infinite reload loop that
-        // looks like the app flashing open and shut. sessionStorage
-        // survives the reload (cleared only when the app is fully killed),
-        // so the same shared link only ever triggers one redirect.
-        const key = `avocato:handled-share:${shared}`;
-        if (sessionStorage.getItem(key)) return;
-        sessionStorage.setItem(key, "1");
-
-        window.location.href = `/?url=${encodeURIComponent(shared)}`;
+        return new URL(openedUrl).searchParams.get("url");
       } catch {
-        // Not a URL we understand, or storage unavailable — ignore.
+        return null;
       }
     }
 
-    App.addListener("appUrlOpen", ({ url }) => handle(url));
+    function navigate(shared: string) {
+      window.location.href = `/?url=${encodeURIComponent(shared)}`;
+    }
+
+    // Warm case (app already running, brought forward by a share): every
+    // appUrlOpen event is one genuine user action, so always navigate —
+    // never dedupe here. Deduping this path by link value silently broke
+    // sharing the same video twice in one app session ("worked once, then
+    // tapping Avocato did nothing until the app was force-quit").
+    App.addListener("appUrlOpen", ({ url }) => {
+      const shared = sharedLinkFrom(url);
+      if (shared) navigate(shared);
+    });
+
+    // Cold case (app launched by the share): navigate() is a full reload
+    // that re-runs this listener from scratch, and getLaunchUrl() keeps
+    // returning the same launch URL on that fresh run — unguarded, that's
+    // an infinite reload loop (app flashing open and shut). The guard
+    // lives ONLY on this path; sessionStorage survives the reload and is
+    // cleared when the app is fully killed, i.e. before any next
+    // cold launch.
     const launch = await App.getLaunchUrl();
-    handle(launch?.url);
+    const shared = sharedLinkFrom(launch?.url);
+    if (shared) {
+      const key = `avocato:handled-launch:${shared}`;
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, "1");
+        navigate(shared);
+      }
+    }
   } catch {
     // Plugin not available — share-sheet deep links just won't fire.
   }
