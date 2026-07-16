@@ -8,7 +8,13 @@ import { translations } from "@/lib/i18n";
 import { compressImageFile } from "@/lib/compressImage";
 import { AvocadoMark } from "@/lib/avocadoMark";
 import { SOURCE_ICONS } from "@/components/SourceIcons";
-import { registerClipboardWatcher, suppressClipboardPrompt } from "@/lib/nativeApp";
+import {
+  registerClipboardWatcher,
+  suppressClipboardPrompt,
+  hapticTap,
+  hapticSuccess,
+  hapticError,
+} from "@/lib/nativeApp";
 
 type Tab = "file" | "url" | "text";
 
@@ -142,6 +148,7 @@ export function RecipeExtractor() {
     setStatus("loading");
     setError(null);
     setRecipe(null);
+    hapticTap();
 
     try {
       const response = await (input.kind === "file"
@@ -170,9 +177,11 @@ export function RecipeExtractor() {
       if (data.ok) {
         setRecipe(data.recipe);
         setStatus("idle");
+        hapticSuccess();
       } else {
         setError({ message: data.error.error, code: data.error.code });
         setStatus("error");
+        hapticError();
       }
     } catch (err) {
       console.error("extract-recipe: request failed", err);
@@ -182,6 +191,7 @@ export function RecipeExtractor() {
         code: reason === "TIMEOUT" ? "TIMEOUT" : "NETWORK",
       });
       setStatus("error");
+      hapticError();
     }
   }
 

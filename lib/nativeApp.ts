@@ -167,6 +167,39 @@ export async function registerClipboardWatcher(onDetect: (url: string) => void) 
   }
 }
 
+/** Light tap feedback — button presses, tab switches, step navigation. */
+export async function hapticTap() {
+  if (!isNativeApp()) return;
+  try {
+    const { Haptics, ImpactStyle } = await import("@capacitor/haptics");
+    await Haptics.impact({ style: ImpactStyle.Light });
+  } catch {
+    // Plugin not available — nothing to do.
+  }
+}
+
+/** Success feedback — recipe ready, saved, timer done. */
+export async function hapticSuccess() {
+  if (!isNativeApp()) return;
+  try {
+    const { Haptics, NotificationType } = await import("@capacitor/haptics");
+    await Haptics.notification({ type: NotificationType.Success });
+  } catch {
+    // Plugin not available — nothing to do.
+  }
+}
+
+/** Error feedback — extraction failed. */
+export async function hapticError() {
+  if (!isNativeApp()) return;
+  try {
+    const { Haptics, NotificationType } = await import("@capacitor/haptics");
+    await Haptics.notification({ type: NotificationType.Error });
+  } catch {
+    // Plugin not available — nothing to do.
+  }
+}
+
 /**
  * Cook Mode's screen-stays-awake guarantee. The web Wake Lock API
  * (wired in components/CookMode.tsx) works in Mobile Safari but is

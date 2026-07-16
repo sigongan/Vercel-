@@ -7,6 +7,7 @@ import { translations, type Translation } from "@/lib/i18n";
 import { RecipeEditForm } from "./RecipeEditForm";
 import { CookMode } from "./CookMode";
 import { fitPrintArea, resetPrintArea } from "@/lib/printFit";
+import { hapticTap, hapticSuccess } from "@/lib/nativeApp";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -73,6 +74,7 @@ export function RecipeCard({
     try {
       await navigator.clipboard.writeText(lines.join("\n"));
       setCopied(true);
+      hapticSuccess();
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // clipboard unavailable — silently ignore
@@ -96,7 +98,10 @@ export function RecipeCard({
             {themes.map(({ id, label, premium }) => (
               <button
                 key={id}
-                onClick={() => setTheme(id)}
+                onClick={() => {
+                  hapticTap();
+                  setTheme(id);
+                }}
                 className={`flex items-center gap-1 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                   theme === id
                     ? "bg-white dark:bg-stone-700 text-[#b5573b] dark:text-stone-100 shadow-sm"
@@ -112,7 +117,10 @@ export function RecipeCard({
         <div className="flex flex-wrap items-center gap-2">
           {!editing && steps.length > 0 && (
             <button
-              onClick={() => setCookModeOpen(true)}
+              onClick={() => {
+                hapticTap();
+                setCookModeOpen(true);
+              }}
               className="flex items-center gap-1.5 rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             >
               <CookIcon />
@@ -121,7 +129,10 @@ export function RecipeCard({
           )}
           {!editing && saveable && SUPABASE_CONFIGURED && <SaveButton recipe={recipe} t={t} />}
           <button
-            onClick={() => setEditing((e) => !e)}
+            onClick={() => {
+              hapticTap();
+              setEditing((e) => !e);
+            }}
             className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
           >
             <EditIcon />
@@ -138,7 +149,10 @@ export function RecipeCard({
           )}
           {!editing && (
             <button
-              onClick={() => window.print()}
+              onClick={() => {
+                hapticTap();
+                window.print();
+              }}
               className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
             >
               <PrintIcon />
@@ -489,6 +503,7 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
 
   async function handleSave() {
     setState("saving");
+    hapticTap();
     try {
       const res = await fetch("/api/recipes", {
         method: "POST",
@@ -496,6 +511,7 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
         body: JSON.stringify({ recipe }),
       });
       setState(res.ok ? "saved" : "error");
+      if (res.ok) hapticSuccess();
     } catch {
       setState("error");
     }

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import type { Translation } from "@/lib/i18n";
-import { nativeKeepAwake } from "@/lib/nativeApp";
+import { nativeKeepAwake, hapticTap, hapticSuccess } from "@/lib/nativeApp";
 
 /** Best-effort duration hint from an instruction, e.g. "simmer for 10-12 minutes". */
 function parseDurationSeconds(text: string): number | null {
@@ -44,8 +44,14 @@ export function CookMode({
   const step = steps[index];
   const duration = step ? parseDurationSeconds(step.instruction) : null;
 
-  const goNext = useCallback(() => setIndex((i) => Math.min(i + 1, steps.length - 1)), [steps.length]);
-  const goPrev = useCallback(() => setIndex((i) => Math.max(i - 1, 0)), []);
+  const goNext = useCallback(() => {
+    hapticTap();
+    setIndex((i) => Math.min(i + 1, steps.length - 1));
+  }, [steps.length]);
+  const goPrev = useCallback(() => {
+    hapticTap();
+    setIndex((i) => Math.max(i - 1, 0));
+  }, []);
 
   // Keep the screen awake for as long as Cook Mode is open. The native app
   // (nativeKeepAwake) is the reliable path inside the Capacitor WKWebView,
@@ -169,7 +175,10 @@ export function CookMode({
         </button>
         {index === steps.length - 1 ? (
           <button
-            onClick={onClose}
+            onClick={() => {
+              hapticSuccess();
+              onClose();
+            }}
             className="flex-1 rounded-full bg-emerald-500 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600"
           >
             {t.cookModeDone}
@@ -236,11 +245,15 @@ function StepTimer({ duration, t }: { duration: number; t: Translation }) {
     } catch {
       // vibration unsupported — ignore
     }
+    // navigator.vibrate is a no-op inside the native WKWebView — this is
+    // the reliable path there, alongside the web fallback above.
+    hapticSuccess();
     // Fires once, when the countdown reaches zero.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [secondsLeft === 0]);
 
   function handleClick() {
+    hapticTap();
     if (secondsLeft <= 0) {
       setSecondsLeft(duration);
       setTimerRunning(true);
