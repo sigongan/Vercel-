@@ -15,7 +15,7 @@ import { NextResponse } from "next/server";
  * "Associated Domains" capability (applinks:vercel-ecru-iota-55.vercel.app)
  * is added to the App target in Xcode.
  */
-const TEAM_ID = "TEAM_ID_PLACEHOLDER";
+const TEAM_ID = "RZVT4RBC7B";
 const APP_ID = "app.avocato.ios";
 
 export async function GET() {
