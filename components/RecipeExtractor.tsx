@@ -11,6 +11,7 @@ import { SOURCE_ICONS } from "@/components/SourceIcons";
 import {
   registerClipboardWatcher,
   suppressClipboardPrompt,
+  onSharedUrl,
   hapticTap,
   hapticSuccess,
   hapticError,
@@ -223,6 +224,20 @@ export function RecipeExtractor() {
       startExtraction({ kind: "url", url: shared });
     });
     // Run once on mount only — startExtraction is stable in practice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Same deep-link entry, but for shares that arrive while the app is
+  // already running (no page reload — see onSharedUrl in lib/nativeApp.ts
+  // for why the reload was making warm shares feel slow/choppy).
+  useEffect(() => {
+    return onSharedUrl((shared) => {
+      suppressClipboardPrompt(shared);
+      setTab("url");
+      setUrl(shared);
+      startExtraction({ kind: "url", url: shared });
+    });
+    // Subscribe once — startExtraction is stable in practice.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

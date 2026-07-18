@@ -99,16 +99,31 @@ class ShareViewController: UIViewController {
             print("Avocato: failed to build handoff URLs from: \(link)")
             return complete()
         }
-        print("Avocato: opening \(schemeURL.absoluteString)")
+        print("Avocato: opening \(universalURL.absoluteString)")
 
         DispatchQueue.main.async {
-            self.openURL(scheme: schemeURL, universal: universalURL)
-            // Don't tear the extension down in the same runloop tick as the
-            // open call — on recent iOS that can cancel the still-pending
-            // app launch, which reads as "tapped Avocato, nothing happened".
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                print("Avocato: completing request")
-                self.complete()
+            self.openUniversalLink(universalURL) { [weak self] opened in
+                guard let self = self else { return }
+                if opened {
+                    // iOS has confirmed the Universal Link resolved to the
+                    // app — complete immediately instead of always padding
+                    // with a fixed delay, which made every share feel
+                    // sluggish even on the common, working path.
+                    print("Avocato: universal link opened, completing immediately")
+                    self.complete()
+                } else {
+                    // Universal Link didn't resolve (domain association not
+                    // live, or Safari opened instead) — fall back to the
+                    // custom scheme, which still needs the settle delay
+                    // since it's the flakier, best-effort path.
+                    print("Avocato: universal link did not open, falling back to scheme")
+                    let action = EnvironmentValues().openURL
+                    action(schemeURL)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        print("Avocato: completing request (scheme fallback)")
+                        self.complete()
+                    }
+                }
             }
         }
     }
@@ -123,24 +138,17 @@ class ShareViewController: UIViewController {
 
     /// UIApplication.shared.open(_:) is unavailable at compile time inside
     /// extension targets, which is why this needs workarounds at all.
-    /// Fires both known handoff paths:
-    /// - SwiftUI's OpenURLAction (read off a fresh EnvironmentValues, no
-    ///   View needed) with the custom avocato:// scheme — works today
-    ///   without any domain setup, but iOS treats it as best-effort from a
-    ///   share extension (intermittent on device).
-    /// - extensionContext.open with the https:// Universal Link — becomes
-    ///   the reliable path once the domain association is live (Team ID in
-    ///   app/.well-known/apple-app-site-association + the Associated
-    ///   Domains capability in Xcode); until then it just reports false
-    ///   and does nothing, so it's safe to always attempt.
-    private func openURL(scheme schemeURL: URL, universal universalURL: URL) {
+    /// Tries the https:// Universal Link first — Apple's actual recommended
+    /// mechanism, reliable now that the domain association (Team ID in
+    /// app/.well-known/apple-app-site-association + the Associated Domains
+    /// capability in Xcode) is live — and reports back whether it opened so
+    /// the caller can complete immediately on success instead of always
+    /// padding with a fixed delay.
+    private func openUniversalLink(_ universalURL: URL, completion: @escaping (Bool) -> Void) {
         extensionContext?.open(universalURL) { success in
             print("Avocato: extensionContext.open(universal) success=\(success)")
+            completion(success)
         }
-
-        print("Avocato: calling EnvironmentValues openURL action with custom scheme")
-        let action = EnvironmentValues().openURL
-        action(schemeURL)
     }
 
     private func complete() {

@@ -29,14 +29,30 @@ export async function configureNativeStatusBar() {
   }
 }
 
+const SHARED_URL_EVENT = "avocato:shared-url";
+
+/**
+ * Subscribes to links shared in while the app is already running (see the
+ * warm-case branch of registerNativeShareListener below). Returns an
+ * unsubscribe function. Used by RecipeExtractor to auto-start extraction
+ * without a full page reload.
+ */
+export function onSharedUrl(callback: (url: string) => void): () => void {
+  function listener(event: Event) {
+    const detail = (event as CustomEvent<string>).detail;
+    if (detail) callback(detail);
+  }
+  window.addEventListener(SHARED_URL_EVENT, listener as EventListener);
+  return () => window.removeEventListener(SHARED_URL_EVENT, listener as EventListener);
+}
+
 /**
  * Handles the Universal Link (https://<domain>/?url=<link>) the iOS share
- * extension opens when someone shares a TikTok/YouTube link to Avocato —
- * navigates the webview to /?url=<link>, where RecipeExtractor auto-starts
- * extraction. Covers both the warm case (app already running → appUrlOpen
- * event) and the cold case (app launched by the URL → getLaunchUrl). Scheme-
- * agnostic parsing, so this also still handles the old avocato:// custom
- * scheme if anything ever opens that instead.
+ * extension opens when someone shares a TikTok/YouTube link to Avocato.
+ * Covers both the warm case (app already running → appUrlOpen event) and
+ * the cold case (app launched by the URL → getLaunchUrl). Scheme-agnostic
+ * parsing, so this also still handles the old avocato:// custom scheme if
+ * anything ever opens that instead.
  */
 export async function registerNativeShareListener() {
   if (!isNativeApp()) return;
@@ -52,34 +68,35 @@ export async function registerNativeShareListener() {
       }
     }
 
-    function navigate(shared: string) {
-      window.location.href = `/?url=${encodeURIComponent(shared)}`;
-    }
-
-    // Warm case (app already running, brought forward by a share): every
-    // appUrlOpen event is one genuine user action, so always navigate —
-    // never dedupe here. Deduping this path by link value silently broke
-    // sharing the same video twice in one app session ("worked once, then
-    // tapping Avocato did nothing until the app was force-quit").
+    // Warm case (app already running, brought forward by a share): the
+    // webview is already loaded, so a full window.location reload here
+    // re-fetches the whole app over the network for no reason — visibly
+    // slow/choppy compared to how snappy the rest of the app feels.
+    // Dispatching an in-page event instead lets RecipeExtractor start
+    // extraction immediately with no navigation at all. Every appUrlOpen
+    // event is one genuine user action, so always fire it — never dedupe
+    // here. Deduping this path by link value silently broke sharing the
+    // same video twice in one app session ("worked once, then tapping
+    // Avocato did nothing until the app was force-quit").
     App.addListener("appUrlOpen", ({ url }) => {
       const shared = sharedLinkFrom(url);
-      if (shared) navigate(shared);
+      if (shared) window.dispatchEvent(new CustomEvent(SHARED_URL_EVENT, { detail: shared }));
     });
 
-    // Cold case (app launched by the share): navigate() is a full reload
-    // that re-runs this listener from scratch, and getLaunchUrl() keeps
-    // returning the same launch URL on that fresh run — unguarded, that's
-    // an infinite reload loop (app flashing open and shut). The guard
-    // lives ONLY on this path; sessionStorage survives the reload and is
-    // cleared when the app is fully killed, i.e. before any next
-    // cold launch.
+    // Cold case (app launched by the share): the app is starting up from
+    // nothing anyway, so a reload isn't extra cost here — and RecipeExtractor
+    // reads ?url= on mount for this path. getLaunchUrl() keeps returning the
+    // same launch URL on that fresh run — unguarded, that's an infinite
+    // reload loop (app flashing open and shut). The guard lives ONLY on
+    // this path; sessionStorage survives the reload and is cleared when the
+    // app is fully killed, i.e. before any next cold launch.
     const launch = await App.getLaunchUrl();
     const shared = sharedLinkFrom(launch?.url);
     if (shared) {
       const key = `avocato:handled-launch:${shared}`;
       if (!sessionStorage.getItem(key)) {
         sessionStorage.setItem(key, "1");
-        navigate(shared);
+        window.location.href = `/?url=${encodeURIComponent(shared)}`;
       }
     }
   } catch {
