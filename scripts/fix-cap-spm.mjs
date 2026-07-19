@@ -8,10 +8,12 @@
 // Deployment doesn't influence this generated file, so this runs after every
 // sync (see the "cap:sync" npm script) to patch it back to a version the
 // declared tools-version actually supports.
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const target = path.join(__dirname, "..", "ios", "App", "CapApp-SPM", "Package.swift");
+const here = path.dirname(fileURLToPath(import.meta.url));
+const target = path.join(here, "..", "ios", "App", "CapApp-SPM", "Package.swift");
 
 if (!fs.existsSync(target)) {
   process.exit(0);

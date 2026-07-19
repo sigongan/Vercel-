@@ -9,7 +9,7 @@ export async function extractFromGoogleDocs(url: string): Promise<ExtractedConte
     }
     docId = match[1];
   } catch {
-    throw new ExtractionError("올바른 구글 Docs 링크가 아닙니다.", "INVALID_INPUT");
+    throw new ExtractionError("That is not a valid Google Docs link.", "INVALID_INPUT");
   }
 
   const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=txt`;
@@ -22,19 +22,19 @@ export async function extractFromGoogleDocs(url: string): Promise<ExtractedConte
 
     const text = await res.text();
     if (!text.trim()) {
-      throw new ExtractionError("구글 Docs가 비어있거나 접근할 수 없습니다.", "EXTRACTION_FAILED");
+      throw new ExtractionError("The Google Doc is empty or inaccessible.", "EXTRACTION_FAILED");
     }
 
     return {
       sourceType: "url",
       sourceUrl: url,
-      title: "구글 Docs 레시피",
+      title: "Google Docs recipe",
       text: text.trim(),
     };
   } catch (err) {
     if (err instanceof ExtractionError) throw err;
     throw new ExtractionError(
-      "구글 Docs를 불러올 수 없습니다. 공개 또는 링크 공유로 설정되어 있는지 확인해 주세요.",
+      "Could not load the Google Doc. Make sure it is shared publicly or via link.",
       "EXTRACTION_FAILED"
     );
   }

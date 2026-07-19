@@ -6,7 +6,7 @@ export function extractFromText(raw: string): ExtractedContent {
   const text = raw.trim();
 
   if (!text) {
-    throw new ExtractionError("텍스트를 입력해 주세요.", "INVALID_INPUT");
+    throw new ExtractionError("Please enter some text.", "INVALID_INPUT");
   }
 
   return {

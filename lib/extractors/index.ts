@@ -23,7 +23,7 @@ export async function extractFromFile(file: File, lang: Language): Promise<Extra
     return extractFromVideoFile(file, lang);
   }
 
-  throw new ExtractionError(`지원하지 않는 파일 형식입니다: ${file.type || "알 수 없음"}`, "INVALID_INPUT");
+  throw new ExtractionError(`Unsupported file format: ${file.type || "unknown"}`, "INVALID_INPUT");
 }
 
 export async function extractFromUrl(rawUrl: string, lang: Language): Promise<ExtractedContent> {
@@ -32,7 +32,7 @@ export async function extractFromUrl(rawUrl: string, lang: Language): Promise<Ex
   try {
     url = new URL(rawUrl);
   } catch {
-    throw new ExtractionError("올바른 URL이 아닙니다.", "INVALID_INPUT");
+    throw new ExtractionError("That is not a valid URL.", "INVALID_INPUT");
   }
 
   const host = url.hostname.replace(/^www\./, "");
@@ -51,7 +51,7 @@ export async function extractFromUrl(rawUrl: string, lang: Language): Promise<Ex
   }
 
   throw new ExtractionError(
-    "지원하지 않는 링크입니다. 유튜브, 인스타그램, 틱톡, 구글 Docs 링크를 지원합니다.",
+    "Unsupported link. YouTube, Instagram, TikTok, and Google Docs links are supported.",
     "UNSUPPORTED_SOURCE"
   );
 }

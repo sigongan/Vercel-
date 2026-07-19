@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "cap:sync": "cap sync ios && node scripts/fix-cap-spm.js",
+    "cap:sync": "cap sync ios && node scripts/fix-cap-spm.mjs",
     "cap:open": "cap open ios"
   },
   "dependencies": {

@@ -78,14 +78,14 @@ export async function extractFromYoutube(url: string, lang: Language): Promise<E
   }
 
   const textParts = [
-    description ? `영상 설명란:\n${description}` : null,
-    transcript ? `영상 자막:\n${transcript}` : null,
+    description ? `Video description:\n${description}` : null,
+    transcript ? `Video captions:\n${transcript}` : null,
   ].filter(Boolean);
 
   if (textParts.length === 0) {
     if (!title) {
       throw new ExtractionError(
-        "이 유튜브 영상의 자막과 정보를 가져오지 못했습니다. 링크를 확인해 주세요.",
+        "Could not fetch this YouTube video's captions or details. Please check the link.",
         "EXTRACTION_FAILED"
       );
     }

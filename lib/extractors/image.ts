@@ -4,7 +4,7 @@ const SUPPORTED_MEDIA_TYPES = ["image/jpeg", "image/png", "image/webp", "image/g
 
 export async function extractFromImage(file: File): Promise<ExtractedContent> {
   if (!SUPPORTED_MEDIA_TYPES.includes(file.type)) {
-    throw new ExtractionError(`지원하지 않는 이미지 형식입니다: ${file.type}`, "INVALID_INPUT");
+    throw new ExtractionError(`Unsupported image format: ${file.type}`, "INVALID_INPUT");
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());

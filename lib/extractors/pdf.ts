@@ -13,12 +13,12 @@ const MAX_PDF_BYTES = 4 * 1024 * 1024;
  */
 export async function extractFromPdf(file: File): Promise<ExtractedContent> {
   if (file.type !== "application/pdf") {
-    throw new ExtractionError(`PDF 파일이 아닙니다: ${file.type}`, "INVALID_INPUT");
+    throw new ExtractionError(`Not a PDF file: ${file.type}`, "INVALID_INPUT");
   }
 
   if (file.size > MAX_PDF_BYTES) {
     throw new ExtractionError(
-      "PDF가 너무 큽니다 (최대 4MB). 필요한 페이지만 잘라서 올리거나 스크린샷을 이용해 주세요.",
+      "The PDF is too large (4MB max). Upload just the pages you need, or use a screenshot.",
       "INVALID_INPUT"
     );
   }

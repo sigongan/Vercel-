@@ -15,7 +15,7 @@ const WARNING: Record<Language, string> = {
  */
 export async function extractFromVideoFile(file: File, lang: Language): Promise<ExtractedContent> {
   if (!SUPPORTED_MEDIA_TYPES.includes(file.type)) {
-    throw new ExtractionError(`지원하지 않는 동영상 형식입니다: ${file.type}`, "INVALID_INPUT");
+    throw new ExtractionError(`Unsupported video format: ${file.type}`, "INVALID_INPUT");
   }
 
   return {

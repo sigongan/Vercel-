@@ -33,13 +33,13 @@ Vercel Analytics로 어떤 소스(유튜브/틱톡/사진)가 많이 쓰이는�
 > 검증한 "돈 내는 기능". 사진·텍스트를 무료 무제한으로 두면 앱을
 > 지우지 않고 계속 쓰다가 전환됨.
 
-### 가격 (한국+미국 동시)
+### 가격 (영어권 타겟 — USD 기준, 타 통화는 애플 자동 환산)
 
 | 상품 | 가격 | Product ID |
 | --- | --- | --- |
-| Pro 월간 | $3.99 / ₩5,500 | `avocato.pro.monthly` |
-| Pro 연간 | $29.99 / ₩39,000 (월 $2.50 꼴 — 메인으로 밀기) | `avocato.pro.yearly` |
-| 평생 (출시 기념 한정) | $49.99 / ₩65,000 | `avocato.pro.lifetime` |
+| Pro 월간 | $3.99 | `avocato.pro.monthly` |
+| Pro 연간 | $29.99 (월 $2.50 꼴 — 메인으로 밀기) | `avocato.pro.yearly` |
+| 평생 (출시 기념 한정) | $49.99 | `avocato.pro.lifetime` |
 
 - 연간에 **7일 무료 체험** 붙이기 (전환율 가장 높은 조합)
 - Apple Small Business Program 신청 → 수수료 30%가 아닌 **15%**

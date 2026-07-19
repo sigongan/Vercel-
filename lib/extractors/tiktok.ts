@@ -11,7 +11,7 @@ export async function extractFromTiktok(url: string, lang: Language): Promise<Ex
 
   if (!res.ok) {
     throw new ExtractionError(
-      "틱톡 영상 정보를 가져오지 못했습니다. 링크를 확인하거나 스크린샷을 업로드해 주세요.",
+      "Could not fetch this TikTok video's details. Check the link or upload a screenshot instead.",
       "EXTRACTION_FAILED"
     );
   }
@@ -24,7 +24,7 @@ export async function extractFromTiktok(url: string, lang: Language): Promise<Ex
   return {
     sourceType: "tiktok",
     sourceUrl: url,
-    title: data.author_name ? `${data.author_name}의 틱톡` : undefined,
+    title: data.author_name ? `TikTok by ${data.author_name}` : undefined,
     text,
     warning: CAPTION_ONLY_WARNING[lang],
   };

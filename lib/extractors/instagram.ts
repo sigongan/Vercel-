@@ -12,7 +12,7 @@ export async function extractFromInstagram(url: string): Promise<ExtractedConten
 
   if (!token) {
     throw new ExtractionError(
-      "인스타그램 링크는 아직 자동으로 불러올 수 없습니다. 게시물 스크린샷이나 영상 파일을 직접 업로드해 주세요.",
+      "Instagram links can't be fetched automatically yet. Upload a screenshot or video file of the post instead.",
       "UNSUPPORTED_SOURCE"
     );
   }
@@ -23,7 +23,7 @@ export async function extractFromInstagram(url: string): Promise<ExtractedConten
 
   if (!res.ok) {
     throw new ExtractionError(
-      "인스타그램 게시물 정보를 가져오지 못했습니다. 스크린샷을 업로드해 주세요.",
+      "Could not fetch this Instagram post's details. Upload a screenshot instead.",
       "EXTRACTION_FAILED"
     );
   }
@@ -33,7 +33,7 @@ export async function extractFromInstagram(url: string): Promise<ExtractedConten
   return {
     sourceType: "instagram",
     sourceUrl: url,
-    title: data.author_name ? `${data.author_name}의 인스타그램` : undefined,
+    title: data.author_name ? `Instagram by ${data.author_name}` : undefined,
     text: data.title,
   };
 }
