@@ -23,7 +23,8 @@ type ErrorCode =
 type Input =
   | { kind: "file"; file: File; lang: Language }
   | { kind: "url"; url: string; lang: Language }
-  | { kind: "text"; text: string; lang: Language };
+  | { kind: "text"; text: string; lang: Language }
+  | { kind: "pantry"; text: string; lang: Language };
 
 function asLanguage(value: unknown): Language {
   return value === "ko" ? "ko" : "en";
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     async function runExtraction() {
       const content = await extract(input);
-      const recipe = await parseRecipeFromContent(content, input.lang);
+      const recipe = await parseRecipeFromContent(content, input.lang, parseModeFor(input));
       if (content.warning) {
         recipe.notes = recipe.notes ? `${recipe.notes}\n${content.warning}` : content.warning;
       }
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
       // design should look like. Text keeps a generous per-IP daily cap as
       // an abuse/cost backstop; file/URL extraction has none yet, so revisit
       // this if usage spikes before a real design is in place.
-      if (input.kind === "text") {
+      if (input.kind === "text" || input.kind === "pantry") {
         const ip = getClientIp(req);
         if (ip) {
           try {
@@ -134,9 +135,21 @@ async function readJsonInput(req: NextRequest): Promise<Input> {
     // recipes (even blog posts with the recipe buried in them) fit easily.
     if (text.length > 60_000) {
       throw new ExtractionError(
-        "텍스트가 너무 깁니다. 레시피 부분만 잘라서 붙여넣어 주세요.",
+        "That text is too long. Paste just the recipe part.",
         "INVALID_INPUT"
       );
+    }
+    // Pantry mode: same text pipeline, but the AI invents a dish from the
+    // listed ingredients instead of extracting one. A fridge inventory is
+    // short — the tighter cap stops essay-length abuse of the cheaper path.
+    if (body?.pantry === true) {
+      if (text.length > 2_000) {
+        throw new ExtractionError(
+          "That's a lot of ingredients! List just the main things you have on hand.",
+          "INVALID_INPUT"
+        );
+      }
+      return { kind: "pantry", text, lang };
     }
     return { kind: "text", text, lang };
   }
@@ -157,11 +170,15 @@ async function hashInput(input: Input): Promise<string> {
   if (input.kind === "url") {
     return hashSource("url", input.lang, input.url);
   }
-  return hashSource("text", input.lang, input.text);
+  return hashSource(input.kind, input.lang, input.text);
 }
 
 async function extract(input: Input): Promise<ExtractedContent> {
   if (input.kind === "file") return extractFromFile(input.file, input.lang);
   if (input.kind === "url") return extractFromUrl(input.url, input.lang);
   return extractFromText(input.text);
+}
+
+function parseModeFor(input: Input) {
+  return input.kind === "pantry" ? ("pantry" as const) : ("extract" as const);
 }

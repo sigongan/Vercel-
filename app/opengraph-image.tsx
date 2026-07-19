@@ -18,7 +18,7 @@ export default function OgImage() {
           gap: 28,
           background: "#fafaf9",
           backgroundImage:
-            "radial-gradient(60% 60% at 50% 0%, rgba(80,130,70,0.12), transparent 70%)",
+            "radial-gradient(60% 60% at 50% 0%, rgba(97,160,14,0.12), transparent 70%)",
         }}
       >
         <div style={{ fontSize: 140, lineHeight: 1, display: "flex" }}>🥑</div>

@@ -40,15 +40,15 @@ export function GroceryListSheet({
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40" onClick={onClose}>
       <div
-        className="flex max-h-[85vh] flex-col rounded-t-3xl bg-[#F7F5EF] shadow-[0_-8px_30px_rgba(0,0,0,0.25)]"
+        className="flex max-h-[85vh] flex-col rounded-t-3xl bg-[#FAFAF7] shadow-[0_-8px_30px_rgba(0,0,0,0.25)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 pb-2 pt-5">
-          <h2 className="text-base font-semibold text-[#3D5A38]">{t.groceryTitle}</h2>
+          <h2 className="text-base font-semibold text-[#232920]">{t.groceryTitle}</h2>
           <button
             onClick={onClose}
             aria-label={t.groceryClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#E3EADB] text-[#5C7A4F] transition-colors hover:bg-[#E3EADB]"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EDF1E4] text-[#5E7A33] transition-colors hover:bg-[#EDF1E4]"
           >
             ✕
           </button>
@@ -56,11 +56,11 @@ export function GroceryListSheet({
 
         <div className="flex-1 overflow-y-auto px-6 pb-4">
           {items.length === 0 ? (
-            <p className="py-10 text-center text-sm text-[#7E9072]">{t.groceryEmpty}</p>
+            <p className="py-10 text-center text-sm text-[#6B7261]">{t.groceryEmpty}</p>
           ) : (
             [...byRecipe.entries()].map(([recipeTitle, group]) => (
               <section key={recipeTitle} className="py-3">
-                <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#5F7A52]">
+                <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#4D7C0F]">
                   {recipeTitle}
                 </h3>
                 <ul className="flex flex-col gap-1">
@@ -74,13 +74,13 @@ export function GroceryListSheet({
                             hapticTap();
                             toggleGroceryItem(item.id);
                           }}
-                          className="h-5 w-5 shrink-0 accent-[#5B8A52]"
+                          className="h-5 w-5 shrink-0 accent-[#61A00E]"
                         />
                         <span
                           className={`flex-1 text-[15px] ${
                             item.checked
-                              ? "text-[#8FA084] line-through"
-                              : "text-[#37452F]"
+                              ? "text-[#9AA093] line-through"
+                              : "text-[#30362B]"
                           }`}
                         >
                           {item.name}
@@ -88,7 +88,7 @@ export function GroceryListSheet({
                         {item.amount && (
                           <span
                             className={`shrink-0 text-sm tabular-nums ${
-                              item.checked ? "text-[#C6D2BC] line-through" : "text-[#7E9072]"
+                              item.checked ? "text-[#CDD4C2] line-through" : "text-[#6B7261]"
                             }`}
                           >
                             {item.amount}
@@ -98,7 +98,7 @@ export function GroceryListSheet({
                       <button
                         onClick={() => removeGroceryItem(item.id)}
                         aria-label="Remove"
-                        className="shrink-0 px-1 text-sm text-[#C6D2BC] transition-colors hover:text-[#5C7A4F]"
+                        className="shrink-0 px-1 text-sm text-[#CDD4C2] transition-colors hover:text-[#5E7A33]"
                       >
                         ✕
                       </button>
@@ -111,13 +111,13 @@ export function GroceryListSheet({
         </div>
 
         {items.length > 0 && (
-          <div className="flex gap-2 border-t border-[#D6E2CC] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex gap-2 border-t border-[#E2E6D9] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <button
               onClick={() => {
                 hapticTap();
                 shareText(t.groceryTitle, groceryListAsText(items));
               }}
-              className="flex-1 rounded-full bg-gradient-to-br from-[#9CC28C] to-[#5B8A52] py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="flex-1 rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             >
               {t.groceryShare}
             </button>
@@ -127,7 +127,7 @@ export function GroceryListSheet({
                   hapticTap();
                   clearCheckedGroceryItems();
                 }}
-                className="flex-1 rounded-full border border-[#D6E2CC] bg-white py-2.5 text-sm font-medium text-[#5C7A4F] transition-colors hover:border-[#AECA9F]"
+                className="flex-1 rounded-full border border-[#E2E6D9] bg-white py-2.5 text-sm font-medium text-[#5E7A33] transition-colors hover:border-[#C0DC8C]"
               >
                 {t.groceryClearChecked}
               </button>

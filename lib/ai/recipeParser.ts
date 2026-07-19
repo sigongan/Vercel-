@@ -11,22 +11,7 @@ export class AiNotConfiguredError extends Error {
 
 export class RecipeParseError extends Error {}
 
-const SYSTEM_PROMPT = `You are an assistant that turns source material from YouTube, Instagram, TikTok, PDFs, screenshots, and similar sources into a structured cooking recipe.
-Analyze the provided text and images and produce a recipe matching the JSON schema below.
-
-Rules for ingredient amounts:
-- If the source (whether an ingredient list or the instructions) states an amount, use it as-is and set estimated to false.
-- If the source never states an amount for an ingredient, never leave it empty — estimate a reasonable amount from cooking knowledge, the other ingredients' amounts, and the serving count, and set that ingredient's estimated to true.
-- Estimated amounts must be concrete, cookable values (e.g. "1 tbsp", "200g", "1/2 onion") — never vague phrases like "to taste" as a substitute for a real amount.
-- For everything other than amounts (title, steps, etc.), leave fields empty when unsure rather than guessing.
-- If the source lacks recipe information itself (ingredients or steps can't be determined), set confidence to "low". Estimating amounts alone does not lower confidence.
-
-Nutrition estimate:
-- Estimate nutrition PER SERVING from the ingredient list and serving count: calories, protein, carbs, fat.
-- These are rough estimates for a home cook, not medical data — round to sensible values ("520 kcal", "32g").
-- If the ingredients are too unclear to estimate at all, omit the nutrition field entirely rather than guessing wildly.
-
-JSON schema:
+const JSON_SCHEMA = `JSON schema:
 {
   "title": string,
   "description": string (optional),
@@ -43,6 +28,38 @@ JSON schema:
 
 Output only the JSON object, with no other explanatory text.`;
 
+/** "What's in your fridge" mode — inventing a dish from on-hand ingredients
+ *  rather than extracting one from a source. */
+const PANTRY_PROMPT = `You are a practical home-cooking assistant. The user gives you a rough list of ingredients they have on hand. Suggest ONE realistic, simple dish they can actually cook tonight, built primarily from those ingredients.
+
+Rules:
+- The listed ingredients are the stars. You may assume basic pantry staples (salt, pepper, cooking oil, water, sugar, common dried spices) and include them in the ingredient list.
+- Never require an important ingredient the user didn't list — suggest it in notes as an optional upgrade instead.
+- Every ingredient needs a concrete, cookable amount, marked estimated: true (they're your suggestion, not a source's).
+- Steps should be short, confident, and include times where relevant.
+- Fill in servings, prepTime, cookTime, tags, and the per-serving nutrition estimate.
+- confidence: "high" when the ingredients make a coherent dish, "medium" when you had to stretch.
+- In notes, add one short tip or variation.
+
+${JSON_SCHEMA}`;
+
+const SYSTEM_PROMPT = `You are an assistant that turns source material from YouTube, Instagram, TikTok, PDFs, screenshots, and similar sources into a structured cooking recipe.
+Analyze the provided text and images and produce a recipe matching the JSON schema below.
+
+Rules for ingredient amounts:
+- If the source (whether an ingredient list or the instructions) states an amount, use it as-is and set estimated to false.
+- If the source never states an amount for an ingredient, never leave it empty — estimate a reasonable amount from cooking knowledge, the other ingredients' amounts, and the serving count, and set that ingredient's estimated to true.
+- Estimated amounts must be concrete, cookable values (e.g. "1 tbsp", "200g", "1/2 onion") — never vague phrases like "to taste" as a substitute for a real amount.
+- For everything other than amounts (title, steps, etc.), leave fields empty when unsure rather than guessing.
+- If the source lacks recipe information itself (ingredients or steps can't be determined), set confidence to "low". Estimating amounts alone does not lower confidence.
+
+Nutrition estimate:
+- Estimate nutrition PER SERVING from the ingredient list and serving count: calories, protein, carbs, fat.
+- These are rough estimates for a home cook, not medical data — round to sensible values ("520 kcal", "32g").
+- If the ingredients are too unclear to estimate at all, omit the nutrition field entirely rather than guessing wildly.
+
+${JSON_SCHEMA}`;
+
 const OUTPUT_LANGUAGE_INSTRUCTION: Record<Language, string> = {
   ko: "모든 출력 값(title, description, ingredients, steps, tags, notes)은 한국어로 작성하세요. 원본이 다른 언어라면 한국어로 번역하세요.",
   en: "Write every output value (title, description, ingredients, steps, tags, notes) in English. Translate the source content if it is in another language.",
@@ -52,7 +69,13 @@ function isConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
-export async function parseRecipeFromContent(content: ExtractedContent, lang: Language): Promise<Recipe> {
+export type ParseMode = "extract" | "pantry";
+
+export async function parseRecipeFromContent(
+  content: ExtractedContent,
+  lang: Language,
+  mode: ParseMode = "extract",
+): Promise<Recipe> {
   if (!isConfigured()) {
     throw new AiNotConfiguredError();
   }
@@ -99,7 +122,11 @@ export async function parseRecipeFromContent(content: ExtractedContent, lang: La
       // The instruction text is identical across every request (per language), so
       // marking it cacheable avoids re-billing the full system prompt on every call.
       system: [
-        { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
+        {
+          type: "text",
+          text: mode === "pantry" ? PANTRY_PROMPT : SYSTEM_PROMPT,
+          cache_control: { type: "ephemeral" },
+        },
         { type: "text", text: OUTPUT_LANGUAGE_INSTRUCTION[lang], cache_control: { type: "ephemeral" } },
       ],
       messages: [{ role: "user", content: contentBlocks }],

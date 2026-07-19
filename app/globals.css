@@ -9,8 +9,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #F7F5EF;
-  --foreground: #37452F;
+  --background: #FAFAF7;
+  --foreground: #30362B;
   color-scheme: light;
 }
 
