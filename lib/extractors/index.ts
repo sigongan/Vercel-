@@ -6,6 +6,7 @@ import { extractFromYoutube } from "./youtube";
 import { extractFromTiktok } from "./tiktok";
 import { extractFromInstagram } from "./instagram";
 import { extractFromGoogleDocs } from "./googleDocs";
+import { extractFromWebsite } from "./website";
 import { extractFromText } from "./text";
 import { ExtractedContent, ExtractionError } from "./types";
 
@@ -50,8 +51,8 @@ export async function extractFromUrl(rawUrl: string, lang: Language): Promise<Ex
     return extractFromGoogleDocs(url.toString());
   }
 
-  throw new ExtractionError(
-    "Unsupported link. YouTube, Instagram, TikTok, and Google Docs links are supported.",
-    "UNSUPPORTED_SOURCE"
-  );
+  // Anything else: recipe blogs, AllRecipes, newspaper food sections...
+  // the generic extractor reads schema.org Recipe JSON-LD when the site
+  // has it, or falls back to the page text.
+  return extractFromWebsite(url.toString());
 }

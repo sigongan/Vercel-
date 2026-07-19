@@ -163,6 +163,77 @@ export function convertAmount(amount: string, name: string): string | null {
   return trailing ? `${c1} ${trailing}` : c1;
 }
 
+/* ---------- Serving scaling ---------- */
+
+/** "2 servings" / "Serves 4" / "4인분" → 2 / 4 / 4. Null when no number. */
+export function parseServings(servings: string | undefined): number | null {
+  const m = servings?.match(/(\d+(?:\.\d+)?)/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+// Render scaled quantities the way a cook writes them: "1½" not "1.5",
+// but fall back to a decimal when no common fraction is close.
+function formatQty(v: number): string {
+  const whole = Math.floor(v + 1e-9);
+  const frac = v - whole;
+  if (frac < 0.03 || v >= 10) return String(Math.round(v));
+  const fractions: [number, string][] = [
+    [0.25, "¼"], [1 / 3, "⅓"], [0.5, "½"], [2 / 3, "⅔"], [0.75, "¾"],
+  ];
+  for (const [f, sym] of fractions) {
+    if (Math.abs(frac - f) < 0.05) return whole ? `${whole}${sym}` : sym;
+  }
+  return String(Math.round(v * 10) / 10);
+}
+
+/**
+ * Scales the numeric part of one amount string, keeping everything else:
+ * "1 cup" ×2 → "2 cup", "250g" ×1.5 → "375g", "1-2 tbsp" ×2 → "2–4 tbsp",
+ * "½" ×2 → "1". Returns null when there's no leading quantity to scale
+ * ("a pinch", "to taste") — caller keeps the original.
+ */
+export function scaleAmount(amount: string, factor: number): string | null {
+  // The trailing text must start with a letter or "(" — a loose [^\d\s]
+  // matcher here once swallowed the "/2" of "1/2 tsp", scaling it to "2/2".
+  const m = amount.trim().match(
+    /^([\d¼½¾⅓⅔⅕⅛⅜⅝⅞./\s]+?)(?:\s*(?:-|–|—|to)\s*([\d¼½¾⅓⅔⅕⅛⅜⅝⅞./\s]+?))?(\s*)([a-zA-Z(].*)?$/
+  );
+  if (!m) return null;
+
+  const [, q1raw, q2raw, gap, rest] = m;
+  const q1 = parseQty(q1raw);
+  if (q1 === null) return null;
+
+  let out = formatQty(q1 * factor);
+  if (q2raw) {
+    const q2 = parseQty(q2raw);
+    if (q2 !== null) out += `–${formatQty(q2 * factor)}`;
+  }
+  if (rest) out += `${gap}${rest}`;
+  return out;
+}
+
+/**
+ * Returns a copy of the recipe with every amount (and the servings label)
+ * scaled by factor. Unscalable amounts stay as-is. Never mutates the
+ * original — edit/save flows keep the source amounts, like toMetricRecipe.
+ */
+export function scaleRecipe(recipe: Recipe, factor: number): Recipe {
+  const base = parseServings(recipe.servings);
+  return {
+    ...recipe,
+    servings:
+      base !== null && recipe.servings
+        ? recipe.servings.replace(/\d+(?:\.\d+)?/, formatQty(base * factor))
+        : recipe.servings,
+    ingredients: recipe.ingredients.map((ing) => {
+      if (!ing.amount) return ing;
+      const scaled = scaleAmount(ing.amount, factor);
+      return scaled ? { ...ing, amount: scaled } : ing;
+    }),
+  };
+}
+
 /** True if toggling to metric would change anything on this recipe. */
 export function hasConvertibleAmounts(recipe: Recipe): boolean {
   return recipe.ingredients.some(

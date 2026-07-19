@@ -21,6 +21,8 @@ import {
   addRecentRecipe,
   removeRecentRecipe,
 } from "@/lib/recentRecipes";
+import { useGroceryList } from "@/lib/groceryList";
+import { GroceryListSheet } from "./GroceryList";
 
 type Tab = "file" | "url" | "text";
 
@@ -97,6 +99,14 @@ export function RecipeExtractor() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
   const recent = useRecentRecipes();
+  const groceryItems = useGroceryList();
+  const [groceryOpen, setGroceryOpen] = useState(false);
+  const [recentQuery, setRecentQuery] = useState("");
+  const filteredRecent = recentQuery.trim()
+    ? recent.filter((item) =>
+        item.recipe.title.toLowerCase().includes(recentQuery.trim().toLowerCase()),
+      )
+    : recent;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -477,13 +487,41 @@ export function RecipeExtractor() {
         </div>
       )}
 
+      {status !== "loading" && groceryItems.length > 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            hapticTap();
+            setGroceryOpen(true);
+          }}
+          className="flex items-center gap-2 rounded-full border border-[#f0d2c0] bg-white px-4 py-2 text-sm font-medium text-[#a5705a] shadow-[0_4px_14px_rgba(190,130,100,0.08)] transition-colors hover:border-[#e0b8a0]"
+        >
+          🛒 {t.groceryTitle}
+          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e07856] px-1.5 text-[11px] font-semibold text-white">
+            {groceryItems.filter((i) => !i.checked).length}
+          </span>
+        </button>
+      )}
+      {groceryOpen && (
+        <GroceryListSheet open={groceryOpen} onClose={() => setGroceryOpen(false)} t={t} />
+      )}
+
       {status !== "loading" && recent.length > 0 && (
         <section className="w-full max-w-2xl flex flex-col gap-3">
           <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c3a08d]">
             {t.recentTitle}
           </h2>
+          {recent.length > 5 && (
+            <input
+              type="search"
+              value={recentQuery}
+              onChange={(e) => setRecentQuery(e.target.value)}
+              placeholder={t.recentSearch}
+              className="w-full rounded-xl border border-[#f0d2c0] bg-white px-4 py-2.5 text-sm text-[#6b4a3f] placeholder-[#c3a08d] outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10"
+            />
+          )}
           <ul className="flex flex-col gap-2">
-            {recent.map((item) => (
+            {filteredRecent.map((item) => (
               <li key={item.id}>
                 <div className="flex items-center gap-3 rounded-2xl border border-transparent bg-white px-4 py-3 shadow-[0_4px_14px_rgba(190,130,100,0.08)] transition-shadow hover:shadow-[0_6px_20px_rgba(190,130,100,0.16)]">
                   <button

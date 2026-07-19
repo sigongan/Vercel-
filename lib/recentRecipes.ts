@@ -6,7 +6,7 @@ import type { Recipe } from "@/lib/types/recipe";
 /**
  * On-device history of extracted recipes. With sign-in hidden for now,
  * a closed tab/app meant the recipe was simply gone — this keeps the last
- * dozen on the device (localStorage) so people can get back to something
+ * fifty on the device (localStorage) so people can get back to something
  * they extracted without re-running it. Purely local: no account, no
  * server, survives app restarts, cleared only if the user clears the
  * app's/site's data.
@@ -18,7 +18,7 @@ export interface RecentRecipe {
 }
 
 const KEY = "avocato:recent-recipes";
-const MAX = 12;
+const MAX = 50;
 
 const EMPTY: RecentRecipe[] = [];
 const listeners = new Set<() => void>();

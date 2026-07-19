@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation } from "@/lib/i18n";
@@ -8,7 +8,35 @@ import { RecipeEditForm } from "./RecipeEditForm";
 import { CookMode } from "./CookMode";
 import { fitPrintArea, resetPrintArea } from "@/lib/printFit";
 import { hapticTap, hapticSuccess, shareText } from "@/lib/nativeApp";
-import { hasConvertibleAmounts, toMetricRecipe, type UnitSystem } from "@/lib/units";
+import { GroceryListSheet } from "./GroceryList";
+import { addRecipeToGroceryList } from "@/lib/groceryList";
+import {
+  hasConvertibleAmounts,
+  toMetricRecipe,
+  parseServings,
+  scaleRecipe,
+  type UnitSystem,
+} from "@/lib/units";
+
+const UNITS_KEY = "avocato:units";
+const UNITS_EVENT = "avocato:units-change";
+
+function subscribeUnits(callback: () => void) {
+  window.addEventListener(UNITS_EVENT, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(UNITS_EVENT, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function readUnits(): UnitSystem {
+  try {
+    return localStorage.getItem(UNITS_KEY) === "metric" ? "metric" : "original";
+  } catch {
+    return "original";
+  }
+}
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -44,37 +72,70 @@ export function RecipeCard({
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [cookModeOpen, setCookModeOpen] = useState(false);
-  const [units, setUnits] = useState<UnitSystem>("original");
+  const [groceryOpen, setGroceryOpen] = useState(false);
 
   // Remember the g/ml preference across recipes and sessions — someone who
-  // cooks metric always cooks metric.
-  useEffect(() => {
-    try {
-      if (localStorage.getItem("avocato:units") === "metric") setUnits("metric");
-    } catch {
-      // Storage unavailable — default to original units.
-    }
-  }, []);
+  // cooks metric always cooks metric. useSyncExternalStore over an effect:
+  // lint-clean, and safe on the server-rendered recipe pages (React re-renders
+  // with the client snapshot after hydration instead of mismatching).
+  const units = useSyncExternalStore(subscribeUnits, readUnits, () => "original" as UnitSystem);
 
   function toggleUnits() {
     hapticTap();
     const next: UnitSystem = units === "metric" ? "original" : "metric";
-    setUnits(next);
     try {
-      localStorage.setItem("avocato:units", next);
+      localStorage.setItem(UNITS_KEY, next);
     } catch {
       // Storage unavailable — preference just won't persist.
     }
+    window.dispatchEvent(new Event(UNITS_EVENT));
   }
 
   const convertible = useMemo(() => hasConvertibleAmounts(recipe), [recipe]);
 
+  // Serving scaler: multiply every amount by servings/baseServings. When the
+  // recipe states servings ("2 servings") the stepper shows real serving
+  // counts; otherwise it falls back to plain multipliers (×2, ×3...).
+  const baseServings = useMemo(() => parseServings(recipe.servings), [recipe]);
+  const [scaleFactor, setScaleFactor] = useState(1);
+  // A newly extracted recipe starts back at its own serving count — the
+  // adjust-state-during-render pattern, since an effect-based reset would
+  // flash the previous recipe's scaling for one frame.
+  const [prevRecipe, setPrevRecipe] = useState(recipe);
+  if (prevRecipe !== recipe) {
+    setPrevRecipe(recipe);
+    setScaleFactor(1);
+  }
+
+  const FACTOR_STEPS = useMemo(() => {
+    if (baseServings !== null && baseServings > 0) {
+      // 1..24 servings expressed as factors of the base.
+      return Array.from({ length: 24 }, (_, i) => (i + 1) / baseServings);
+    }
+    return [0.5, 1, 1.5, 2, 3, 4, 6, 8];
+  }, [baseServings]);
+
+  function stepScale(direction: 1 | -1) {
+    hapticTap();
+    const idx = FACTOR_STEPS.findIndex((f) => Math.abs(f - scaleFactor) < 1e-6);
+    const next = FACTOR_STEPS[Math.min(Math.max((idx === -1 ? FACTOR_STEPS.indexOf(1) : idx) + direction, 0), FACTOR_STEPS.length - 1)];
+    setScaleFactor(next);
+  }
+
+  const scaleLabel =
+    baseServings !== null && baseServings > 0
+      ? String(Math.round(baseServings * scaleFactor))
+      : `×${scaleFactor}`;
+
   // What every view (themes, cook mode, copy/share text) renders. Editing
-  // and saving keep operating on the untouched source recipe.
-  const displayRecipe = useMemo(
-    () => (units === "metric" && convertible ? toMetricRecipe(recipe) : recipe),
-    [recipe, units, convertible],
-  );
+  // and saving keep operating on the untouched source recipe. Scale first,
+  // then convert units, so "3 tbsp ×2" becomes 6 tbsp → 85g, not 43g×2.
+  const displayRecipe = useMemo(() => {
+    let r = recipe;
+    if (scaleFactor !== 1) r = scaleRecipe(r, scaleFactor);
+    if (units === "metric" && convertible) r = toMetricRecipe(r);
+    return r;
+  }, [recipe, units, convertible, scaleFactor]);
 
   const steps = useMemo(() => [...recipe.steps].sort((a, b) => a.order - b.order), [recipe.steps]);
 
@@ -88,7 +149,7 @@ export function RecipeCard({
   }, []);
 
   const metas: Meta[] = [];
-  if (recipe.servings) metas.push({ label: t.serves, value: recipe.servings });
+  if (displayRecipe.servings) metas.push({ label: t.serves, value: displayRecipe.servings });
   if (recipe.prepTime) metas.push({ label: t.prep, value: recipe.prepTime });
   if (recipe.cookTime) metas.push({ label: t.cook, value: recipe.cookTime });
 
@@ -171,6 +232,32 @@ export function RecipeCard({
               {t.unitsToggle}
             </button>
           )}
+          {!editing && recipe.ingredients.some((i) => i.amount) && (
+            <div className="flex items-center rounded-full border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-900">
+              <button
+                onClick={() => stepScale(-1)}
+                aria-label={t.scaleDown}
+                className="px-3 py-1.5 text-sm font-semibold text-[#b48a76] hover:text-[#7a4a3a] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
+                disabled={Math.abs(scaleFactor - FACTOR_STEPS[0]) < 1e-6}
+              >
+                −
+              </button>
+              <span
+                title={t.scaleTitle}
+                className={`min-w-8 text-center text-xs font-semibold tabular-nums ${scaleFactor !== 1 ? "text-[#b5573b] dark:text-stone-100" : "text-[#b48a76] dark:text-stone-400"}`}
+              >
+                {scaleLabel}
+              </span>
+              <button
+                onClick={() => stepScale(1)}
+                aria-label={t.scaleUp}
+                className="px-3 py-1.5 text-sm font-semibold text-[#b48a76] hover:text-[#7a4a3a] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
+                disabled={Math.abs(scaleFactor - FACTOR_STEPS[FACTOR_STEPS.length - 1]) < 1e-6}
+              >
+                +
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {!editing && steps.length > 0 && (
@@ -196,6 +283,19 @@ export function RecipeCard({
             <EditIcon />
             {editing ? t.editCancel : t.edit}
           </button>
+          {!editing && displayRecipe.ingredients.length > 0 && (
+            <button
+              onClick={() => {
+                hapticSuccess();
+                addRecipeToGroceryList(displayRecipe);
+                setGroceryOpen(true);
+              }}
+              className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+            >
+              <CartIcon />
+              {t.groceryAdd}
+            </button>
+          )}
           {!editing && (
             <button
               onClick={handleShare}
@@ -249,6 +349,9 @@ export function RecipeCard({
 
       {cookModeOpen && (
         <CookMode recipe={displayRecipe} steps={steps} t={t} onClose={() => setCookModeOpen(false)} />
+      )}
+      {groceryOpen && (
+        <GroceryListSheet open={groceryOpen} onClose={() => setGroceryOpen(false)} t={t} />
       )}
     </div>
   );
@@ -782,6 +885,25 @@ function ShareIcon() {
       <path d="M12 3v13" />
       <polyline points="7 8 12 3 17 8" />
       <path d="M20 13v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6" />
+    </svg>
+  );
+}
+
+function CartIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="9" cy="21" r="1" />
+      <circle cx="20" cy="21" r="1" />
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
     </svg>
   );
 }
