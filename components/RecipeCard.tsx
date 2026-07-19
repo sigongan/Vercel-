@@ -197,11 +197,11 @@ export function RecipeCard({
   return (
     <div className="print-area flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c3a08d]">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c3a08d] whitespace-nowrap">
             {t.styleLabel}
           </span>
-          <div className="flex rounded-full border border-transparent dark:border-stone-800 bg-[#fbeee6] dark:bg-stone-900 p-1">
+          <div className="flex shrink-0 rounded-full border border-transparent dark:border-stone-800 bg-[#fbeee6] dark:bg-stone-900 p-1">
             {themes.map(({ id, label }) => (
               <button
                 key={id}
@@ -209,7 +209,7 @@ export function RecipeCard({
                   hapticTap();
                   setTheme(id);
                 }}
-                className={`flex items-center gap-1 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                className={`flex items-center gap-1 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                   theme === id
                     ? "bg-white dark:bg-stone-700 text-[#b5573b] dark:text-stone-100 shadow-sm"
                     : "text-[#b48a76] hover:text-[#7a4a3a] dark:hover:text-stone-300"
@@ -223,7 +223,7 @@ export function RecipeCard({
             <button
               onClick={toggleUnits}
               title={t.unitsToggleTitle}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                 units === "metric"
                   ? "bg-gradient-to-br from-[#f3a480] to-[#e07856] text-white shadow-sm"
                   : "border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-900 text-[#b48a76] hover:text-[#7a4a3a] dark:text-stone-400 dark:hover:text-stone-200"
@@ -233,7 +233,7 @@ export function RecipeCard({
             </button>
           )}
           {!editing && recipe.ingredients.some((i) => i.amount) && (
-            <div className="flex items-center rounded-full border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-900">
+            <div className="flex shrink-0 items-center whitespace-nowrap rounded-full border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-900">
               <button
                 onClick={() => stepScale(-1)}
                 aria-label={t.scaleDown}
