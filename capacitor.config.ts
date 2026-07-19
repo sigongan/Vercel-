@@ -25,12 +25,18 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: "always",
-    backgroundColor: "#fdf3ec",
+    backgroundColor: "#FAFAF7",
   },
   plugins: {
     SplashScreen: {
-      launchAutoHide: false, // hidden manually once the first page finishes loading — see lib/nativeApp.ts
-      backgroundColor: "#fdf3ec",
+      // The plugin's static splash is skipped entirely: the native
+      // AnimatedSplashView (native/App/) covers the load with a bouncing
+      // avocado from the first frame instead, Tiimo-style. Worst case
+      // (native files not installed yet) the webview shows a plain
+      // brand-colored background while loading.
+      launchShowDuration: 0,
+      launchAutoHide: true,
+      backgroundColor: "#FAFAF7",
     },
   },
 };

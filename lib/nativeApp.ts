@@ -6,6 +6,23 @@ export function isNativeApp(): boolean {
   return Capacitor.isNativePlatform();
 }
 
+/**
+ * Tells the native shell's animated splash (AnimatedSplashView, shown from
+ * the very first frame while the remote web app loads) that the page has
+ * rendered and it can fade out. No-op on the website and in native builds
+ * that haven't installed the splash files yet.
+ */
+export async function signalWebReady() {
+  if (!isNativeApp()) return;
+  try {
+    const { registerPlugin } = await import("@capacitor/core");
+    const plugin = registerPlugin<{ ready(): Promise<void> }>("SplashReady");
+    await plugin.ready();
+  } catch {
+    // Plugin not registered in this build — nothing to dismiss.
+  }
+}
+
 /** Hides the native splash screen once the first page has painted. Call once, client-side. */
 export async function hideNativeSplashScreen() {
   if (!isNativeApp()) return;

@@ -56,6 +56,13 @@ Xcode가 왼쪽에 `CookTimerWidget` 폴더를 만들고 템플릿 Swift 파일
    - `AvocatoViewController.swift`
 2. 팝업에서: Copy files ✅, Add to targets: **`App`만 체크**
 
+## 3-1. 플러그인 등록 주석 해제
+
+`AvocatoViewController.swift`를 열어 `capacitorDidLoad` 안의 주석 처리된
+`bridge?.registerPluginInstance(CookActivityPlugin())` 줄의 **주석(//)을
+제거**해주세요 (애니메이션 스플래시 기능과 파일을 공유해서, Live
+Activities 파일을 추가하기 전까지는 주석 상태로 둬야 빌드가 돼요).
+
 ## 4. Main.storyboard 연결
 
 웹 앱이 네이티브 타이머 기능을 부를 수 있게 하는 연결 고리.

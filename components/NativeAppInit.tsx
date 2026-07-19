@@ -6,6 +6,7 @@ import {
   hideNativeSplashScreen,
   isNativeApp,
   registerNativeShareListener,
+  signalWebReady,
 } from "@/lib/nativeApp";
 import { AvocadoMark } from "@/lib/avocadoMark";
 
@@ -16,6 +17,7 @@ export function NativeAppInit() {
   useEffect(() => {
     configureNativeStatusBar();
     registerNativeShareListener();
+    signalWebReady();
 
     // Let the bouncing avocado play a couple hops so the handoff from the
     // native launch image doesn't feel like an abrupt cut, then hand off
@@ -38,6 +40,9 @@ export function NativeAppInit() {
         <AvocadoMark size={64} />
       </div>
       <div className="h-2.5 w-11 rounded-full bg-[#4D7C0F] animate-avocado-bounce-shadow" />
+      <p className="mt-2 text-[15px] font-medium text-[#5D6551] animate-pulse">
+        Warming up the kitchen…
+      </p>
     </div>
   );
 }

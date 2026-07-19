@@ -6,6 +6,7 @@ import Foundation
 /// and the CookTimerWidget target — ActivityKit matches the activity
 /// between app and widget by this type.
 /// See docs/ios-live-activities.md for setup.
+@available(iOS 16.2, *)
 struct CookTimerAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         /// When the running timer hits zero. The widget renders
