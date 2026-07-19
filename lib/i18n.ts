@@ -30,6 +30,8 @@ export const translations = {
     recentRemove: "Remove",
     share: "Share",
     shared: "Shared",
+    unitsToggle: "g / ml",
+    unitsToggleTitle: "Convert cups and spoons to grams and milliliters",
     tip: "Tip: screenshots and photos give the most accurate results. Links must be public or link-shared.",
     errors: {
       AI_NOT_CONFIGURED:
@@ -224,6 +226,8 @@ export const translations = {
     recentRemove: "삭제",
     share: "공유",
     shared: "공유됨",
+    unitsToggle: "g / ml",
+    unitsToggleTitle: "컵·스푼 단위를 그램·밀리리터로 변환",
     tip: "팁: 스크린샷과 사진이 가장 정확해요. 링크는 공개 또는 링크 공유 상태여야 합니다.",
     errors: {
       AI_NOT_CONFIGURED:

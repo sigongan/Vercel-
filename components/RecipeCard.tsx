@@ -8,6 +8,7 @@ import { RecipeEditForm } from "./RecipeEditForm";
 import { CookMode } from "./CookMode";
 import { fitPrintArea, resetPrintArea } from "@/lib/printFit";
 import { hapticTap, hapticSuccess, shareText } from "@/lib/nativeApp";
+import { hasConvertibleAmounts, toMetricRecipe, type UnitSystem } from "@/lib/units";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -43,6 +44,37 @@ export function RecipeCard({
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [cookModeOpen, setCookModeOpen] = useState(false);
+  const [units, setUnits] = useState<UnitSystem>("original");
+
+  // Remember the g/ml preference across recipes and sessions — someone who
+  // cooks metric always cooks metric.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("avocato:units") === "metric") setUnits("metric");
+    } catch {
+      // Storage unavailable — default to original units.
+    }
+  }, []);
+
+  function toggleUnits() {
+    hapticTap();
+    const next: UnitSystem = units === "metric" ? "original" : "metric";
+    setUnits(next);
+    try {
+      localStorage.setItem("avocato:units", next);
+    } catch {
+      // Storage unavailable — preference just won't persist.
+    }
+  }
+
+  const convertible = useMemo(() => hasConvertibleAmounts(recipe), [recipe]);
+
+  // What every view (themes, cook mode, copy/share text) renders. Editing
+  // and saving keep operating on the untouched source recipe.
+  const displayRecipe = useMemo(
+    () => (units === "metric" && convertible ? toMetricRecipe(recipe) : recipe),
+    [recipe, units, convertible],
+  );
 
   const steps = useMemo(() => [...recipe.steps].sort((a, b) => a.order - b.order), [recipe.steps]);
 
@@ -62,11 +94,11 @@ export function RecipeCard({
 
   function recipeAsText(): string {
     return [
-      recipe.title,
-      recipe.description ?? "",
+      displayRecipe.title,
+      displayRecipe.description ?? "",
       "",
       `${t.ingredients}:`,
-      ...recipe.ingredients.map((i) => `- ${i.name}${i.amount ? ` — ${formatAmount(i)}` : ""}`),
+      ...displayRecipe.ingredients.map((i) => `- ${i.name}${i.amount ? ` — ${formatAmount(i)}` : ""}`),
       "",
       `${t.steps}:`,
       ...steps.map((s) => `${s.order}. ${s.instruction}`),
@@ -126,6 +158,19 @@ export function RecipeCard({
               </button>
             ))}
           </div>
+          {convertible && !editing && (
+            <button
+              onClick={toggleUnits}
+              title={t.unitsToggleTitle}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                units === "metric"
+                  ? "bg-gradient-to-br from-[#f3a480] to-[#e07856] text-white shadow-sm"
+                  : "border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-900 text-[#b48a76] hover:text-[#7a4a3a] dark:text-stone-400 dark:hover:text-stone-200"
+              }`}
+            >
+              {t.unitsToggle}
+            </button>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {!editing && steps.length > 0 && (
@@ -196,14 +241,14 @@ export function RecipeCard({
         />
       ) : (
         <>
-          {theme === "classic" && <ClassicCard recipe={recipe} steps={steps} metas={metas} t={t} />}
-          {theme === "magazine" && <MagazineCard recipe={recipe} steps={steps} metas={metas} t={t} />}
-          {theme === "dining" && <DiningCard recipe={recipe} steps={steps} metas={metas} t={t} />}
+          {theme === "classic" && <ClassicCard recipe={displayRecipe} steps={steps} metas={metas} t={t} />}
+          {theme === "magazine" && <MagazineCard recipe={displayRecipe} steps={steps} metas={metas} t={t} />}
+          {theme === "dining" && <DiningCard recipe={displayRecipe} steps={steps} metas={metas} t={t} />}
         </>
       )}
 
       {cookModeOpen && (
-        <CookMode recipe={recipe} steps={steps} t={t} onClose={() => setCookModeOpen(false)} />
+        <CookMode recipe={displayRecipe} steps={steps} t={t} onClose={() => setCookModeOpen(false)} />
       )}
     </div>
   );
