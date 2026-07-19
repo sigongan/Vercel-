@@ -19,10 +19,6 @@ import UniformTypeIdentifiers
 ///
 /// This file replaces the ShareViewController.swift that Xcode generates
 /// when you add a Share Extension target. See docs/ios-share-extension.md.
-///
-/// TEMPORARY: every step below has a print() for debugging the "flashes and
-/// nothing happens" issue. Once the handoff works reliably, these can come
-/// out — see docs/ios-share-extension.md's troubleshooting section.
 class ShareViewController: UIViewController {
 
     /// Must match capacitor.config.ts's server.url.
@@ -30,50 +26,33 @@ class ShareViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        print("Avocato: viewDidAppear")
 
         guard let item = extensionContext?.inputItems.first as? NSExtensionItem,
               let attachments = item.attachments, !attachments.isEmpty else {
-            print("Avocato: no attachments found")
             return complete()
         }
-        print("Avocato: found \(attachments.count) attachment(s)")
 
         // Prefer a real URL attachment; TikTok sometimes shares the link as
         // plain text instead, so fall back to that.
         if let provider = attachments.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.url.identifier) }) {
-            print("Avocato: loading URL attachment")
-            provider.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] data, error in
-                if let error = error {
-                    print("Avocato: URL attachment load error: \(error)")
-                }
+            provider.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] data, _ in
                 if let url = data as? URL {
-                    print("Avocato: got URL: \(url.absoluteString)")
                     self?.openInAvocato(url.absoluteString)
                 } else if let data = data as? Data, let url = URL(dataRepresentation: data, relativeTo: nil) {
-                    print("Avocato: got URL from Data: \(url.absoluteString)")
                     self?.openInAvocato(url.absoluteString)
                 } else {
-                    print("Avocato: URL attachment had no usable data (type: \(type(of: data)))")
                     self?.complete()
                 }
             }
         } else if let provider = attachments.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) }) {
-            print("Avocato: loading plain text attachment")
-            provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) { [weak self] data, error in
-                if let error = error {
-                    print("Avocato: text attachment load error: \(error)")
-                }
+            provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) { [weak self] data, _ in
                 if let text = data as? String {
-                    print("Avocato: got text: \(text)")
                     self?.openInAvocato(text)
                 } else {
-                    print("Avocato: text attachment had no usable data")
                     self?.complete()
                 }
             }
         } else {
-            print("Avocato: no URL or text attachment among: \(attachments.map { $0.registeredTypeIdentifiers })")
             complete()
         }
     }
@@ -96,10 +75,8 @@ class ShareViewController: UIViewController {
         let encoded = link.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? link
         guard let schemeURL = URL(string: "avocato://share?url=\(encoded)"),
               let universalURL = URL(string: "https://\(Self.host)/?url=\(encoded)") else {
-            print("Avocato: failed to build handoff URLs from: \(link)")
             return complete()
         }
-        print("Avocato: opening \(universalURL.absoluteString)")
 
         DispatchQueue.main.async {
             self.openUniversalLink(universalURL) { [weak self] opened in
@@ -109,18 +86,15 @@ class ShareViewController: UIViewController {
                     // app — complete immediately instead of always padding
                     // with a fixed delay, which made every share feel
                     // sluggish even on the common, working path.
-                    print("Avocato: universal link opened, completing immediately")
                     self.complete()
                 } else {
                     // Universal Link didn't resolve (domain association not
                     // live, or Safari opened instead) — fall back to the
                     // custom scheme, which still needs the settle delay
                     // since it's the flakier, best-effort path.
-                    print("Avocato: universal link did not open, falling back to scheme")
                     let action = EnvironmentValues().openURL
                     action(schemeURL)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        print("Avocato: completing request (scheme fallback)")
                         self.complete()
                     }
                 }
@@ -145,10 +119,7 @@ class ShareViewController: UIViewController {
     /// the caller can complete immediately on success instead of always
     /// padding with a fixed delay.
     private func openUniversalLink(_ universalURL: URL, completion: @escaping (Bool) -> Void) {
-        extensionContext?.open(universalURL) { success in
-            print("Avocato: extensionContext.open(universal) success=\(success)")
-            completion(success)
-        }
+        extensionContext?.open(universalURL, completionHandler: completion)
     }
 
     private func complete() {

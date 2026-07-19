@@ -95,10 +95,10 @@ export function RecipeCard({
     }
   }
 
-  const themes: { id: Theme; label: string; premium: boolean }[] = [
-    { id: "classic", label: t.themeClassic, premium: false },
-    { id: "magazine", label: t.themeMagazine, premium: true },
-    { id: "dining", label: t.themeDining, premium: true },
+  const themes: { id: Theme; label: string }[] = [
+    { id: "classic", label: t.themeClassic },
+    { id: "magazine", label: t.themeMagazine },
+    { id: "dining", label: t.themeDining },
   ];
 
   return (
@@ -109,7 +109,7 @@ export function RecipeCard({
             {t.styleLabel}
           </span>
           <div className="flex rounded-full border border-transparent dark:border-stone-800 bg-[#fbeee6] dark:bg-stone-900 p-1">
-            {themes.map(({ id, label, premium }) => (
+            {themes.map(({ id, label }) => (
               <button
                 key={id}
                 onClick={() => {
@@ -123,7 +123,6 @@ export function RecipeCard({
                 }`}
               >
                 {label}
-                {premium && <span className="text-amber-500 text-[10px] leading-none">★</span>}
               </button>
             ))}
           </div>
