@@ -266,7 +266,7 @@ export function RecipeExtractor() {
         <button
           type="button"
           onClick={backToStart}
-          className="self-start flex items-center gap-1.5 text-sm font-medium text-[#c98a6f] hover:text-[#7a4a3a] dark:hover:text-stone-200 transition-colors"
+          className="self-start flex items-center gap-1.5 text-sm font-medium text-[#5F7A52] hover:text-[#3D5A38] dark:hover:text-stone-200 transition-colors"
         >
           <BackIcon />
           {t.backToStart}
@@ -279,14 +279,14 @@ export function RecipeExtractor() {
   return (
     <div className="relative z-[1] w-full flex flex-col items-center gap-10">
       <header className="flex flex-col items-center gap-3 text-center max-w-2xl">
-        <p className="text-base sm:text-lg text-[#a97e6b] dark:text-stone-400 leading-relaxed max-w-xl">
+        <p className="text-base sm:text-lg text-[#71875F] dark:text-stone-400 leading-relaxed max-w-xl">
           {t.tagline}
         </p>
         <ul className="flex flex-wrap justify-center gap-2 mt-1">
           {t.sources.map((source) => (
             <li
               key={source}
-              className="flex items-center gap-1.5 text-xs font-medium text-[#a97e6b] dark:text-stone-400 bg-white dark:bg-stone-900/70 shadow-[0_2px_8px_rgba(180,120,90,0.10)] dark:shadow-none border border-transparent dark:border-stone-800 rounded-full pl-2.5 pr-3 py-1"
+              className="flex items-center gap-1.5 text-xs font-medium text-[#71875F] dark:text-stone-400 bg-white dark:bg-stone-900/70 shadow-[0_2px_8px_rgba(115,150,105,0.10)] dark:shadow-none border border-transparent dark:border-stone-800 rounded-full pl-2.5 pr-3 py-1"
             >
               {SOURCE_ICONS[source]}
               {source}
@@ -296,11 +296,11 @@ export function RecipeExtractor() {
       </header>
 
       {clipboardUrl && (
-        <div className="w-full max-w-2xl flex items-center gap-3 rounded-2xl border border-[#f0d2c0] bg-white dark:bg-stone-900 dark:border-stone-800 px-4 py-3 shadow-[0_4px_16px_rgba(190,130,100,0.10)]">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fbe4d5] dark:bg-stone-800 text-[#c98a6f] dark:text-stone-400">
+        <div className="w-full max-w-2xl flex items-center gap-3 rounded-2xl border border-[#D6E2CC] bg-white dark:bg-stone-900 dark:border-stone-800 px-4 py-3 shadow-[0_4px_16px_rgba(110,145,100,0.10)]">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#EAF0E2] dark:bg-stone-800 text-[#5F7A52] dark:text-stone-400">
             <LinkIcon />
           </span>
-          <p className="flex-1 text-sm text-[#7a4a3a] dark:text-stone-200">{t.clipboardLinkFound}</p>
+          <p className="flex-1 text-sm text-[#3D5A38] dark:text-stone-200">{t.clipboardLinkFound}</p>
           <button
             type="button"
             onClick={() => {
@@ -310,7 +310,7 @@ export function RecipeExtractor() {
               setUrl(link);
               startExtraction({ kind: "url", url: link });
             }}
-            className="shrink-0 rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            className="shrink-0 rounded-full bg-gradient-to-br from-[#9CC28C] to-[#5B8A52] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
           >
             {t.clipboardLinkExtract}
           </button>
@@ -318,14 +318,14 @@ export function RecipeExtractor() {
             type="button"
             onClick={() => setClipboardUrl(null)}
             aria-label={t.clipboardLinkDismiss}
-            className="shrink-0 text-[#c3a08d] hover:text-[#7a4a3a] dark:hover:text-stone-200 transition-colors"
+            className="shrink-0 text-[#8FA084] hover:text-[#3D5A38] dark:hover:text-stone-200 transition-colors"
           >
             ✕
           </button>
         </div>
       )}
 
-      <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_10px_34px_rgba(190,130,100,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
+      <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_10px_34px_rgba(110,145,100,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
         {status === "loading" ? (
           <div className="flex flex-col items-center gap-4 py-14 animate-fade-in-up">
             <div className="animate-avocado-spin">
@@ -335,7 +335,7 @@ export function RecipeExtractor() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-1 rounded-full bg-[#fbeee6] dark:bg-stone-800 p-1">
+            <div className="grid grid-cols-3 gap-1 rounded-full bg-[#E9EFE3] dark:bg-stone-800 p-1">
               <TabButton
                 active={tab === "file"}
                 onClick={() => setTab("file")}
@@ -374,7 +374,7 @@ export function RecipeExtractor() {
                     const dropped = e.dataTransfer.files?.[0];
                     if (dropped) handleFileSelected(dropped);
                   }}
-                  className="rounded-[24px] border-2 border-dashed border-[#f0d2c0] dark:border-stone-700 bg-[#fef8f4] dark:bg-stone-950/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-[#e0785680] hover:bg-[#fbeee6] dark:hover:bg-stone-800/50"
+                  className="rounded-[24px] border-2 border-dashed border-[#D6E2CC] dark:border-stone-700 bg-[#FAF9F4] dark:bg-stone-950/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-[#5B8A5280] hover:bg-[#E9EFE3] dark:hover:bg-stone-800/50"
                 >
                   <input
                     ref={fileInputRef}
@@ -385,17 +385,17 @@ export function RecipeExtractor() {
                       handleFileSelected(e.target.files?.[0] ?? null)
                     }
                   />
-                  <span className="flex items-center justify-center w-13 h-13 rounded-full bg-[#fbe4d5] dark:bg-stone-800 text-[#c98a6f] dark:text-stone-400">
+                  <span className="flex items-center justify-center w-13 h-13 rounded-full bg-[#EAF0E2] dark:bg-stone-800 text-[#5F7A52] dark:text-stone-400">
                     <UploadIcon size={22} />
                   </span>
                   {preparingFile ? (
-                    <span className="text-sm text-[#a97e6b] dark:text-stone-400">
+                    <span className="text-sm text-[#71875F] dark:text-stone-400">
                       {t.preparingFile}
                     </span>
                   ) : file ? (
-                    <span className="flex items-center gap-2 text-sm font-medium text-[#7a4a3a] dark:text-stone-200">
+                    <span className="flex items-center gap-2 text-sm font-medium text-[#3D5A38] dark:text-stone-200">
                       {file.name}
-                      <span className="text-[#c3a08d] font-normal">
+                      <span className="text-[#8FA084] font-normal">
                         {(file.size / 1024).toFixed(0)} KB
                       </span>
                       <button
@@ -407,17 +407,17 @@ export function RecipeExtractor() {
                           if (fileInputRef.current)
                             fileInputRef.current.value = "";
                         }}
-                        className="text-[#c3a08d] hover:text-[#7a4a3a] dark:hover:text-stone-200 transition-colors"
+                        className="text-[#8FA084] hover:text-[#3D5A38] dark:hover:text-stone-200 transition-colors"
                       >
                         ✕
                       </button>
                     </span>
                   ) : (
                     <>
-                      <span className="text-[15px] font-medium text-[#7a4a3a] dark:text-stone-200">
+                      <span className="text-[15px] font-medium text-[#3D5A38] dark:text-stone-200">
                         {t.uploadTitle}
                       </span>
-                      <span className="text-xs text-[#c3a08d]">
+                      <span className="text-xs text-[#8FA084]">
                         {t.uploadHint}
                       </span>
                     </>
@@ -427,7 +427,7 @@ export function RecipeExtractor() {
 
               {tab === "url" && (
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-[#7a4a3a] dark:text-stone-300">
+                  <span className="text-sm font-medium text-[#3D5A38] dark:text-stone-300">
                     {t.urlLabel}
                   </span>
                   <input
@@ -435,14 +435,14 @@ export function RecipeExtractor() {
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder={t.urlPlaceholder}
-                    className="w-full rounded-xl border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm text-[#6b4a3f] dark:text-stone-100 placeholder-[#c3a08d] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10 dark:focus:ring-stone-100/5"
+                    className="w-full rounded-xl border border-[#D6E2CC] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm text-[#37452F] dark:text-stone-100 placeholder-[#8FA084] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#5B8A52] focus:ring-4 focus:ring-[#5B8A52]/10 dark:focus:ring-stone-100/5"
                   />
                 </label>
               )}
 
               {tab === "text" && (
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-[#7a4a3a] dark:text-stone-300">
+                  <span className="text-sm font-medium text-[#3D5A38] dark:text-stone-300">
                     {t.textLabel}
                   </span>
                   <textarea
@@ -450,7 +450,7 @@ export function RecipeExtractor() {
                     onChange={(e) => setText(e.target.value)}
                     placeholder={t.textPlaceholder}
                     rows={8}
-                    className="w-full resize-y rounded-xl border border-[#f0d2c0] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm leading-relaxed text-[#6b4a3f] dark:text-stone-100 placeholder-[#c3a08d] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10 dark:focus:ring-stone-100/5"
+                    className="w-full resize-y rounded-xl border border-[#D6E2CC] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm leading-relaxed text-[#37452F] dark:text-stone-100 placeholder-[#8FA084] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#5B8A52] focus:ring-4 focus:ring-[#5B8A52]/10 dark:focus:ring-stone-100/5"
                   />
                 </label>
               )}
@@ -458,7 +458,7 @@ export function RecipeExtractor() {
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="w-full rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] text-white dark:bg-stone-100 dark:text-stone-900 py-3.5 text-[15px] font-semibold shadow-[0_8px_20px_rgba(224,120,86,0.35)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
+                className="w-full rounded-full bg-gradient-to-br from-[#9CC28C] to-[#5B8A52] text-white dark:bg-stone-100 dark:text-stone-900 py-3.5 text-[15px] font-semibold shadow-[0_8px_20px_rgba(91,138,82,0.35)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
               >
                 {t.extract}
               </button>
@@ -471,7 +471,7 @@ export function RecipeExtractor() {
                 setError(null);
                 setStatus("idle");
               }}
-              className="self-center text-xs font-medium text-[#c98a6f] hover:text-[#7a4a3a] dark:hover:text-stone-200 underline underline-offset-2"
+              className="self-center text-xs font-medium text-[#5F7A52] hover:text-[#3D5A38] dark:hover:text-stone-200 underline underline-offset-2"
             >
               ✨ {t.tryExample}
             </button>
@@ -494,10 +494,10 @@ export function RecipeExtractor() {
             hapticTap();
             setGroceryOpen(true);
           }}
-          className="flex items-center gap-2 rounded-full border border-[#f0d2c0] bg-white px-4 py-2 text-sm font-medium text-[#a5705a] shadow-[0_4px_14px_rgba(190,130,100,0.08)] transition-colors hover:border-[#e0b8a0]"
+          className="flex items-center gap-2 rounded-full border border-[#D6E2CC] bg-white px-4 py-2 text-sm font-medium text-[#5C7A4F] shadow-[0_4px_14px_rgba(110,145,100,0.08)] transition-colors hover:border-[#AECA9F]"
         >
           🛒 {t.groceryTitle}
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e07856] px-1.5 text-[11px] font-semibold text-white">
+          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#5B8A52] px-1.5 text-[11px] font-semibold text-white">
             {groceryItems.filter((i) => !i.checked).length}
           </span>
         </button>
@@ -508,7 +508,7 @@ export function RecipeExtractor() {
 
       {status !== "loading" && recent.length > 0 && (
         <section className="w-full max-w-2xl flex flex-col gap-3">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c3a08d]">
+          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8FA084]">
             {t.recentTitle}
           </h2>
           {recent.length > 5 && (
@@ -517,13 +517,13 @@ export function RecipeExtractor() {
               value={recentQuery}
               onChange={(e) => setRecentQuery(e.target.value)}
               placeholder={t.recentSearch}
-              className="w-full rounded-xl border border-[#f0d2c0] bg-white px-4 py-2.5 text-sm text-[#6b4a3f] placeholder-[#c3a08d] outline-none transition-shadow focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10"
+              className="w-full rounded-xl border border-[#D6E2CC] bg-white px-4 py-2.5 text-sm text-[#37452F] placeholder-[#8FA084] outline-none transition-shadow focus:border-[#5B8A52] focus:ring-4 focus:ring-[#5B8A52]/10"
             />
           )}
           <ul className="flex flex-col gap-2">
             {filteredRecent.map((item) => (
               <li key={item.id}>
-                <div className="flex items-center gap-3 rounded-2xl border border-transparent bg-white px-4 py-3 shadow-[0_4px_14px_rgba(190,130,100,0.08)] transition-shadow hover:shadow-[0_6px_20px_rgba(190,130,100,0.16)]">
+                <div className="flex items-center gap-3 rounded-2xl border border-transparent bg-white px-4 py-3 shadow-[0_4px_14px_rgba(110,145,100,0.08)] transition-shadow hover:shadow-[0_6px_20px_rgba(110,145,100,0.16)]">
                   <button
                     type="button"
                     onClick={() => {
@@ -534,10 +534,10 @@ export function RecipeExtractor() {
                     }}
                     className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left"
                   >
-                    <span className="w-full truncate text-sm font-medium text-[#6b4a3f]">
+                    <span className="w-full truncate text-sm font-medium text-[#37452F]">
                       {item.recipe.title}
                     </span>
-                    <span className="text-xs text-[#c3a08d]">
+                    <span className="text-xs text-[#8FA084]">
                       {timeAgo(item.savedAt, language)}
                     </span>
                   </button>
@@ -545,7 +545,7 @@ export function RecipeExtractor() {
                     type="button"
                     aria-label={t.recentRemove}
                     onClick={() => removeRecentRecipe(item.id)}
-                    className="shrink-0 text-[#c3a08d] transition-colors hover:text-[#7a4a3a]"
+                    className="shrink-0 text-[#8FA084] transition-colors hover:text-[#3D5A38]"
                   >
                     ✕
                   </button>
@@ -574,7 +574,7 @@ function LoadingMessages({ messages }: { messages: readonly string[] }) {
   return (
     <p
       key={index}
-      className="animate-fade-in-up text-sm font-medium text-[#a97e6b] dark:text-stone-400"
+      className="animate-fade-in-up text-sm font-medium text-[#71875F] dark:text-stone-400"
     >
       {messages[index]}
     </p>
@@ -607,8 +607,8 @@ function TabButton({
       onClick={onClick}
       className={`flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition-colors ${
         active
-          ? "bg-white dark:bg-stone-900 text-[#b5573b] dark:text-stone-100 shadow-[0_2px_8px_rgba(180,120,90,0.15)]"
-          : "text-[#b48a76] hover:text-[#7a4a3a] dark:hover:text-stone-300"
+          ? "bg-white dark:bg-stone-900 text-[#4C7A45] dark:text-stone-100 shadow-[0_2px_8px_rgba(115,150,105,0.15)]"
+          : "text-[#7E9072] hover:text-[#3D5A38] dark:hover:text-stone-300"
       }`}
     >
       {icon}

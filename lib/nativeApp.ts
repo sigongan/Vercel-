@@ -23,7 +23,7 @@ export async function configureNativeStatusBar() {
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar");
     await StatusBar.setStyle({ style: Style.Light });
-    await StatusBar.setBackgroundColor({ color: "#fdf3ec" });
+    await StatusBar.setBackgroundColor({ color: "#F7F5EF" });
   } catch {
     // Plugin not available — nothing to do.
   }

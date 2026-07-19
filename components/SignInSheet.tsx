@@ -75,20 +75,20 @@ export function SignInSheet({
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40 sm:items-center sm:justify-center" onClick={handleClose}>
       <div
-        className="flex w-full flex-col gap-8 rounded-t-3xl bg-[#fdf3ec] p-8 pb-[max(2rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.25)] sm:w-full sm:max-w-sm sm:rounded-3xl sm:shadow-2xl"
+        className="flex w-full flex-col gap-8 rounded-t-3xl bg-[#F7F5EF] p-8 pb-[max(2rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.25)] sm:w-full sm:max-w-sm sm:rounded-3xl sm:shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f7dcc8] to-[#f3c9ae] shadow-[0_4px_12px_rgba(210,140,100,0.25)]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D9E7CC] to-[#C2D9B0] shadow-[0_4px_12px_rgba(120,155,105,0.25)]">
               <AvocadoMark size={26} />
             </span>
-            <span className="font-display italic text-2xl text-[#7a4a3a]">{SITE_NAME}</span>
+            <span className="font-display italic text-2xl text-[#3D5A38]">{SITE_NAME}</span>
           </div>
           <button
             onClick={handleClose}
             aria-label={t.close}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#c3a08d] transition-colors hover:bg-[#f3e0d3] hover:text-[#7a4a3a]"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#8FA084] transition-colors hover:bg-[#E3EADB] hover:text-[#3D5A38]"
           >
             ✕
           </button>
@@ -96,7 +96,7 @@ export function SignInSheet({
 
         {!showEmail ? (
           <>
-            <p className="text-sm leading-relaxed text-[#a97e6b]">{t.signInTagline}</p>
+            <p className="text-sm leading-relaxed text-[#71875F]">{t.signInTagline}</p>
 
             <div className="flex flex-col gap-3">
               <ProviderButton
@@ -131,13 +131,13 @@ export function SignInSheet({
             <button
               type="button"
               onClick={() => setShowEmail(false)}
-              className="self-start text-xs font-medium text-[#c98a6f] hover:text-[#7a4a3a]"
+              className="self-start text-xs font-medium text-[#5F7A52] hover:text-[#3D5A38]"
             >
               {t.backToOptions}
             </button>
 
             {status === "sent" ? (
-              <p className="text-sm text-[#a97e6b]">{t.checkEmail}</p>
+              <p className="text-sm text-[#71875F]">{t.checkEmail}</p>
             ) : (
               <>
                 <input
@@ -147,12 +147,12 @@ export function SignInSheet({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t.emailPlaceholder}
-                  className="w-full rounded-xl border border-[#f0d2c0] bg-white px-4 py-3 text-sm text-[#6b4a3f] placeholder-[#c3a08d] outline-none focus:border-[#e07856] focus:ring-4 focus:ring-[#e07856]/10"
+                  className="w-full rounded-xl border border-[#D6E2CC] bg-white px-4 py-3 text-sm text-[#37452F] placeholder-[#8FA084] outline-none focus:border-[#5B8A52] focus:ring-4 focus:ring-[#5B8A52]/10"
                 />
                 <button
                   type="submit"
                   disabled={status === "sending"}
-                  className="w-full rounded-full bg-gradient-to-br from-[#f3a480] to-[#e07856] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+                  className="w-full rounded-full bg-gradient-to-br from-[#9CC28C] to-[#5B8A52] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   {status === "sending" ? t.sending : t.sendLink}
                 </button>
@@ -164,16 +164,16 @@ export function SignInSheet({
           </form>
         )}
 
-        <p className="text-center text-[11px] leading-relaxed text-[#c3a08d]">
+        <p className="text-center text-[11px] leading-relaxed text-[#8FA084]">
           {t.agreeToTerms("__TERMS__", "__PRIVACY__")
             .split(/(__TERMS__|__PRIVACY__)/)
             .map((part, i) =>
               part === "__TERMS__" ? (
-                <Link key={i} href="/terms" className="underline underline-offset-2 hover:text-[#7a4a3a]">
+                <Link key={i} href="/terms" className="underline underline-offset-2 hover:text-[#3D5A38]">
                   {t.termsOfService}
                 </Link>
               ) : part === "__PRIVACY__" ? (
-                <Link key={i} href="/privacy" className="underline underline-offset-2 hover:text-[#7a4a3a]">
+                <Link key={i} href="/privacy" className="underline underline-offset-2 hover:text-[#3D5A38]">
                   {t.privacyPolicy}
                 </Link>
               ) : (
@@ -207,8 +207,8 @@ function ProviderButton({
       disabled={busy}
       className={`flex w-full items-center gap-3 rounded-full border px-5 py-3 text-sm font-medium transition-colors disabled:opacity-60 ${
         dark
-          ? "border-transparent bg-[#241a16] text-white hover:bg-[#3a2a23]"
-          : "border-[#f0d2c0] bg-white text-[#6b4a3f] hover:border-[#e0b8a0]"
+          ? "border-transparent bg-[#1E2A1B] text-white hover:bg-[#3a2a23]"
+          : "border-[#D6E2CC] bg-white text-[#37452F] hover:border-[#AECA9F]"
       }`}
     >
       <span className="flex h-5 w-5 items-center justify-center">{icon}</span>

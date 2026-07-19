@@ -32,12 +32,12 @@ export function NativeAppInit() {
   return (
     <div
       aria-hidden
-      className="fixed inset-0 z-[999] flex flex-col items-center justify-center gap-4 bg-[#fdf3ec]"
+      className="fixed inset-0 z-[999] flex flex-col items-center justify-center gap-4 bg-[#F7F5EF]"
     >
       <div className="animate-avocado-bounce">
         <AvocadoMark size={64} />
       </div>
-      <div className="h-2.5 w-11 rounded-full bg-[#b5573b] animate-avocado-bounce-shadow" />
+      <div className="h-2.5 w-11 rounded-full bg-[#4C7A45] animate-avocado-bounce-shadow" />
     </div>
   );
 }
