@@ -10,6 +10,7 @@ import { fitPrintArea, resetPrintArea } from "@/lib/printFit";
 import { hapticTap, hapticSuccess, shareText } from "@/lib/nativeApp";
 import { GroceryListSheet } from "./GroceryList";
 import { addRecipeToGroceryList } from "@/lib/groceryList";
+import { useRecipeNote } from "@/lib/recipeNotes";
 import {
   hasConvertibleAmounts,
   toMetricRecipe,
@@ -347,6 +348,8 @@ export function RecipeCard({
         </>
       )}
 
+      {!editing && <RecipeNotes title={recipe.title} t={t} />}
+
       {cookModeOpen && (
         <CookMode recipe={displayRecipe} steps={steps} t={t} onClose={() => setCookModeOpen(false)} />
       )}
@@ -391,6 +394,7 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
             ))}
           </dl>
         )}
+        <NutritionRow recipe={recipe} t={t} variant="classic" />
       </header>
 
       <div className="grid gap-8 sm:gap-10 sm:grid-cols-[minmax(220px,260px)_1fr]">
@@ -473,6 +477,7 @@ function MagazineCard({ recipe, steps, metas, t }: CardProps) {
             {metas.map((m) => `${m.label} ${m.value}`).join("    ·    ")}
           </p>
         )}
+        <NutritionRow recipe={recipe} t={t} variant="magazine" />
       </header>
 
       {recipe.ingredients.length > 0 && (
@@ -547,6 +552,7 @@ function DiningCard({ recipe, steps, metas, t }: CardProps) {
             {metas.map((m) => `${m.label} ${m.value}`).join("  ·  ")}
           </p>
         )}
+        <NutritionRow recipe={recipe} t={t} variant="dining" />
         <GoldDivider />
       </header>
 
@@ -905,6 +911,91 @@ function CartIcon() {
       <circle cx="20" cy="21" r="1" />
       <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
     </svg>
+  );
+}
+
+/**
+ * Personal on-device notes under the recipe card. Autosaves as you type;
+ * reopening the same recipe (even from history) brings the note back.
+ */
+function RecipeNotes({ title, t }: { title: string; t: Translation }) {
+  const [note, setNote] = useRecipeNote(title);
+
+  return (
+    <section className="print:hidden flex flex-col gap-2 rounded-3xl border border-[#f0d2c0] dark:border-stone-800 bg-[#fdf8f3] dark:bg-stone-900 p-5">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c98a6f]">
+        {t.myNotesTitle}
+      </h3>
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder={t.myNotesPlaceholder}
+        rows={note ? Math.min(Math.max(note.split("\n").length, 2), 8) : 2}
+        className="w-full resize-y rounded-xl border border-transparent bg-transparent text-sm leading-relaxed text-[#6b4a3f] dark:text-stone-200 placeholder-[#c3a08d] dark:placeholder-stone-600 outline-none focus:border-[#f0d2c0] dark:focus:border-stone-700"
+      />
+    </section>
+  );
+}
+
+/**
+ * AI-estimated per-serving nutrition, styled per theme. Renders nothing when
+ * the recipe has no estimate (older cached extractions, unclear sources).
+ * Per-serving values intentionally ignore the serving scaler.
+ */
+function NutritionRow({
+  recipe,
+  t,
+  variant,
+}: {
+  recipe: Recipe;
+  t: Translation;
+  variant: "classic" | "magazine" | "dining";
+}) {
+  const n = recipe.nutrition;
+  if (!n) return null;
+  const items: { label: string; value: string }[] = [];
+  if (n.calories) items.push({ label: t.nutritionCalories, value: n.calories });
+  if (n.protein) items.push({ label: t.nutritionProtein, value: n.protein });
+  if (n.carbs) items.push({ label: t.nutritionCarbs, value: n.carbs });
+  if (n.fat) items.push({ label: t.nutritionFat, value: n.fat });
+  if (items.length === 0) return null;
+
+  if (variant === "magazine") {
+    return (
+      <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">
+        {t.nutritionTitle} — {items.map((i) => `${i.label} ${i.value}`).join("  ·  ")}
+      </p>
+    );
+  }
+
+  if (variant === "dining") {
+    return (
+      <p className="text-[11px] tracking-[0.2em] text-stone-500">
+        {items.map((i) => `${i.label} ${i.value}`).join("  ·  ")}
+        <span className="ml-2 italic text-stone-600">({t.nutritionTitle})</span>
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-1 flex flex-col gap-1.5">
+      <div className="flex flex-wrap gap-2">
+        {items.map((i) => (
+          <span
+            key={i.label}
+            className="flex items-baseline gap-1.5 rounded-full bg-[#f8ecdf] dark:bg-stone-800 px-3 py-1.5"
+          >
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#c98a6f]">
+              {i.label}
+            </span>
+            <span className="text-xs font-semibold tabular-nums text-[#7a4a3a] dark:text-stone-200">
+              {i.value}
+            </span>
+          </span>
+        ))}
+      </div>
+      <p className="text-[10px] text-[#c3a08d] dark:text-stone-500">{t.nutritionTitle}</p>
+    </div>
   );
 }
 

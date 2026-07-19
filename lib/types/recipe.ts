@@ -12,6 +12,14 @@ export interface RecipeStep {
   instruction: string;
 }
 
+/** AI-estimated nutrition per serving — always approximate, shown with a disclaimer. */
+export interface Nutrition {
+  calories?: string;
+  protein?: string;
+  carbs?: string;
+  fat?: string;
+}
+
 export interface Recipe {
   title: string;
   description?: string;
@@ -25,6 +33,7 @@ export interface Recipe {
   sourceUrl?: string;
   confidence?: "high" | "medium" | "low";
   notes?: string;
+  nutrition?: Nutrition;
 }
 
 export interface ExtractRecipeError {

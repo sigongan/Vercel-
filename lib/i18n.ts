@@ -43,6 +43,13 @@ export const translations = {
     groceryShare: "Share list",
     groceryClose: "Close",
     recentSearch: "Search your recipes…",
+    nutritionTitle: "Estimated nutrition · per serving",
+    nutritionCalories: "Calories",
+    nutritionProtein: "Protein",
+    nutritionCarbs: "Carbs",
+    nutritionFat: "Fat",
+    myNotesTitle: "My notes",
+    myNotesPlaceholder: "Your tweaks, substitutions, how it turned out… (saved on this device)",
     tip: "Tip: screenshots and photos give the most accurate results. Links must be public or link-shared.",
     errors: {
       AI_NOT_CONFIGURED:
@@ -250,6 +257,13 @@ export const translations = {
     groceryShare: "리스트 공유",
     groceryClose: "닫기",
     recentSearch: "내 레시피 검색…",
+    nutritionTitle: "예상 영양성분 · 1인분 기준",
+    nutritionCalories: "칼로리",
+    nutritionProtein: "단백질",
+    nutritionCarbs: "탄수화물",
+    nutritionFat: "지방",
+    myNotesTitle: "내 메모",
+    myNotesPlaceholder: "나만의 팁, 재료 대체, 만들어본 후기… (이 기기에 저장돼요)",
     tip: "팁: 스크린샷과 사진이 가장 정확해요. 링크는 공개 또는 링크 공유 상태여야 합니다.",
     errors: {
       AI_NOT_CONFIGURED:

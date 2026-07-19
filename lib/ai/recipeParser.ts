@@ -21,6 +21,11 @@ Rules for ingredient amounts:
 - For everything other than amounts (title, steps, etc.), leave fields empty when unsure rather than guessing.
 - If the source lacks recipe information itself (ingredients or steps can't be determined), set confidence to "low". Estimating amounts alone does not lower confidence.
 
+Nutrition estimate:
+- Estimate nutrition PER SERVING from the ingredient list and serving count: calories, protein, carbs, fat.
+- These are rough estimates for a home cook, not medical data — round to sensible values ("520 kcal", "32g").
+- If the ingredients are too unclear to estimate at all, omit the nutrition field entirely rather than guessing wildly.
+
 JSON schema:
 {
   "title": string,
@@ -32,7 +37,8 @@ JSON schema:
   "steps": [{ "order": number, "instruction": string }],
   "tags": string[],
   "confidence": "high" | "medium" | "low",
-  "notes": string (optional, anything worth flagging from extraction — briefly mention any ingredients whose amounts were estimated)
+  "notes": string (optional, anything worth flagging from extraction — briefly mention any ingredients whose amounts were estimated),
+  "nutrition": { "calories": string, "protein": string, "carbs": string, "fat": string } (optional, per serving, estimated)
 }
 
 Output only the JSON object, with no other explanatory text.`;

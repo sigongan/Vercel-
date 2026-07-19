@@ -59,11 +59,14 @@ HOW IT WORKS
   full recipe — even estimating amounts when the video doesn't say
 
 MADE FOR ACTUAL COOKING
+• Estimated nutrition per serving — calories, protein, carbs, fat
+• Scale servings and every amount updates ("1/2 tsp" → "1 tsp")
+• Convert cups & spoons to grams/ml with one tap
+• One-tap grocery list — check items off at the store, share it
 • Cook Mode: big type, one step at a time, screen stays awake
 • Built-in step timers
-• Scale, copy, share, or print any recipe
+• Your own notes on every recipe, saved on your device
 • Three beautiful recipe card styles
-• Your recent recipes, saved on your device
 
 WORKS WITH
 YouTube · TikTok · Instagram · photos · screenshots · PDFs ·
