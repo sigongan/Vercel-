@@ -4,7 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import type { Translation } from "@/lib/i18n";
-import { nativeKeepAwake, hapticTap, hapticSuccess } from "@/lib/nativeApp";
+import {
+  nativeKeepAwake,
+  hapticTap,
+  hapticSuccess,
+  syncCookTimerActivity,
+  endCookTimerActivity,
+} from "@/lib/nativeApp";
 
 /** Best-effort duration hint from an instruction, e.g. "simmer for 10-12 minutes". */
 function parseDurationSeconds(text: string): number | null {
@@ -162,7 +168,19 @@ export function CookMode({
         </span>
         <p className="max-w-xl text-2xl sm:text-4xl leading-snug font-medium">{step.instruction}</p>
 
-        {duration !== null && <StepTimer key={index} duration={duration} t={t} />}
+        {duration !== null && (
+          <StepTimer
+            key={index}
+            duration={duration}
+            t={t}
+            activityInfo={{
+              recipeTitle: recipe.title,
+              stepNumber: index + 1,
+              totalSteps: steps.length,
+              stepText: step.instruction,
+            }}
+          />
+        )}
       </div>
 
       <div className="flex items-center gap-3 px-4 sm:px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
@@ -228,7 +246,20 @@ export function CookMode({
  * switching steps remounts (and resets) it instead of needing a reset
  * effect that synchronously calls setState.
  */
-function StepTimer({ duration, t }: { duration: number; t: Translation }) {
+function StepTimer({
+  duration,
+  t,
+  activityInfo,
+}: {
+  duration: number;
+  t: Translation;
+  activityInfo: {
+    recipeTitle: string;
+    stepNumber: number;
+    totalSteps: number;
+    stepText: string;
+  };
+}) {
   const [secondsLeft, setSecondsLeft] = useState(duration);
   const [timerRunning, setTimerRunning] = useState(false);
 
@@ -248,17 +279,31 @@ function StepTimer({ duration, t }: { duration: number; t: Translation }) {
     // navigator.vibrate is a no-op inside the native WKWebView — this is
     // the reliable path there, alongside the web fallback above.
     hapticSuccess();
+    endCookTimerActivity();
     // Fires once, when the countdown reaches zero.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [secondsLeft === 0]);
+
+  // Leaving the step (or Cook Mode entirely) with a timer on the Dynamic
+  // Island would strand a stale countdown there — always clear it.
+  useEffect(() => {
+    return () => {
+      endCookTimerActivity();
+    };
+  }, []);
 
   function handleClick() {
     hapticTap();
     if (secondsLeft <= 0) {
       setSecondsLeft(duration);
       setTimerRunning(true);
+      syncCookTimerActivity({ ...activityInfo, remainingSeconds: duration, paused: false });
     } else {
+      // Live Activity sync only on transitions (start/pause/resume) — iOS
+      // animates the running countdown itself, no per-second updates.
+      const pausing = timerRunning;
       setTimerRunning((r) => !r);
+      syncCookTimerActivity({ ...activityInfo, remainingSeconds: secondsLeft, paused: pausing });
     }
   }
 

@@ -249,6 +249,59 @@ export async function hapticError() {
   }
 }
 
+interface CookActivityState {
+  recipeTitle: string;
+  stepNumber: number;
+  totalSteps: number;
+  stepText: string;
+  remainingSeconds: number;
+  paused: boolean;
+}
+
+interface CookActivityPlugin {
+  sync(state: CookActivityState): Promise<void>;
+  end(): Promise<void>;
+}
+
+let cookActivityPlugin: CookActivityPlugin | null = null;
+
+async function getCookActivityPlugin(): Promise<CookActivityPlugin> {
+  if (!cookActivityPlugin) {
+    const { registerPlugin } = await import("@capacitor/core");
+    cookActivityPlugin = registerPlugin<CookActivityPlugin>("CookActivity");
+  }
+  return cookActivityPlugin;
+}
+
+/**
+ * Mirrors a running Cook Mode step timer into an iOS Live Activity
+ * (Dynamic Island + lock screen countdown), so the timer stays visible
+ * with the phone locked or while checking another app mid-cooking.
+ * Starts the activity on first call, updates it after; call on
+ * start/pause/resume transitions only, not every tick — iOS animates the
+ * running countdown itself from endDate. No-op until the CookTimerWidget
+ * native setup is done (docs/ios-live-activities.md); the plugin call
+ * just rejects and is swallowed.
+ */
+export async function syncCookTimerActivity(state: CookActivityState) {
+  if (!isNativeApp()) return;
+  try {
+    await (await getCookActivityPlugin()).sync(state);
+  } catch {
+    // Plugin not registered in this build — Cook Mode works fine without it.
+  }
+}
+
+/** Ends the Live Activity — timer finished, step left, or Cook Mode closed. */
+export async function endCookTimerActivity() {
+  if (!isNativeApp()) return;
+  try {
+    await (await getCookActivityPlugin()).end();
+  } catch {
+    // Plugin not registered in this build — nothing to end.
+  }
+}
+
 /**
  * Cook Mode's screen-stays-awake guarantee. The web Wake Lock API
  * (wired in components/CookMode.tsx) works in Mobile Safari but is
