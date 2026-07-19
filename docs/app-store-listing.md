@@ -106,7 +106,7 @@ recipe,extract,tiktok,youtube,video,cooking,ingredients,save,import,scan,ai,chef
 
 ## 5. 심사 관련 (App Review Information)
 
-- **Sign-in required?** → No (로그인 없이 전 기능 사용 가능 — 심사에 유리)
+- **Sign-in required?** → No (로그인 없이 전 기능 사용 가능 — 심사에 유리. 오른쪽 위 사람 아이콘으로 선택적 로그인 제공)
 - **Notes 칸에 넣을 문구**:
 
 ```
@@ -160,3 +160,4 @@ App Store Connect의 App Privacy 설문에서:
 | 4.2 최소 기능성 ("웹사이트 래퍼") | ✅ 공유 익스텐션·햅틱·클립보드 감지·화면 꺼짐 방지 등 네이티브 기능 다수 |
 | 2.1 크래시/미완성 | 제출 전 TestFlight에서 공유 플로우 한 번 더 확인 |
 | 카메라/사진 권한 문구 | ✅ Info.plist에 설명 문자열 추가됨 |
+| 4.8 로그인 서비스 (제3자 로그인 쓰면 Apple 로그인도 필수) | ✅ Google/Apple/이메일 세 가지 모두 제공 (docs/oauth-setup.md 설정 후 활성화) |

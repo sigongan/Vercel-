@@ -25,8 +25,10 @@ export default function PrivacyPage() {
                 hash of it may be cached so identical requests don&apos;t re-run the AI.
               </li>
               <li>
-                <strong>Account info</strong> — if you sign in, your email address, via Supabase, to
-                manage your free usage, credits, subscription, and saved recipes.
+                <strong>Account info</strong> — if you sign in (with Google, Apple, or email), your
+                email address, via Supabase, to manage your free usage, credits, subscription, and
+                saved recipes. Signing in with Google or Apple shares only your email address and
+                name with us, as authorized by you at their sign-in screen — never your password.
               </li>
               <li>
                 <strong>Payment info</strong> — if you buy credits or subscribe, Stripe processes your

@@ -47,12 +47,16 @@ export function onSharedUrl(callback: (url: string) => void): () => void {
 }
 
 /**
- * Handles the Universal Link (https://<domain>/?url=<link>) the iOS share
- * extension opens when someone shares a TikTok/YouTube link to Avocato.
- * Covers both the warm case (app already running → appUrlOpen event) and
- * the cold case (app launched by the URL → getLaunchUrl). Scheme-agnostic
- * parsing, so this also still handles the old avocato:// custom scheme if
- * anything ever opens that instead.
+ * Handles every Universal Link (https://<domain>/...) that can open the app:
+ * both the share extension's https://<domain>/?url=<link> and, more
+ * generally, an OAuth provider (Google/Apple) redirecting back to
+ * https://<domain>/auth/callback?code=... after signInWithGoogle/Apple opens
+ * a system browser (see signInWithProvider in lib/auth.ts) — Safari can't
+ * hand control back to an embedded WKWebView any other way. Covers both the
+ * warm case (app already running → appUrlOpen event) and the cold case (app
+ * launched by the URL → getLaunchUrl). Scheme-agnostic parsing, so this also
+ * still handles the old avocato:// custom scheme if anything ever opens that
+ * instead.
  */
 export async function registerNativeShareListener() {
   if (!isNativeApp()) return;
@@ -68,6 +72,29 @@ export async function registerNativeShareListener() {
       }
     }
 
+    // Any other in-app path a Universal Link can point at (currently just
+    // /auth/callback) — the share link above is the one special case that
+    // skips a reload for speed; everything else navigates for real.
+    function otherPathFrom(openedUrl: string | undefined): string | null {
+      if (!openedUrl) return null;
+      try {
+        const u = new URL(openedUrl);
+        if (u.pathname === "/" && u.searchParams.has("url")) return null;
+        return u.pathname === "/" ? null : `${u.pathname}${u.search}`;
+      } catch {
+        return null;
+      }
+    }
+
+    async function closeInAppBrowser() {
+      try {
+        const { Browser } = await import("@capacitor/browser");
+        await Browser.close();
+      } catch {
+        // Nothing was open, or the plugin isn't available — fine either way.
+      }
+    }
+
     // Warm case (app already running, brought forward by a share): the
     // webview is already loaded, so a full window.location reload here
     // re-fetches the whole app over the network for no reason — visibly
@@ -80,7 +107,15 @@ export async function registerNativeShareListener() {
     // Avocato did nothing until the app was force-quit").
     App.addListener("appUrlOpen", ({ url }) => {
       const shared = sharedLinkFrom(url);
-      if (shared) window.dispatchEvent(new CustomEvent(SHARED_URL_EVENT, { detail: shared }));
+      if (shared) {
+        window.dispatchEvent(new CustomEvent(SHARED_URL_EVENT, { detail: shared }));
+        return;
+      }
+      const otherPath = otherPathFrom(url);
+      if (otherPath) {
+        closeInAppBrowser();
+        window.location.href = otherPath;
+      }
     });
 
     // Cold case (app launched by the share): the app is starting up from
@@ -97,6 +132,16 @@ export async function registerNativeShareListener() {
       if (!sessionStorage.getItem(key)) {
         sessionStorage.setItem(key, "1");
         window.location.href = `/?url=${encodeURIComponent(shared)}`;
+      }
+      return;
+    }
+    const otherPath = otherPathFrom(launch?.url);
+    if (otherPath) {
+      const key = `avocato:handled-launch:${otherPath}`;
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, "1");
+        await closeInAppBrowser();
+        window.location.href = otherPath;
       }
     }
   } catch {

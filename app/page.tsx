@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RecipeExtractor } from "@/components/RecipeExtractor";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
+import { AuthPanel } from "@/components/AuthPanel";
 import { translations } from "@/lib/i18n";
 import { AvocadoMark } from "@/lib/avocadoMark";
 
@@ -27,6 +28,9 @@ export default function Home() {
             {t.title}
           </span>
         </Link>
+        <div className="absolute right-0 top-0">
+          <AuthPanel />
+        </div>
       </nav>
 
       <AuthErrorBanner />
