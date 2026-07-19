@@ -12,7 +12,7 @@ export default function PrivacyPage() {
           ← {SITE_NAME}
         </Link>
         <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-50">Privacy Policy</h1>
-        <p className="text-xs text-stone-400">Effective July 10, 2026</p>
+        <p className="text-xs text-stone-400">Effective July 19, 2026</p>
 
         <div className="flex flex-col gap-5 text-sm leading-relaxed text-stone-600 dark:text-stone-400">
           <p>This describes what {SITE_NAME} collects and why.</p>
@@ -36,6 +36,32 @@ export default function PrivacyPage() {
               <li>
                 <strong>Basic usage data</strong> — request counts for enforcing free limits, and
                 standard server logs (e.g. error logs) for debugging.
+              </li>
+              <li>
+                <strong>Anonymous analytics</strong> — we use Vercel Analytics to see aggregate page
+                views and performance. It does not use cookies and does not identify you personally.
+              </li>
+            </ul>
+          </Section>
+
+          <Section title="The iOS app">
+            <ul className="list-disc pl-5 flex flex-col gap-1">
+              <li>
+                <strong>Clipboard</strong> — when you open the app, it may check your clipboard for a
+                recipe link (from YouTube, TikTok, Instagram, or Google Docs) so it can offer one-tap
+                extraction. iOS shows its standard paste notice when this happens. The check happens on
+                your device; the link is only sent to our server if you tap the extract button, and
+                nothing else on your clipboard is read or stored.
+              </li>
+              <li>
+                <strong>Recent recipes</strong> — your recent extraction history is stored only on your
+                device. It never leaves your phone, and deleting the app deletes it.
+              </li>
+              <li>
+                <strong>Share extension</strong> — when you share a link to {SITE_NAME} from another
+                app, that link is handed to the app (and copied to your clipboard as a fallback) to
+                start extraction. Only the link itself is shared with us, and only to extract the
+                recipe.
               </li>
             </ul>
           </Section>
