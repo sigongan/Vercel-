@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ExtractRecipeResult, Recipe } from "@/lib/types/recipe";
 import { RecipeCard } from "./RecipeCard";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -21,6 +21,7 @@ import {
 } from "@/lib/recentRecipes";
 import { useGroceryList } from "@/lib/groceryList";
 import { GroceryListSheet } from "./GroceryList";
+import { UploadSourceSheet } from "./UploadSourceSheet";
 
 type Tab = "file" | "url" | "text" | "fridge";
 
@@ -29,8 +30,12 @@ interface SubmitError {
   code?: string;
 }
 
-const ACCEPTED_FILE_TYPES =
-  "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/quicktime,video/webm";
+// A plain <input accept> spanning image+video+pdf is what makes iOS show its
+// 3-way "Photo Library / Take Photo / Choose File" chooser — UploadSourceSheet
+// gives each of its own buttons one of these narrower lists instead, so
+// tapping one goes straight to a single native picker.
+const PHOTO_ACCEPT_TYPES = "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm";
+const DOCUMENT_ACCEPT_TYPES = "application/pdf";
 
 export function RecipeExtractor() {
   const { language } = useLanguage();
@@ -39,6 +44,7 @@ export function RecipeExtractor() {
   const [tab, setTab] = useState<Tab>("file");
   const [file, setFile] = useState<File | null>(null);
   const [preparingFile, setPreparingFile] = useState(false);
+  const [uploadSheetOpen, setUploadSheetOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
   const [fridgeText, setFridgeText] = useState("");
@@ -54,7 +60,6 @@ export function RecipeExtractor() {
         item.recipe.title.toLowerCase().includes(recentQuery.trim().toLowerCase()),
       )
     : recent;
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (recipe) window.scrollTo({ top: 0, behavior: "smooth" });
@@ -282,9 +287,9 @@ export function RecipeExtractor() {
                 <div
                   role="button"
                   tabIndex={0}
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => setUploadSheetOpen(true)}
                   onKeyDown={(e) =>
-                    e.key === "Enter" && fileInputRef.current?.click()
+                    e.key === "Enter" && setUploadSheetOpen(true)
                   }
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
@@ -294,15 +299,6 @@ export function RecipeExtractor() {
                   }}
                   className="rounded-[24px] border-2 border-dashed border-[#E2E6D9] dark:border-stone-700 bg-[#FCFCF9] dark:bg-stone-950/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-[#61A00E80] hover:bg-[#F1F4EA] dark:hover:bg-stone-800/50"
                 >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept={ACCEPTED_FILE_TYPES}
-                    className="hidden"
-                    onChange={(e) =>
-                      handleFileSelected(e.target.files?.[0] ?? null)
-                    }
-                  />
                   <span className="flex items-center justify-center w-13 h-13 rounded-full bg-[#F2F7E8] dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-400">
                     <UploadIcon size={22} />
                   </span>
@@ -322,8 +318,6 @@ export function RecipeExtractor() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setFile(null);
-                          if (fileInputRef.current)
-                            fileInputRef.current.value = "";
                         }}
                         className="text-[#9AA093] hover:text-[#232920] dark:hover:text-stone-200 transition-colors"
                       >
@@ -427,6 +421,15 @@ export function RecipeExtractor() {
       {groceryOpen && (
         <GroceryListSheet open={groceryOpen} onClose={() => setGroceryOpen(false)} t={t} />
       )}
+
+      <UploadSourceSheet
+        open={uploadSheetOpen}
+        onClose={() => setUploadSheetOpen(false)}
+        onFile={handleFileSelected}
+        photoAccept={PHOTO_ACCEPT_TYPES}
+        fileAccept={DOCUMENT_ACCEPT_TYPES}
+        t={t}
+      />
 
       {status !== "loading" && recent.length > 0 && (
         <section className="w-full max-w-2xl flex flex-col gap-3">
