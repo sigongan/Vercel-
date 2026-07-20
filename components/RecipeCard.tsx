@@ -7,7 +7,7 @@ import { translations, type Translation } from "@/lib/i18n";
 import { RecipeEditForm } from "./RecipeEditForm";
 import { CookMode } from "./CookMode";
 import { fitPrintArea, resetPrintArea } from "@/lib/printFit";
-import { hapticTap, hapticSuccess, shareText } from "@/lib/nativeApp";
+import { hapticTap, hapticSuccess, shareText, printRecipe } from "@/lib/nativeApp";
 import { GroceryListSheet } from "./GroceryList";
 import { addRecipeToGroceryList } from "@/lib/groceryList";
 import { useRecipeNote } from "@/lib/recipeNotes";
@@ -289,7 +289,7 @@ export function RecipeCard({
             <button
               onClick={() => {
                 hapticTap();
-                window.print();
+                printRecipe(fitPrintArea, resetPrintArea);
               }}
               className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
             >

@@ -198,6 +198,36 @@ export async function shareText(title: string, text: string): Promise<"shared" |
   }
 }
 
+/**
+ * Prints the recipe. window.print() is a documented Web API but a bare
+ * WKWebView (unlike Mobile Safari) doesn't implement it — it's a silent
+ * no-op there, which is why Print did nothing inside the app. On native,
+ * this calls a Capacitor plugin that hands the webview to
+ * UIPrintInteractionController instead. beforeFit/afterReset let the
+ * caller apply the same print-area fitting (lib/printFit.ts) that the
+ * web path gets for free from the browser's beforeprint/afterprint
+ * events, since triggering print this way doesn't fire those.
+ */
+export async function printRecipe(beforeFit: () => void, afterReset: () => void) {
+  if (!isNativeApp()) {
+    window.print();
+    return;
+  }
+  try {
+    const { registerPlugin } = await import("@capacitor/core");
+    const plugin = registerPlugin<{ print(): Promise<{ completed: boolean }> }>("PrintPlugin");
+    beforeFit();
+    try {
+      await plugin.print();
+    } finally {
+      afterReset();
+    }
+  } catch {
+    // Plugin not registered in this build yet — Print silently does nothing,
+    // same as before, until the native file is added (docs/ios-print.md).
+  }
+}
+
 /** Light tap feedback — button presses, tab switches, step navigation. */
 export async function hapticTap() {
   if (!isNativeApp()) return;

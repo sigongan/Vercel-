@@ -85,8 +85,8 @@ export function RecipeEditForm({
           {t.editDescriptionLabel}
         </span>
         <textarea
-          className={inputClass}
-          rows={2}
+          className={`${inputClass} resize-y`}
+          rows={4}
           value={draft.description ?? ""}
           onChange={(e) => updateField("description", e.target.value)}
         />
