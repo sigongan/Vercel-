@@ -92,7 +92,7 @@ export function RecipeExtractor() {
           : text.trim().length > 0;
 
   const errorMessage = error
-    ? language === "en" && error.code && error.code in t.errors
+    ? error.code && error.code in t.errors
       ? t.errors[error.code as keyof typeof t.errors]
       : error.message
     : null;

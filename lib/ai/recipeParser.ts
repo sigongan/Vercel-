@@ -46,6 +46,8 @@ ${JSON_SCHEMA}`;
 const SYSTEM_PROMPT = `You are an assistant that turns source material from YouTube, Instagram, TikTok, PDFs, screenshots, and similar sources into a structured cooking recipe.
 Analyze the provided text and images and produce a recipe matching the JSON schema below.
 
+Rule for sources with multiple dishes (e.g. a full holiday menu, or a main + side + sauce bundled in one post): always output exactly ONE recipe object, never an array or multiple objects. Pick the single primary/title dish — the one the source is centered on — and ignore the rest, rather than combining every dish's ingredients and steps into one. If it's genuinely a single unified menu, put the other dishes briefly in notes instead of expanding them.
+
 Rules for ingredient amounts:
 - If the source (whether an ingredient list or the instructions) states an amount, use it as-is and set estimated to false.
 - If the source never states an amount for an ingredient, never leave it empty — estimate a reasonable amount from cooking knowledge, the other ingredients' amounts, and the serving count, and set that ingredient's estimated to true.
@@ -118,7 +120,11 @@ export async function parseRecipeFromContent(
   try {
     message = await client.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 2048,
+      // Long real-world sources (a full holiday menu, a detailed multi-page
+      // recipe) need more room than a typical single dish — 2048 was
+      // measured to truncate mid-JSON on those, which then fails to parse
+      // below and surfaces as a confusing generic error.
+      max_tokens: 4096,
       // The instruction text is identical across every request (per language), so
       // marking it cacheable avoids re-billing the full system prompt on every call.
       system: [
@@ -148,16 +154,60 @@ export async function parseRecipeFromContent(
     throw new RecipeParseError("The AI response contained no text.");
   }
 
-  let parsed: Omit<Recipe, "sourceType" | "sourceUrl">;
+  let parsed: Partial<Omit<Recipe, "sourceType" | "sourceUrl">>;
   try {
-    const jsonMatch = textBlock.text.match(/\{[\s\S]*\}/);
-    parsed = JSON.parse(jsonMatch ? jsonMatch[0] : textBlock.text);
+    // Despite the system prompt now saying "always one object, never an
+    // array", a multi-dish source occasionally still gets the model to emit
+    // a JSON array of recipes anyway — fall back to its first element
+    // rather than failing outright.
+    const arrayMatch = textBlock.text.match(/\[[\s\S]*\]/);
+    const objectMatch = textBlock.text.match(/\{[\s\S]*\}/);
+    if (arrayMatch && (!objectMatch || arrayMatch.index! <= objectMatch.index!)) {
+      const asArray = JSON.parse(arrayMatch[0]);
+      if (!Array.isArray(asArray) || asArray.length === 0) throw new Error("empty array");
+      parsed = asArray[0];
+    } else {
+      parsed = JSON.parse(objectMatch ? objectMatch[0] : textBlock.text);
+    }
   } catch {
+    // A common real cause: the source was long enough (a full multi-course
+    // menu, a very detailed recipe) that the JSON got cut off mid-object
+    // before max_tokens was reached — surface that distinctly since "try a
+    // screenshot instead" (the generic message) is the wrong advice there.
+    if (message.stop_reason === "max_tokens") {
+      throw new RecipeParseError(
+        "This source was too long to fully process. Try a shorter excerpt, or split it into separate recipes.",
+      );
+    }
     throw new RecipeParseError("Could not interpret the AI response as a recipe.");
   }
 
+  // The model sometimes reports low confidence by omitting fields rather
+  // than emitting the documented empty-array/empty-string shape (seen with
+  // non-recipe source text) — normalize so callers can always rely on the
+  // Recipe type's required fields actually being present, and treat "found
+  // nothing at all" as the extraction failure it is instead of a fake
+  // success the UI would then fail to render.
+  const ingredients = parsed.ingredients ?? [];
+  const steps = parsed.steps ?? [];
+  if (ingredients.length === 0 && steps.length === 0) {
+    throw new RecipeParseError(
+      "Couldn't find a recipe in that content. Try pasting the recipe text directly, or a clearer source.",
+    );
+  }
+
   return {
-    ...parsed,
+    title: parsed.title || "Untitled recipe",
+    description: parsed.description,
+    servings: parsed.servings,
+    prepTime: parsed.prepTime,
+    cookTime: parsed.cookTime,
+    ingredients,
+    steps,
+    tags: parsed.tags ?? [],
+    confidence: parsed.confidence,
+    notes: parsed.notes,
+    nutrition: parsed.nutrition,
     sourceType: content.sourceType,
     sourceUrl: content.sourceUrl,
   };
