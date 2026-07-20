@@ -9,8 +9,6 @@ import { compressImageFile } from "@/lib/compressImage";
 import { AvocadoMark } from "@/lib/avocadoMark";
 import { SOURCE_ICONS } from "@/components/SourceIcons";
 import {
-  registerClipboardWatcher,
-  suppressClipboardPrompt,
   onSharedUrl,
   hapticTap,
   hapticSuccess,
@@ -98,7 +96,6 @@ export function RecipeExtractor() {
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<SubmitError | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
-  const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
   const recent = useRecentRecipes();
   const groceryItems = useGroceryList();
   const [groceryOpen, setGroceryOpen] = useState(false);
@@ -113,14 +110,6 @@ export function RecipeExtractor() {
   useEffect(() => {
     if (recipe) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [recipe]);
-
-  // Covers apps (YouTube's iOS app most notably) that use their own custom
-  // share sheet instead of the system one, so our Share Extension never
-  // gets a chance to appear there. Re-checks the clipboard every time the
-  // app returns to the foreground; only offers to extract, never auto-runs.
-  useEffect(() => {
-    registerClipboardWatcher((detected) => setClipboardUrl(detected));
-  }, []);
 
   function backToStart() {
     setRecipe(null);
@@ -230,10 +219,6 @@ export function RecipeExtractor() {
     if (!shared) return;
     // Clear the query so a reload doesn't re-consume quota.
     window.history.replaceState(null, "", window.location.pathname);
-    // The share extension also copies the link to the clipboard as its
-    // safety net — since we're extracting it right now, stop the clipboard
-    // watcher from offering the same link again in a banner.
-    suppressClipboardPrompt(shared);
     queueMicrotask(() => {
       setTab("url");
       setUrl(shared);
@@ -248,7 +233,6 @@ export function RecipeExtractor() {
   // for why the reload was making warm shares feel slow/choppy).
   useEffect(() => {
     return onSharedUrl((shared) => {
-      suppressClipboardPrompt(shared);
       setTab("url");
       setUrl(shared);
       startExtraction({ kind: "url", url: shared });
@@ -302,36 +286,6 @@ export function RecipeExtractor() {
           ))}
         </ul>
       </header>
-
-      {clipboardUrl && (
-        <div className="w-full max-w-2xl flex items-center gap-3 rounded-2xl border border-[#E2E6D9] bg-white dark:bg-stone-900 dark:border-stone-800 px-4 py-3 shadow-[0_4px_16px_rgba(105,150,55,0.10)]">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F2F7E8] dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-400">
-            <LinkIcon />
-          </span>
-          <p className="flex-1 text-sm text-[#232920] dark:text-stone-200">{t.clipboardLinkFound}</p>
-          <button
-            type="button"
-            onClick={() => {
-              const link = clipboardUrl;
-              setClipboardUrl(null);
-              setTab("url");
-              setUrl(link);
-              startExtraction({ kind: "url", url: link });
-            }}
-            className="shrink-0 rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-          >
-            {t.clipboardLinkExtract}
-          </button>
-          <button
-            type="button"
-            onClick={() => setClipboardUrl(null)}
-            aria-label={t.clipboardLinkDismiss}
-            className="shrink-0 text-[#9AA093] hover:text-[#232920] dark:hover:text-stone-200 transition-colors"
-          >
-            ✕
-          </button>
-        </div>
-      )}
 
       <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
         {status === "loading" ? (

@@ -7,11 +7,13 @@ The goal: watching a recipe on TikTok/YouTube → tap **Share** → tap
 one) use their own custom share sheet instead of the system one — no
 third-party extension, ours included, can appear there no matter how it's
 configured. That's an Apple platform restriction, not something fixable on
-our end. To cover those apps too, the app also does **clipboard
-detection**: copy a link anywhere (e.g. YouTube's own "Copy link" button),
-switch to Avocato, and it offers a one-tap "Extract" banner. This works
-everywhere, including YouTube, and needs no Xcode setup beyond a normal
-`npm install` + `cap sync` — see the bottom of this doc.
+our end. For those apps, the workaround is manual: copy the link (e.g.
+YouTube's own "Copy link" button), switch to Avocato, open the **Link**
+tab, and paste normally (long-press → Paste). We used to auto-detect this
+via a background clipboard check, but that made iOS show its "Avocato
+would like to paste from your other device" permission prompt every time
+the app came to the foreground — too naggy, so it's been removed. A manual
+paste never triggers that system prompt.
 
 The web and Capacitor sides of the *share sheet* (Part 1/2 below) are
 already done and deployed:
@@ -121,18 +123,3 @@ kick in (e.g. right after Part 1's file first goes live).
   the deployed site. The site side updates automatically (remote-URL app),
   but force-quit and reopen the app once to pick up a fresh page load.
 
-## Clipboard detection (covers YouTube and anything without a real share sheet)
-
-No Xcode work needed for this one — it's pure web code, already pushed. Just
-pull it in:
-
-```bash
-git pull
-npm install
-npx cap sync ios
-```
-
-Then rebuild in Xcode. To test: in YouTube's app, tap **Share** → **Copy
-link**, switch to Avocato, and a "Found a recipe link on your clipboard"
-banner should appear with an **Extract** button. It re-checks every time the
-app comes back to the foreground, and never extracts without a tap.

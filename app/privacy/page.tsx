@@ -49,11 +49,9 @@ export default function PrivacyPage() {
           <Section title="The iOS app">
             <ul className="list-disc pl-5 flex flex-col gap-1">
               <li>
-                <strong>Clipboard</strong> — when you open the app, it may check your clipboard for a
-                recipe link (from YouTube, TikTok, Instagram, or Google Docs) so it can offer one-tap
-                extraction. iOS shows its standard paste notice when this happens. The check happens on
-                your device; the link is only sent to our server if you tap the extract button, and
-                nothing else on your clipboard is read or stored.
+                <strong>Clipboard</strong> — {SITE_NAME} never reads your clipboard automatically. If you
+                paste a link into the app yourself, it&rsquo;s only sent to our server when you tap the
+                extract button.
               </li>
               <li>
                 <strong>Recent recipes</strong> — your recent extraction history is stored only on your

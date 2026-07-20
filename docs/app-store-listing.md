@@ -119,10 +119,6 @@ recipe automatically. You can also paste a video URL directly on the
 home screen. Example URL that works well:
 https://www.youtube.com/watch?v=<아무 요리 영상이나 하나 넣기>
 
-The app checks the clipboard for recipe links on launch (with the
-standard iOS paste notice) to offer one-tap extraction — this is
-described in our privacy policy.
-
 No account is required. There are no purchases in this version.
 ```
 

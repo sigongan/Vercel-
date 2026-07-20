@@ -67,9 +67,10 @@ class ShareViewController: UIViewController {
         // pasteboard. UIPasteboard always works from extensions (unlike the
         // app-open APIs below, which iOS treats as best-effort from a share
         // extension and which have proven intermittent on device). If the
-        // auto-open doesn't fire, the app's existing clipboard banner offers
-        // one-tap extraction the moment the user opens Avocato — the share
-        // is never just lost.
+        // auto-open doesn't fire, the link is still on the clipboard for the
+        // user to paste into the Link tab manually — the share is never
+        // just lost. (The app no longer reads this proactively: that used
+        // to trigger iOS's "would like to paste" prompt on every foreground.)
         UIPasteboard.general.string = link
 
         let encoded = link.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? link
