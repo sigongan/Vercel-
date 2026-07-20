@@ -10,7 +10,12 @@ import { useRecentRecipes } from "@/lib/recentRecipes";
 import { useGroceryList } from "@/lib/groceryList";
 import { GroceryListSheet } from "@/components/GroceryList";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
+import { TodayMenuCard } from "@/components/TodayMenuCard";
 import { hapticTap } from "@/lib/nativeApp";
+
+const SUPABASE_CONFIGURED = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+);
 
 export default function Home() {
   const { language } = useLanguage();
@@ -19,6 +24,7 @@ export default function Home() {
   const recent = useRecentRecipes();
   const groceryItems = useGroceryList();
   const [groceryOpen, setGroceryOpen] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
     // Any Universal Link into the app (share extension, marketing links,
@@ -31,8 +37,24 @@ export default function Home() {
     if (shared) router.replace(`/extract?url=${encodeURIComponent(shared)}`);
   }, [router]);
 
+  useEffect(() => {
+    if (!SUPABASE_CONFIGURED) return;
+    fetch("/api/me", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((body) => {
+        if (!body.signedIn) return;
+        // Only Google/Apple sign-in has a real name on file — email
+        // magic-link users get the email's local part as a reasonable
+        // stand-in ("jess@..." -> "Jess") rather than no name at all.
+        const fallback = typeof body.email === "string" ? body.email.split("@")[0] : null;
+        const name: string | null = body.name || fallback;
+        if (name) setDisplayName(name.charAt(0).toUpperCase() + name.slice(1));
+      })
+      .catch(() => {});
+  }, []);
+
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-8 px-5 py-10 pb-28 bg-gradient-to-b from-[#FAFAF7] via-[#F4F6EE] to-[#FAFAF7] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
+    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-gradient-to-b from-[#FAFAF7] via-[#F4F6EE] to-[#FAFAF7] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
       <div
         aria-hidden
         className="pointer-events-none fixed top-[-60px] right-[-60px] h-56 w-56 rounded-full bg-[#D9EEB2] opacity-40 blur-3xl dark:hidden"
@@ -42,25 +64,23 @@ export default function Home() {
         className="pointer-events-none fixed bottom-24 left-[-60px] h-44 w-44 rounded-full bg-[#C6E596] opacity-40 blur-3xl dark:hidden"
       />
 
-      <nav className="relative z-10 flex w-full max-w-2xl items-center justify-center">
-        <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] shadow-[0_4px_12px_rgba(120,160,60,0.25)] dark:from-stone-800 dark:to-stone-800">
-            <AvocadoMark size={30} />
-          </span>
-          <span className="font-display italic text-3xl text-[#232920] dark:text-stone-50">
-            {t.title}
-          </span>
-        </div>
+      <nav className="relative z-10 flex w-full max-w-2xl items-center gap-2.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] dark:from-stone-800 dark:to-stone-800">
+          <AvocadoMark size={20} />
+        </span>
+        <span className="font-display italic text-xl text-[#232920] dark:text-stone-50">{t.title}</span>
       </nav>
 
       <AuthErrorBanner />
 
-      <div className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-[#232920] dark:text-stone-50">
-          {t.homeGreeting}
+      <div className="relative z-10 flex w-full max-w-2xl flex-col gap-1">
+        <h1 className="text-[26px] sm:text-3xl font-semibold leading-tight text-[#232920] dark:text-stone-50">
+          {displayName ? t.homeHiUser(displayName) : t.homeGreeting}
         </h1>
-        <p className="text-base text-[#5D6551] dark:text-stone-400 max-w-md">{t.homeGreetingSub}</p>
+        <p className="text-[15px] text-[#5D6551] dark:text-stone-400">{t.homeGreetingSub}</p>
       </div>
+
+      <TodayMenuCard />
 
       <Link
         href="/extract"
@@ -77,7 +97,7 @@ export default function Home() {
           hapticTap();
           setGroceryOpen(true);
         }}
-        className="relative z-10 flex w-full max-w-2xl items-center gap-3 rounded-2xl border border-[#E2E6D9] dark:border-stone-800 bg-white dark:bg-stone-900 px-5 py-4 text-left shadow-[0_4px_14px_rgba(105,150,55,0.08)] transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]"
+        className="relative z-10 flex w-full max-w-2xl items-center gap-3 rounded-2xl border border-[#E2E6D9] dark:border-stone-800 bg-white dark:bg-stone-900 px-5 py-3.5 text-left shadow-[0_4px_14px_rgba(105,150,55,0.08)] transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]"
       >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F2F7E8] dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-400">
           <CartIcon />

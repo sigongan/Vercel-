@@ -8,6 +8,9 @@ export { FREE_MONTHLY_LIMIT };
 export interface SessionUser {
   id: string;
   email: string | null;
+  /** Only set for Google/Apple sign-in (from the provider's profile) — null
+   *  for email-magic-link users, who have no name on file. */
+  name: string | null;
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
@@ -30,7 +33,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     }
   }
 
-  return { id: user.id, email: user.email ?? null };
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    name: user.user_metadata?.full_name ?? user.user_metadata?.name ?? null,
+  };
 }
 
 export type QuotaResult =

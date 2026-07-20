@@ -62,6 +62,39 @@ Nutrition estimate:
 
 ${JSON_SCHEMA}`;
 
+/** "What should I eat today?" — Home's photo/text pantry card. Same idea as
+ *  PANTRY_PROMPT but asks for three distinct options instead of committing
+ *  to one, and accepts a fridge/pantry photo instead of just a typed list. */
+const PANTRY_SUGGESTIONS_PROMPT = `You are a practical home-cooking assistant helping someone decide what to cook right now. They'll show you what they have — a photo of their fridge/pantry/counter, and/or a typed list of ingredients. Suggest exactly THREE distinct, realistic, simple dishes they could cook tonight, each built primarily from what they have.
+
+Rules:
+- If a photo is provided, identify the ingredients yourself from what's actually visible — don't invent items that aren't shown or listed.
+- The three suggestions must be meaningfully different dishes, not three variations of the same one.
+- You may assume basic pantry staples (salt, pepper, cooking oil, water, sugar, common dried spices) and include them in each ingredient list.
+- Never require an important ingredient that wasn't shown/listed — suggest it in that dish's notes as an optional upgrade instead.
+- Every ingredient needs a concrete, cookable amount, marked estimated: true (these are your suggestions, not a source's).
+- Steps should be short, confident, and include times where relevant.
+- Fill in servings, prepTime, cookTime, tags, and a per-serving nutrition estimate for each dish.
+- confidence: "high" when the ingredients make a coherent dish, "medium" when you had to stretch.
+- In notes, add one short tip or variation for each dish.
+
+Output a JSON array of exactly 3 objects, each matching this schema:
+{
+  "title": string,
+  "description": string (optional),
+  "servings": string (optional, e.g. "2 servings"),
+  "prepTime": string (optional),
+  "cookTime": string (optional),
+  "ingredients": [{ "name": string, "amount": string, "estimated": boolean }],
+  "steps": [{ "order": number, "instruction": string }],
+  "tags": string[],
+  "confidence": "high" | "medium" | "low",
+  "notes": string (optional),
+  "nutrition": { "calories": string, "protein": string, "carbs": string, "fat": string } (optional, per serving, estimated)
+}
+
+Output only the JSON array, with no other explanatory text.`;
+
 const OUTPUT_LANGUAGE_INSTRUCTION: Record<Language, string> = {
   ko: "모든 출력 값(title, description, ingredients, steps, tags, notes)은 한국어로 작성하세요. 원본이 다른 언어라면 한국어로 번역하세요.",
   en: "Write every output value (title, description, ingredients, steps, tags, notes) in English. Translate the source content if it is in another language.",
@@ -71,19 +104,7 @@ function isConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
-export type ParseMode = "extract" | "pantry";
-
-export async function parseRecipeFromContent(
-  content: ExtractedContent,
-  lang: Language,
-  mode: ParseMode = "extract",
-): Promise<Recipe> {
-  if (!isConfigured()) {
-    throw new AiNotConfiguredError();
-  }
-
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
+function buildContentBlocks(content: ExtractedContent): Anthropic.MessageParam["content"] {
   const contentBlocks: Anthropic.MessageParam["content"] = [];
 
   if (content.images) {
@@ -115,24 +136,27 @@ export async function parseRecipeFromContent(
   ].filter(Boolean);
 
   contentBlocks.push({ type: "text", text: textParts.join("\n\n") || "(no text available — use the images)" });
+  return contentBlocks;
+}
 
-  let message: Anthropic.Message;
+async function callClaude(
+  systemPrompt: string,
+  lang: Language,
+  contentBlocks: Anthropic.MessageParam["content"],
+): Promise<Anthropic.Message> {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   try {
-    message = await client.messages.create({
+    return await client.messages.create({
       model: "claude-haiku-4-5",
       // Long real-world sources (a full holiday menu, a detailed multi-page
-      // recipe) need more room than a typical single dish — 2048 was
-      // measured to truncate mid-JSON on those, which then fails to parse
-      // below and surfaces as a confusing generic error.
+      // recipe, three full suggested dishes) need more room than a typical
+      // single dish — 2048 was measured to truncate mid-JSON on those, which
+      // then fails to parse below and surfaces as a confusing generic error.
       max_tokens: 4096,
       // The instruction text is identical across every request (per language), so
       // marking it cacheable avoids re-billing the full system prompt on every call.
       system: [
-        {
-          type: "text",
-          text: mode === "pantry" ? PANTRY_PROMPT : SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
+        { type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } },
         { type: "text", text: OUTPUT_LANGUAGE_INSTRUCTION[lang], cache_control: { type: "ephemeral" } },
       ],
       messages: [{ role: "user", content: contentBlocks }],
@@ -144,6 +168,53 @@ export async function parseRecipeFromContent(
     }
     throw err;
   }
+}
+
+/** Fills in the required Recipe fields the model sometimes omits instead of
+ *  emitting the documented empty-array/empty-string shape (seen with
+ *  non-recipe source text), and reports whether there was anything usable
+ *  at all — callers decide what "nothing found" means for their case. */
+function normalizeRecipe(
+  parsed: Partial<Omit<Recipe, "sourceType" | "sourceUrl">>,
+  content: Pick<ExtractedContent, "sourceType" | "sourceUrl">,
+): Recipe | null {
+  const ingredients = parsed.ingredients ?? [];
+  const steps = parsed.steps ?? [];
+  if (ingredients.length === 0 && steps.length === 0) return null;
+
+  return {
+    title: parsed.title || "Untitled recipe",
+    description: parsed.description,
+    servings: parsed.servings,
+    prepTime: parsed.prepTime,
+    cookTime: parsed.cookTime,
+    ingredients,
+    steps,
+    tags: parsed.tags ?? [],
+    confidence: parsed.confidence,
+    notes: parsed.notes,
+    nutrition: parsed.nutrition,
+    sourceType: content.sourceType,
+    sourceUrl: content.sourceUrl,
+  };
+}
+
+export type ParseMode = "extract" | "pantry";
+
+export async function parseRecipeFromContent(
+  content: ExtractedContent,
+  lang: Language,
+  mode: ParseMode = "extract",
+): Promise<Recipe> {
+  if (!isConfigured()) {
+    throw new AiNotConfiguredError();
+  }
+
+  const message = await callClaude(
+    mode === "pantry" ? PANTRY_PROMPT : SYSTEM_PROMPT,
+    lang,
+    buildContentBlocks(content),
+  );
 
   console.log(
     `[recipeParser] model=${message.model} input=${message.usage.input_tokens} output=${message.usage.output_tokens} cache_write=${message.usage.cache_creation_input_tokens ?? 0} cache_read=${message.usage.cache_read_input_tokens ?? 0}`
@@ -182,33 +253,61 @@ export async function parseRecipeFromContent(
     throw new RecipeParseError("Could not interpret the AI response as a recipe.");
   }
 
-  // The model sometimes reports low confidence by omitting fields rather
-  // than emitting the documented empty-array/empty-string shape (seen with
-  // non-recipe source text) — normalize so callers can always rely on the
-  // Recipe type's required fields actually being present, and treat "found
-  // nothing at all" as the extraction failure it is instead of a fake
-  // success the UI would then fail to render.
-  const ingredients = parsed.ingredients ?? [];
-  const steps = parsed.steps ?? [];
-  if (ingredients.length === 0 && steps.length === 0) {
+  const recipe = normalizeRecipe(parsed, content);
+  if (!recipe) {
     throw new RecipeParseError(
       "Couldn't find a recipe in that content. Try pasting the recipe text directly, or a clearer source.",
     );
   }
+  return recipe;
+}
 
-  return {
-    title: parsed.title || "Untitled recipe",
-    description: parsed.description,
-    servings: parsed.servings,
-    prepTime: parsed.prepTime,
-    cookTime: parsed.cookTime,
-    ingredients,
-    steps,
-    tags: parsed.tags ?? [],
-    confidence: parsed.confidence,
-    notes: parsed.notes,
-    nutrition: parsed.nutrition,
-    sourceType: content.sourceType,
-    sourceUrl: content.sourceUrl,
-  };
+/**
+ * "What should I eat today?" — Home's pantry card. Same content pipeline as
+ * parseRecipeFromContent, but asks for three distinct dish ideas instead of
+ * one, returned as a JSON array.
+ */
+export async function parsePantrySuggestions(content: ExtractedContent, lang: Language): Promise<Recipe[]> {
+  if (!isConfigured()) {
+    throw new AiNotConfiguredError();
+  }
+
+  const message = await callClaude(PANTRY_SUGGESTIONS_PROMPT, lang, buildContentBlocks(content));
+
+  console.log(
+    `[recipeParser:pantry-suggestions] model=${message.model} input=${message.usage.input_tokens} output=${message.usage.output_tokens} cache_write=${message.usage.cache_creation_input_tokens ?? 0} cache_read=${message.usage.cache_read_input_tokens ?? 0}`
+  );
+
+  const textBlock = message.content.find((block) => block.type === "text");
+  if (!textBlock || textBlock.type !== "text") {
+    throw new RecipeParseError("The AI response contained no text.");
+  }
+
+  let parsedArray: unknown;
+  try {
+    const arrayMatch = textBlock.text.match(/\[[\s\S]*\]/);
+    parsedArray = JSON.parse(arrayMatch ? arrayMatch[0] : textBlock.text);
+  } catch {
+    if (message.stop_reason === "max_tokens") {
+      throw new RecipeParseError("That took a bit too long to think through. Please try again.");
+    }
+    throw new RecipeParseError("Could not come up with suggestions from that. Please try again.");
+  }
+
+  if (!Array.isArray(parsedArray)) {
+    throw new RecipeParseError("Could not come up with suggestions from that. Please try again.");
+  }
+
+  const recipes = parsedArray
+    .map((item) => normalizeRecipe(item as Partial<Omit<Recipe, "sourceType" | "sourceUrl">>, content))
+    .filter((r): r is Recipe => r !== null)
+    .slice(0, 3);
+
+  if (recipes.length === 0) {
+    throw new RecipeParseError(
+      "Couldn't tell what's in that photo or list. Try a clearer photo, or list a few ingredients instead.",
+    );
+  }
+
+  return recipes;
 }

@@ -40,6 +40,7 @@ export async function GET() {
   return noStore({
     signedIn: true,
     email: data?.email ?? user.email,
+    name: user.name,
     credits: data?.credits ?? 0,
     free_used_this_period: data?.free_used_this_period ?? 0,
     plan: data?.plan === "pro" ? "pro" : "free",
