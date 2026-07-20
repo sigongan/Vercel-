@@ -8,14 +8,15 @@ import { hapticTap } from "@/lib/nativeApp";
 
 const TABS = [
   { href: "/", match: (p: string) => p === "/", icon: HomeIcon, labelKey: "tabBarHome" as const },
-  { href: "/library", match: (p: string) => p.startsWith("/library") || p.startsWith("/recipes"), icon: LibraryIcon, labelKey: "tabBarLibrary" as const },
+  { href: "/search", match: (p: string) => p.startsWith("/search"), icon: SearchIcon, labelKey: "tabBarSearch" as const },
   { href: "/extract", match: (p: string) => p.startsWith("/extract"), icon: ExtractIcon, labelKey: "tabBarExtract" as const },
+  { href: "/library", match: (p: string) => p.startsWith("/library") || p.startsWith("/recipes"), icon: LibraryIcon, labelKey: "tabBarLibrary" as const },
   { href: "/profile", match: (p: string) => p.startsWith("/profile"), icon: ProfileIcon, labelKey: "tabBarProfile" as const },
 ];
 
 /**
- * Persistent bottom navigation across the four main sections. Fixed, so
- * every page under it needs bottom padding (see the pb-24 wrapper in each
+ * Persistent bottom navigation across the five main sections. Fixed, so
+ * every page under it needs bottom padding (see the pb-28 wrapper in each
  * page) to keep content from being covered.
  */
 export function BottomTabBar() {
@@ -59,6 +60,15 @@ function HomeIcon({ active }: IconProps) {
     <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 11.5 12 4l9 7.5" />
       <path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9" />
+    </svg>
+  );
+}
+
+function SearchIcon({ active }: IconProps) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
     </svg>
   );
 }
