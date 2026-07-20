@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { configureNativeStatusBar } from "@/lib/nativeApp";
 
 export type Theme = "default" | "pink" | "dark";
 
@@ -38,6 +39,9 @@ function applyToDocument(theme: Theme) {
   root.classList.toggle("dark", theme === "dark");
   if (theme === "pink") root.setAttribute("data-theme", "pink");
   else root.removeAttribute("data-theme");
+  // Keeps the native status bar in sync if the user switches theme
+  // mid-session, not just on next cold launch.
+  configureNativeStatusBar();
 }
 
 export function useTheme() {

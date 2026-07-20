@@ -530,7 +530,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center justify-center gap-2 rounded-full py-2.5 text-sm font-semibold transition-colors ${
+      className={`flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-1 py-2.5 text-sm font-semibold transition-colors ${
         active
           ? "bg-white dark:bg-stone-900 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
           : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"

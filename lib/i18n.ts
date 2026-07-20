@@ -248,7 +248,7 @@ export const translations = {
     title: "Avocato",
     tagline: "영상, 사진, 문서를 깔끔하게 정리된 레시피로 바꿔 드립니다.",
     sources: ["유튜브", "틱톡", "인스타그램", "구글 Docs", "PDF", "스크린샷"],
-    tabFile: "파일 업로드",
+    tabFile: "업로드",
     tabUrl: "링크",
     tabText: "텍스트",
     tabFridge: "냉장고",

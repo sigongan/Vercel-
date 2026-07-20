@@ -94,7 +94,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
             <ThemeSwatch
               active={theme === "pink"}
               label={t.themePink}
-              swatch="linear-gradient(135deg, #FF6FA5, #E0447B)"
+              swatch="linear-gradient(135deg, #FFB6D9, #F472B6)"
               onClick={() => { hapticTap(); setTheme("pink"); }}
             />
             <ThemeSwatch

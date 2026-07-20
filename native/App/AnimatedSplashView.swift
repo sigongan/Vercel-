@@ -32,7 +32,10 @@ final class AnimatedSplashView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         let cx = bounds.midX
-        let cy = bounds.midY - 30
+        // Dead center, not offset — matches resources/splash.png's static
+        // OS launch image exactly, so there's no visible jump when this
+        // view replaces it the instant the app process starts.
+        let cy = bounds.midY
         avocado.position = CGPoint(x: cx, y: cy)
         shadow.position = CGPoint(x: cx, y: cy + avocadoSize / 2 + 22)
         label.frame = CGRect(x: 0, y: cy + avocadoSize / 2 + 44, width: bounds.width, height: 24)

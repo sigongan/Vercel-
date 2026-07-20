@@ -34,13 +34,21 @@ export async function hideNativeSplashScreen() {
   }
 }
 
-/** Matches the status bar to the app's own background instead of Capacitor's default. */
+/**
+ * Matches the status bar to the app's own background instead of
+ * Capacitor's default. Reads the current theme off <html> (set by
+ * hooks/useTheme.ts) so Dark theme gets a dark status bar with light
+ * icons — otherwise the OS status bar stayed a hardcoded light cream
+ * regardless of theme, which read as a broken/half-dark screen with a
+ * jarring light strip across the top.
+ */
 export async function configureNativeStatusBar() {
   if (!isNativeApp()) return;
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar");
-    await StatusBar.setStyle({ style: Style.Light });
-    await StatusBar.setBackgroundColor({ color: "#FAFAF7" });
+    const isDark = document.documentElement.classList.contains("dark");
+    await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
+    await StatusBar.setBackgroundColor({ color: isDark ? "#0c0a09" : "#FAFAF7" });
   } catch {
     // Plugin not available — nothing to do.
   }
