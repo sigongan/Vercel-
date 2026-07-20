@@ -56,6 +56,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          // Runs before hydration so the saved theme applies on first paint
+          // instead of flashing the default and then switching.
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("avocato:theme");var r=document.documentElement;if(t==="dark")r.classList.add("dark");else if(t==="pink")r.setAttribute("data-theme","pink");}catch(e){}})();`,
+          }}
+        />
         <NativeAppInit />
         {children}
         <Analytics />

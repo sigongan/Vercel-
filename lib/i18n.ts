@@ -227,6 +227,22 @@ export const translations = {
     ],
     authLinkFailed:
       "That sign-in link didn't work — it may have expired, been used already, or been opened in a different browser than the one you requested it from. Try signing in again from this browser.",
+    settings: {
+      title: "Settings",
+      close: "Close",
+      language: "Language",
+      theme: "Theme",
+      themeDefault: "Default",
+      themePink: "Pink",
+      themeDark: "Dark",
+      data: "Data",
+      dataClear: "Clear on-device data",
+      dataClearConfirm: "Tap again to confirm",
+      dataClearedConfirm: "Cleared",
+      about: "About",
+      terms: "Terms of Service",
+      privacy: "Privacy Policy",
+    },
   },
   ko: {
     title: "Avocato",
@@ -451,6 +467,22 @@ export const translations = {
     ],
     authLinkFailed:
       "로그인 링크가 작동하지 않았어요 — 만료됐거나, 이미 사용됐거나, 요청했던 브라우저와 다른 브라우저에서 열렸을 수 있어요. 이 브라우저에서 다시 로그인을 시도해 주세요.",
+    settings: {
+      title: "설정",
+      close: "닫기",
+      language: "언어",
+      theme: "테마",
+      themeDefault: "기본",
+      themePink: "핑크",
+      themeDark: "다크",
+      data: "데이터",
+      dataClear: "기기에 저장된 데이터 지우기",
+      dataClearConfirm: "다시 누르면 삭제돼요",
+      dataClearedConfirm: "삭제됐어요",
+      about: "정보",
+      terms: "이용약관",
+      privacy: "개인정보처리방침",
+    },
   },
 } as const;
 

@@ -10,6 +10,8 @@ import {
 } from "@/lib/nativeApp";
 import { AvocadoMark } from "@/lib/avocadoMark";
 
+const ONBOARDING_SIGNIN_KEY = "avocato:onboarding-signin-seen";
+
 /** No-ops entirely on the regular website — only does anything inside the Capacitor iOS shell. */
 export function NativeAppInit() {
   const [showSplash, setShowSplash] = useState(isNativeApp);
@@ -26,6 +28,23 @@ export function NativeAppInit() {
     const timer = setTimeout(() => {
       hideNativeSplashScreen();
       setShowSplash(false);
+
+      // Once per install: offer sign-in right after the splash, the way
+      // Deglaze's onboarding does. AuthPanel already listens for this
+      // event and no-ops harmlessly if the user is already signed in;
+      // it's always dismissible (the sheet's X / backdrop tap), so this
+      // never blocks using the app without an account.
+      if (isNativeApp()) {
+        try {
+          if (!localStorage.getItem(ONBOARDING_SIGNIN_KEY)) {
+            localStorage.setItem(ONBOARDING_SIGNIN_KEY, "1");
+            window.dispatchEvent(new Event("avocato:open-signin"));
+          }
+        } catch {
+          // Storage unavailable — skip the one-time prompt rather than risk
+          // showing it on every launch.
+        }
+      }
     }, 1800);
     return () => clearTimeout(timer);
   }, []);
