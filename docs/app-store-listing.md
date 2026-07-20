@@ -106,7 +106,7 @@ recipe,extract,tiktok,youtube,video,cooking,ingredients,save,import,scan,ai,chef
 
 ## 5. 심사 관련 (App Review Information)
 
-- **Sign-in required?** → No (로그인 없이 전 기능 사용 가능 — 심사에 유리. 오른쪽 위 사람 아이콘으로 선택적 로그인 제공)
+- **Sign-in required?** → No (로그인 없이 전 기능 사용 가능 — 심사에 유리. 하단 탭의 Profile에서 선택적 로그인 제공)
 - **Notes 칸에 넣을 문구**:
 
 ```

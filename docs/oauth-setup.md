@@ -95,7 +95,7 @@ OAuth 앱을 등록하고 발급되는 키를 Supabase에 넣어줘야 해요. �
 ## 3. 확인하는 법
 
 두 설정 다 끝나면:
-1. 웹사이트(`vercel-ecru-iota-55.vercel.app`)에서 오른쪽 위 사람 아이콘
+1. 웹사이트(`vercel-ecru-iota-55.vercel.app`)에서 하단 탭의 Profile
    클릭 → Continue with Google / Apple 눌러보기
 2. 정상적으로 Google/Apple 로그인 화면으로 넘어가고, 로그인하면
    Avocato로 돌아오면서 로그인된 상태가 되면 성공

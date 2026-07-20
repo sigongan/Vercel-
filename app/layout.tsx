@@ -5,6 +5,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { SITE_NAME, SITE_TAGLINE_EN, SITE_URL } from "@/lib/siteConfig";
 import { NativeAppInit } from "@/components/NativeAppInit";
+import { SignInGate } from "@/components/SignInGate";
+import { BottomTabBar } from "@/components/BottomTabBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,7 +66,9 @@ export default function RootLayout({
           }}
         />
         <NativeAppInit />
+        <SignInGate />
         {children}
+        <BottomTabBar />
         <Analytics />
         <SpeedInsights />
       </body>

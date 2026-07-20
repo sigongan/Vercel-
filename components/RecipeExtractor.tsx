@@ -182,6 +182,20 @@ export function RecipeExtractor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Deep-link entry: /extract?recent=<id> opens a specific past extraction
+  // straight to its result card — what Home's and Library's recent-recipe
+  // rows link to, since RecipeExtractor already holds the full recent list.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("recent");
+    if (!id) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    const match = recent.find((item) => item.id === id);
+    if (match) queueMicrotask(() => setRecipe(match.recipe));
+    // Run once on mount only — `recent` loads synchronously from
+    // localStorage before this effect runs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Same deep-link entry, but for shares that arrive while the app is
   // already running (no page reload — see onSharedUrl in lib/nativeApp.ts
   // for why the reload was making warm shares feel slow/choppy).
