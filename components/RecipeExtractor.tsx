@@ -32,57 +32,6 @@ interface SubmitError {
 const ACCEPTED_FILE_TYPES =
   "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/quicktime,video/webm";
 
-/** Canned demo shown by "See an example recipe" — no AI call, no quota used. */
-const EXAMPLE_RECIPE: Recipe = {
-  title: "15-Minute Garlic Butter Shrimp Pasta",
-  description:
-    "A weeknight favorite — juicy shrimp in a silky garlic butter sauce, finished with lemon and parsley.",
-  servings: "2 servings",
-  prepTime: "5 min",
-  cookTime: "10 min",
-  ingredients: [
-    { name: "spaghetti", amount: "200g" },
-    { name: "shrimp, peeled & deveined", amount: "250g" },
-    { name: "butter", amount: "3 tbsp" },
-    { name: "garlic, minced", amount: "4 cloves" },
-    { name: "chili flakes", amount: "1/2 tsp", estimated: true },
-    { name: "lemon", amount: "1/2" },
-    { name: "fresh parsley, chopped", amount: "2 tbsp", estimated: true },
-    { name: "salt & black pepper", amount: "to taste" },
-  ],
-  steps: [
-    {
-      order: 1,
-      instruction:
-        "Cook spaghetti in well-salted water until al dente. Reserve a cup of pasta water.",
-    },
-    {
-      order: 2,
-      instruction:
-        "Melt butter in a large pan over medium heat. Add garlic and chili flakes; cook 30 seconds until fragrant.",
-    },
-    {
-      order: 3,
-      instruction: "Add shrimp and cook 1–2 minutes per side until just pink.",
-    },
-    {
-      order: 4,
-      instruction:
-        "Toss in the pasta with a splash of pasta water; swirl until the sauce turns glossy.",
-    },
-    {
-      order: 5,
-      instruction:
-        "Finish with lemon juice and parsley. Season and serve immediately.",
-    },
-  ],
-  tags: ["pasta", "seafood", "quick", "weeknight"],
-  confidence: "high",
-  sourceType: "text",
-  notes:
-    "This is a sample recipe so you can explore the card styles, editing, and printing — extract your own to see the magic on real sources.",
-};
-
 export function RecipeExtractor() {
   const { language } = useLanguage();
   const t = translations[language];
@@ -448,18 +397,6 @@ export function RecipeExtractor() {
                 {t.extract}
               </button>
             </form>
-
-            <button
-              type="button"
-              onClick={() => {
-                setRecipe(EXAMPLE_RECIPE);
-                setError(null);
-                setStatus("idle");
-              }}
-              className="self-center text-xs font-medium text-[#4D7C0F] hover:text-[#232920] dark:hover:text-stone-200 underline underline-offset-2"
-            >
-              ✨ {t.tryExample}
-            </button>
           </>
         )}
       </div>
