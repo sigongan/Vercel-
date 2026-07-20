@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { useRecentRecipes } from "@/lib/recentRecipes";
+import { hapticTap } from "@/lib/nativeApp";
 import type { Recipe } from "@/lib/types/recipe";
 
 const SUPABASE_CONFIGURED = Boolean(
@@ -39,25 +40,62 @@ export default function SearchPage() {
   const matchedSaved = q && saved ? saved.filter((r) => r.title.toLowerCase().includes(q)) : [];
   const hasResults = matchedRecent.length > 0 || matchedSaved.length > 0;
 
-  return (
-    <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 pb-28 bg-gradient-to-b from-[#FAFAF7] via-[#F4F6EE] to-[#FAFAF7] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
-      <div className="flex w-full max-w-2xl flex-col gap-1">
-        <h1 className="text-2xl font-semibold text-[#232920] dark:text-stone-50">{t.searchTitle}</h1>
-      </div>
+  // A lightweight "Discover" — since there's no outside content to browse,
+  // this browses the tags AI already attached to the user's own recipes
+  // (cuisine, meal type, etc.) as quick-filter chips instead.
+  const tagCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    const allRecipes = [...recent.map((r) => r.recipe), ...(saved ?? []).map((r) => r.recipe)];
+    for (const r of allRecipes) {
+      for (const tag of r.tags) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([tag]) => tag);
+  }, [recent, saved]);
 
-      <div className="w-full max-w-2xl">
+  return (
+    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-gradient-to-b from-[#FAFAF7] via-[#F4F6EE] to-[#FAFAF7] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
+      <div className="relative w-full max-w-2xl">
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
+          <SearchGlyph />
+        </span>
         <input
           type="search"
           autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.searchPlaceholder}
-          className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-900 px-4 py-3 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
+          className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-900 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
         />
       </div>
 
       {!q && (
-        <p className="w-full max-w-2xl px-1 text-sm text-[#9AA093]">{t.searchEmptyPrompt}</p>
+        <>
+          <p className="w-full max-w-2xl px-1 text-sm text-[#9AA093]">{t.searchEmptyPrompt}</p>
+          {tagCounts.length > 0 && (
+            <section className="flex w-full max-w-2xl flex-col gap-2.5">
+              <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9AA093]">
+                {t.searchBrowseTags}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {tagCounts.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      hapticTap();
+                      setQuery(tag);
+                    }}
+                    className="rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-[#5E7A33] dark:text-stone-300 transition-colors hover:border-[#C0DC8C]"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       {q && !hasResults && (
@@ -108,5 +146,14 @@ export default function SearchPage() {
         </section>
       )}
     </main>
+  );
+}
+
+function SearchGlyph() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
   );
 }
