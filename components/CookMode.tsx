@@ -31,6 +31,26 @@ function formatClock(totalSeconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/**
+ * One per step that has a started timer. Timers are owned by CookMode (not
+ * the per-step view), so several can run at once — start "simmer 10 min",
+ * move on to prep the next step, and the countdown keeps going, shown as a
+ * tappable chip. endAt-based rather than tick-decrement so background tabs
+ * and re-renders can't drift the clock.
+ */
+interface StepTimerState {
+  duration: number;
+  /** Epoch ms when the countdown hits zero; null while paused or done. */
+  endAt: number | null;
+  /** Seconds left, meaningful while paused (endAt is the truth while running). */
+  remaining: number;
+  done: boolean;
+}
+
+function secondsLeftOf(state: StepTimerState, now: number): number {
+  return state.endAt !== null ? Math.max(0, Math.ceil((state.endAt - now) / 1000)) : state.remaining;
+}
+
 export function CookMode({
   recipe,
   steps,
@@ -44,20 +64,109 @@ export function CookMode({
 }) {
   const [index, setIndex] = useState(0);
   const [showIngredients, setShowIngredients] = useState(false);
+  const [timers, setTimers] = useState<Record<number, StepTimerState>>({});
+  const [now, setNow] = useState(() => Date.now());
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const touchStartX = useRef<number | null>(null);
 
   const step = steps[index];
   const duration = step ? parseDurationSeconds(step.instruction) : null;
 
-  const goNext = useCallback(() => {
+  const anyRunning = Object.values(timers).some((st) => st.endAt !== null);
+
+  const timersRef = useRef(timers);
+  useEffect(() => {
+    timersRef.current = timers;
+  }, [timers]);
+
+  // Single shared clock for every running timer; the same tick rings any
+  // timer crossing zero — including ones on steps the cook has already
+  // moved past.
+  useEffect(() => {
+    if (!anyRunning) return;
+    const id = setInterval(() => {
+      const nowMs = Date.now();
+      setNow(nowMs);
+      const ts = timersRef.current;
+      const finished = Object.keys(ts)
+        .map(Number)
+        .filter((k) => ts[k].endAt !== null && (ts[k].endAt as number) - nowMs <= 0);
+      if (finished.length === 0) return;
+      try {
+        navigator.vibrate?.(400);
+      } catch {
+        // vibration unsupported — ignore
+      }
+      // navigator.vibrate is a no-op inside the native WKWebView — this is
+      // the reliable path there, alongside the web fallback above.
+      hapticSuccess();
+      endCookTimerActivity();
+      setTimers((prev) => {
+        const next = { ...prev };
+        for (const k of finished) {
+          if (next[k]) next[k] = { ...next[k], endAt: null, remaining: 0, done: true };
+        }
+        return next;
+      });
+    }, 500);
+    return () => clearInterval(id);
+  }, [anyRunning]);
+
+  // All navigation funnels through here: a finished timer's chip has done
+  // its job once the cook lands back on that step, so clear it on arrival
+  // and let the step offer a fresh start.
+  const goTo = useCallback((target: number) => {
     hapticTap();
-    setIndex((i) => Math.min(i + 1, steps.length - 1));
-  }, [steps.length]);
-  const goPrev = useCallback(() => {
-    hapticTap();
-    setIndex((i) => Math.max(i - 1, 0));
+    setTimers((ts) => {
+      if (!ts[target]?.done) return ts;
+      const next = { ...ts };
+      delete next[target];
+      return next;
+    });
+    setIndex(target);
   }, []);
+
+  const goNext = useCallback(() => {
+    goTo(Math.min(index + 1, steps.length - 1));
+  }, [goTo, index, steps.length]);
+  const goPrev = useCallback(() => {
+    goTo(Math.max(index - 1, 0));
+  }, [goTo, index]);
+
+  function activityInfoFor(stepIndex: number) {
+    return {
+      recipeTitle: recipe.title,
+      stepNumber: stepIndex + 1,
+      totalSteps: steps.length,
+      stepText: steps[stepIndex]?.instruction ?? "",
+    };
+  }
+
+  function handleTimerButton() {
+    if (duration === null) return;
+    hapticTap();
+    const existing = timers[index];
+    if (!existing || existing.done) {
+      // Fresh start (or restart after finishing).
+      setTimers((ts) => ({
+        ...ts,
+        [index]: { duration, endAt: Date.now() + duration * 1000, remaining: duration, done: false },
+      }));
+      setNow(Date.now());
+      syncCookTimerActivity({ ...activityInfoFor(index), remainingSeconds: duration, paused: false });
+    } else if (existing.endAt !== null) {
+      const remaining = secondsLeftOf(existing, Date.now());
+      setTimers((ts) => ({ ...ts, [index]: { ...existing, endAt: null, remaining } }));
+      syncCookTimerActivity({ ...activityInfoFor(index), remainingSeconds: remaining, paused: true });
+    } else {
+      setTimers((ts) => ({
+        ...ts,
+        [index]: { ...existing, endAt: Date.now() + existing.remaining * 1000 },
+      }));
+      setNow(Date.now());
+      syncCookTimerActivity({ ...activityInfoFor(index), remainingSeconds: existing.remaining, paused: false });
+    }
+  }
 
   // Keep the screen awake for as long as Cook Mode is open. The native app
   // (nativeKeepAwake) is the reliable path inside the Capacitor WKWebView,
@@ -90,6 +199,8 @@ export function CookMode({
       wakeLockRef.current?.release().catch(() => {});
       wakeLockRef.current = null;
       nativeKeepAwake(false);
+      // Never strand a countdown on the Dynamic Island after leaving.
+      endCookTimerActivity();
     };
   }, []);
 
@@ -123,6 +234,21 @@ export function CookMode({
   }
 
   if (!step) return null;
+
+  const currentTimer = timers[index];
+  const currentSecondsLeft = currentTimer ? secondsLeftOf(currentTimer, now) : (duration ?? 0);
+  const timerLabel = !currentTimer || currentTimer.done
+    ? t.cookModeTimerStart
+    : currentTimer.endAt !== null
+      ? t.cookModeTimerPause
+      : t.cookModeTimerResume;
+
+  // Timers still going (or just finished) on steps other than the one on
+  // screen — shown as chips so nothing runs invisibly.
+  const otherTimers = Object.keys(timers)
+    .map(Number)
+    .filter((i) => i !== index && (timers[i].endAt !== null || timers[i].done))
+    .sort((a, b) => a - b);
 
   // Rendered via a portal straight onto <body> — CookMode's siblings use
   // CSS animations that leave a lingering `transform` after they finish
@@ -169,19 +295,42 @@ export function CookMode({
         <p className="max-w-xl text-2xl sm:text-4xl leading-snug font-medium">{step.instruction}</p>
 
         {duration !== null && (
-          <StepTimer
-            key={index}
-            duration={duration}
-            t={t}
-            activityInfo={{
-              recipeTitle: recipe.title,
-              stepNumber: index + 1,
-              totalSteps: steps.length,
-              stepText: step.instruction,
-            }}
-          />
+          <div className="flex flex-col items-center gap-3">
+            <span className="text-4xl sm:text-5xl font-semibold tabular-nums">
+              {formatClock(currentSecondsLeft)}
+            </span>
+            <button
+              onClick={handleTimerButton}
+              className="rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            >
+              {timerLabel}
+            </button>
+          </div>
         )}
       </div>
+
+      {otherTimers.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-2 px-4 sm:px-6 pb-2">
+          {otherTimers.map((i) => {
+            const st = timers[i];
+            return (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold tabular-nums transition-colors ${
+                  st.done
+                    ? "bg-[#8BC926] text-[#181C12] animate-pulse"
+                    : "bg-white/10 text-[#E8EBE2] hover:bg-white/20"
+                }`}
+              >
+                <TimerIcon />
+                {t.cookModeTimerChip(steps[i]?.order ?? i + 1)}
+                <span>{st.done ? "0:00" : formatClock(secondsLeftOf(st, now))}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="flex items-center gap-3 px-4 sm:px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <button
@@ -212,7 +361,7 @@ export function CookMode({
       </div>
 
       {showIngredients && (
-        <div className="absolute inset-x-0 bottom-0 max-h-[65vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#2f221b] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.4)]">
+        <div className="absolute inset-x-0 bottom-0 max-h-[65vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#252B1D] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.4)]">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-[#DDE3D3]">{t.ingredients}</h3>
             <button
@@ -241,91 +390,13 @@ export function CookMode({
   );
 }
 
-/**
- * Owns its own countdown state, keyed by step index in the parent so that
- * switching steps remounts (and resets) it instead of needing a reset
- * effect that synchronously calls setState.
- */
-function StepTimer({
-  duration,
-  t,
-  activityInfo,
-}: {
-  duration: number;
-  t: Translation;
-  activityInfo: {
-    recipeTitle: string;
-    stepNumber: number;
-    totalSteps: number;
-    stepText: string;
-  };
-}) {
-  const [secondsLeft, setSecondsLeft] = useState(duration);
-  const [timerRunning, setTimerRunning] = useState(false);
-
-  useEffect(() => {
-    if (!timerRunning || secondsLeft <= 0) return;
-    const id = setTimeout(() => setSecondsLeft((s) => Math.max(s - 1, 0)), 1000);
-    return () => clearTimeout(id);
-  }, [timerRunning, secondsLeft]);
-
-  useEffect(() => {
-    if (secondsLeft !== 0) return;
-    try {
-      navigator.vibrate?.(400);
-    } catch {
-      // vibration unsupported — ignore
-    }
-    // navigator.vibrate is a no-op inside the native WKWebView — this is
-    // the reliable path there, alongside the web fallback above.
-    hapticSuccess();
-    endCookTimerActivity();
-    // Fires once, when the countdown reaches zero.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [secondsLeft === 0]);
-
-  // Leaving the step (or Cook Mode entirely) with a timer on the Dynamic
-  // Island would strand a stale countdown there — always clear it.
-  useEffect(() => {
-    return () => {
-      endCookTimerActivity();
-    };
-  }, []);
-
-  function handleClick() {
-    hapticTap();
-    if (secondsLeft <= 0) {
-      setSecondsLeft(duration);
-      setTimerRunning(true);
-      syncCookTimerActivity({ ...activityInfo, remainingSeconds: duration, paused: false });
-    } else {
-      // Live Activity sync only on transitions (start/pause/resume) — iOS
-      // animates the running countdown itself, no per-second updates.
-      const pausing = timerRunning;
-      setTimerRunning((r) => !r);
-      syncCookTimerActivity({ ...activityInfo, remainingSeconds: secondsLeft, paused: pausing });
-    }
-  }
-
-  const label =
-    secondsLeft <= 0
-      ? t.cookModeTimerStart
-      : timerRunning
-        ? t.cookModeTimerPause
-        : secondsLeft < duration
-          ? t.cookModeTimerResume
-          : t.cookModeTimerStart;
-
+function TimerIcon() {
   return (
-    <div className="flex flex-col items-center gap-3">
-      <span className="text-4xl sm:text-5xl font-semibold tabular-nums">{formatClock(secondsLeft)}</span>
-      <button
-        onClick={handleClick}
-        className="rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-      >
-        {label}
-      </button>
-    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l2.5 2.5" />
+      <path d="M9 2h6" />
+    </svg>
   );
 }
 
