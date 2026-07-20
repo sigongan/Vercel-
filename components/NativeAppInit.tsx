@@ -19,13 +19,14 @@ export function NativeAppInit() {
     registerNativeShareListener();
     signalWebReady();
 
-    // Let the bouncing avocado play a couple hops so the handoff from the
+    // Let the bouncing avocado play a few hops so the handoff from the
     // native launch image doesn't feel like an abrupt cut, then hand off
-    // to the real page.
+    // to the real page. Kept in sync with the native minimum in
+    // AvocatoViewController.swift's webReady().
     const timer = setTimeout(() => {
       hideNativeSplashScreen();
       setShowSplash(false);
-    }, 1000);
+    }, 1800);
     return () => clearTimeout(timer);
   }, []);
 

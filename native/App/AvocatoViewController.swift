@@ -39,9 +39,9 @@ class AvocatoViewController: CAPBridgeViewController {
     }
 
     @objc private func webReady() {
-        // Let at least one full bounce play so fast loads don't feel like a
+        // Let a few full bounces play so fast loads don't feel like a
         // glitchy flash of avocado.
-        let minimum: TimeInterval = 0.9
+        let minimum: TimeInterval = 1.8
         let elapsed = Date().timeIntervalSince(splashShownAt)
         let delay = max(0, minimum - elapsed)
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
