@@ -453,3 +453,66 @@ export async function restorePurchases(): Promise<"restored" | "empty" | "unavai
     return "error";
   }
 }
+
+/* ---------- Native Google/Apple sign-in (native/App/AppleSignInPlugin.swift,
+ * native/App/GoogleSignInPlugin.swift) ----------
+ * The polished flow every major app uses: the system Face ID sheet (Apple)
+ * or Google's account sheet rises directly over the app — no browser
+ * window, no visible URLs. Each plugin returns a provider-signed ID token;
+ * lib/auth.ts exchanges it for a Supabase session with signInWithIdToken.
+ * "unavailable" means the plugin isn't in this build (or, for Google, the
+ * iOS client ID env isn't set) — callers fall back to the browser flow. */
+
+export type NativeSignInResult =
+  | { status: "success"; token: string; nonce?: string; fullName?: string }
+  | { status: "cancelled" }
+  | { status: "unavailable" }
+  | { status: "error"; message: string };
+
+interface AppleSignInPluginApi {
+  signIn(): Promise<{ status: "success" | "cancelled"; identityToken?: string; nonce?: string; fullName?: string }>;
+}
+
+interface GoogleSignInPluginApi {
+  signIn(options: { clientId: string }): Promise<{ status: "success" | "cancelled"; idToken?: string; fullName?: string }>;
+}
+
+/** True for the error Capacitor throws when a plugin isn't registered in
+ *  this build — as opposed to a real sign-in failure. */
+function isUnimplemented(err: unknown): boolean {
+  const code = (err as { code?: string } | null)?.code;
+  const message = (err as { message?: string } | null)?.message ?? "";
+  return code === "UNIMPLEMENTED" || /not implemented/i.test(message);
+}
+
+export async function nativeAppleSignIn(): Promise<NativeSignInResult> {
+  if (!isNativeApp()) return { status: "unavailable" };
+  try {
+    const { registerPlugin } = await import("@capacitor/core");
+    const plugin = registerPlugin<AppleSignInPluginApi>("AppleSignIn");
+    const result = await plugin.signIn();
+    if (result.status === "cancelled") return { status: "cancelled" };
+    if (!result.identityToken) return { status: "error", message: "No identity token returned." };
+    return { status: "success", token: result.identityToken, nonce: result.nonce, fullName: result.fullName };
+  } catch (err) {
+    if (isUnimplemented(err)) return { status: "unavailable" };
+    console.error("Native Apple sign-in failed", err);
+    return { status: "error", message: err instanceof Error ? err.message : "Sign-in failed." };
+  }
+}
+
+export async function nativeGoogleSignIn(clientId: string | undefined): Promise<NativeSignInResult> {
+  if (!isNativeApp() || !clientId) return { status: "unavailable" };
+  try {
+    const { registerPlugin } = await import("@capacitor/core");
+    const plugin = registerPlugin<GoogleSignInPluginApi>("GoogleSignIn");
+    const result = await plugin.signIn({ clientId });
+    if (result.status === "cancelled") return { status: "cancelled" };
+    if (!result.idToken) return { status: "error", message: "No ID token returned." };
+    return { status: "success", token: result.idToken, fullName: result.fullName };
+  } catch (err) {
+    if (isUnimplemented(err)) return { status: "unavailable" };
+    console.error("Native Google sign-in failed", err);
+    return { status: "error", message: err instanceof Error ? err.message : "Sign-in failed." };
+  }
+}
