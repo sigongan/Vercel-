@@ -16,7 +16,7 @@ export default function BlogHubPage() {
   const posts = [...BLOG_POSTS].sort((a, b) => (a.date < b.date ? 1 : -1));
 
   return (
-    <main className="min-h-screen bg-stone-50 dark:bg-stone-950 px-5 py-16">
+    <main className="min-h-screen bg-stone-50 dark:bg-stone-900 px-5 py-16">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
         <Link href="/" className="text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200">
           ← {SITE_NAME}
@@ -36,7 +36,7 @@ export default function BlogHubPage() {
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
-              className="flex flex-col gap-2 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+              className="flex flex-col gap-2 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-6 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
             >
               <span className="text-[11px] font-medium uppercase tracking-wide text-stone-400">
                 {formatDate(post.date)} · {post.readMinutes} min read

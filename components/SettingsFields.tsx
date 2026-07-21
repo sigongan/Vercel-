@@ -49,7 +49,7 @@ export function SettingsFields() {
         <Link
           href="/language"
           onClick={() => hapticTap()}
-          className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-800/40"
+          className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
         >
           <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.language}</span>
           <span className="flex items-center gap-1.5 text-[15px] text-[#9AA093]">
@@ -105,7 +105,7 @@ export function SettingsFields() {
 
 function Group({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-800 dark:bg-stone-900 dark:divide-stone-800">
+    <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-700 dark:bg-stone-800 dark:divide-stone-700">
       {children}
     </div>
   );
@@ -124,7 +124,7 @@ function LinkRow({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-800/40"
+      className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
     >
       <span className="text-[15px] text-[#232920] dark:text-stone-100">{label}</span>
       <Chevron />
@@ -151,7 +151,7 @@ function ThemeDot({
       aria-pressed={active}
       style={{ background: swatch }}
       className={`h-7 w-7 rounded-full transition-all ${
-        active ? "ring-2 ring-offset-2 ring-[#61A00E] dark:ring-offset-stone-900" : "opacity-60 hover:opacity-90"
+        active ? "ring-2 ring-offset-2 ring-[#61A00E] dark:ring-offset-stone-800" : "opacity-60 hover:opacity-90"
       }`}
     />
   );

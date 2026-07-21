@@ -49,7 +49,7 @@ export default function AdminPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-stone-50 dark:bg-stone-950 px-4 py-10 sm:py-16">
+    <main className="min-h-screen bg-stone-50 dark:bg-stone-900 px-4 py-10 sm:py-16">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-50">Admin</h1>
@@ -85,10 +85,10 @@ export default function AdminPage() {
 
             <section className="flex flex-col gap-3">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-400">Users</h2>
-              <div className="overflow-x-auto rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900">
+              <div className="overflow-x-auto rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800">
                 <table className="w-full min-w-[700px] text-sm">
                   <thead>
-                    <tr className="border-b border-stone-200 dark:border-stone-800 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">
+                    <tr className="border-b border-stone-200 dark:border-stone-700 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">
                       <th className="px-4 py-3">Email</th>
                       <th className="px-4 py-3">Plan</th>
                       <th className="px-4 py-3">Subscription</th>
@@ -99,7 +99,7 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {data.users.map((u) => (
-                      <tr key={u.id} className="border-b border-stone-100 dark:border-stone-800 last:border-0">
+                      <tr key={u.id} className="border-b border-stone-100 dark:border-stone-700 last:border-0">
                         <td className="px-4 py-2.5 text-stone-800 dark:text-stone-200">
                           {u.email ?? "—"}
                         </td>
@@ -158,7 +158,7 @@ function StatTile({
       className={`rounded-xl border px-4 py-3 ${
         highlight
           ? "border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40"
-          : "border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900"
+          : "border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800"
       }`}
     >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">{label}</p>

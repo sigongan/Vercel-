@@ -58,12 +58,12 @@ export function UploadSourceSheet({
       onClick={onClose}
     >
       <div
-        className="flex w-full flex-col gap-6 rounded-t-3xl bg-[#FAFAF7] dark:bg-stone-900 p-8 pb-[max(2rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.25)] sm:w-full sm:max-w-sm sm:rounded-3xl sm:shadow-2xl"
+        className="flex w-full flex-col gap-6 rounded-t-3xl bg-[#FAFAF7] dark:bg-stone-800 p-8 pb-[max(2rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.25)] sm:w-full sm:max-w-sm sm:rounded-3xl sm:shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] shadow-[0_4px_12px_rgba(120,160,60,0.25)] dark:from-stone-800 dark:to-stone-800 dark:shadow-none">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] shadow-[0_4px_12px_rgba(120,160,60,0.25)] dark:from-stone-700 dark:to-stone-700 dark:shadow-none">
               <AvocadoMark size={26} />
             </span>
             <span className="font-display italic text-2xl text-[#232920] dark:text-stone-50">{SITE_NAME}</span>
@@ -71,7 +71,7 @@ export function UploadSourceSheet({
           <button
             onClick={onClose}
             aria-label={t.uploadSourceClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#9AA093] transition-colors hover:bg-[#EDF1E4] hover:text-[#232920] dark:hover:bg-stone-800 dark:hover:text-stone-100"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[#9AA093] transition-colors hover:bg-[#EDF1E4] hover:text-[#232920] dark:hover:bg-stone-700 dark:hover:text-stone-100"
           >
             ✕
           </button>
@@ -104,7 +104,7 @@ function SourceButton({ icon, label, onClick }: { icon: React.ReactNode; label: 
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-full border border-[#E2E6D9] bg-white px-5 py-3 text-sm font-medium text-[#30362B] transition-colors hover:border-[#C0DC8C] dark:border-stone-700 dark:bg-stone-950 dark:text-stone-200 dark:hover:border-stone-500"
+      className="flex w-full items-center gap-3 rounded-full border border-[#E2E6D9] bg-white px-5 py-3 text-sm font-medium text-[#30362B] transition-colors hover:border-[#C0DC8C] dark:border-stone-600 dark:bg-stone-900 dark:text-stone-200 dark:hover:border-stone-500"
     >
       <span className="flex h-5 w-5 items-center justify-center text-[#4D7C0F] dark:text-stone-400">{icon}</span>
       {label}

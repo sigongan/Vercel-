@@ -210,7 +210,7 @@ export function RecipeCard({
               setMoreOpen(true);
             }}
             aria-label={t.moreActions}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
           >
             <MoreIcon />
           </button>
@@ -323,7 +323,7 @@ function RecipeActionsSheet({
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40" onClick={onClose}>
       <div
-        className="flex max-h-[85vh] flex-col gap-5 overflow-y-auto rounded-t-3xl bg-[#FAFAF7] dark:bg-stone-900 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.25)]"
+        className="flex max-h-[85vh] flex-col gap-5 overflow-y-auto rounded-t-3xl bg-[#FAFAF7] dark:bg-stone-800 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.25)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -331,14 +331,14 @@ function RecipeActionsSheet({
           <button
             onClick={onClose}
             aria-label={t.groceryClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EDF1E4] dark:bg-stone-800 text-[#5E7A33] dark:text-stone-300 transition-colors hover:opacity-80"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EDF1E4] dark:bg-stone-700 text-[#5E7A33] dark:text-stone-300 transition-colors hover:opacity-80"
           >
             ✕
           </button>
         </div>
 
         {(convertible || scalable) && (
-          <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-800 dark:bg-stone-900 dark:divide-stone-800">
+          <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-700 dark:bg-stone-800 dark:divide-stone-700">
             {convertible && (
               <div className="flex items-center justify-between gap-3 px-4 py-3">
                 <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.unitsRowLabel}</span>
@@ -348,7 +348,7 @@ function RecipeActionsSheet({
                   className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
                     units === "metric"
                       ? "bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white"
-                      : "border border-[#E2E6D9] dark:border-stone-700 text-[#6B7261] dark:text-stone-400"
+                      : "border border-[#E2E6D9] dark:border-stone-600 text-[#6B7261] dark:text-stone-400"
                   }`}
                 >
                   {t.unitsToggle}
@@ -358,7 +358,7 @@ function RecipeActionsSheet({
             {scalable && (
               <div className="flex items-center justify-between gap-3 px-4 py-3">
                 <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.serves}</span>
-                <div className="flex items-center rounded-full border border-[#E2E6D9] dark:border-stone-700">
+                <div className="flex items-center rounded-full border border-[#E2E6D9] dark:border-stone-600">
                   <button
                     onClick={() => onStepScale(-1)}
                     aria-label={t.scaleDown}
@@ -387,7 +387,7 @@ function RecipeActionsSheet({
           </div>
         )}
 
-        <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-800 dark:bg-stone-900 dark:divide-stone-800">
+        <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-700 dark:bg-stone-800 dark:divide-stone-700">
           {saveable && (
             <div className="px-4 py-2.5">
               <SaveButton recipe={recipe} t={t} />
@@ -420,7 +420,7 @@ function MenuRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-800/40"
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
     >
       <span className="flex h-5 w-5 items-center justify-center text-[#5E7A33] dark:text-stone-400">{icon}</span>
       <span className="flex-1 text-[15px] font-medium text-[#232920] dark:text-stone-100">{label}</span>
@@ -443,14 +443,14 @@ function MoreIcon() {
 
 function ClassicCard({ recipe, steps, metas, t }: CardProps) {
   return (
-    <article className="rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 p-5 sm:p-10 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-sm flex flex-col gap-6 sm:gap-8">
+    <article className="rounded-[32px] border border-transparent dark:border-stone-700 bg-white dark:bg-stone-800 p-5 sm:p-10 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-sm flex flex-col gap-6 sm:gap-8">
       <header className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#4D7C0F] dark:text-orange-400">
             {t.recipe}
           </p>
           {recipe.confidence && (
-            <span className="text-[11px] font-medium rounded-full px-2.5 py-1 bg-[#F1F4EA] dark:bg-stone-800 text-[#5D6551] dark:text-stone-400">
+            <span className="text-[11px] font-medium rounded-full px-2.5 py-1 bg-[#F1F4EA] dark:bg-stone-700 text-[#5D6551] dark:text-stone-400">
               {t.confidence[recipe.confidence]}
             </span>
           )}
@@ -462,7 +462,7 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
           <p className="text-[#5D6551] dark:text-stone-400 leading-relaxed">{recipe.description}</p>
         )}
         {metas.length > 0 && (
-          <dl className="mt-3 flex divide-x divide-[#EDF1E4] dark:divide-stone-800 border-y border-[#EDF1E4] dark:border-stone-800">
+          <dl className="mt-3 flex divide-x divide-[#EDF1E4] dark:divide-stone-700 border-y border-[#EDF1E4] dark:border-stone-700">
             {metas.map((m) => (
               <div key={m.label} className="flex-1 px-3 py-2.5 first:pl-0 sm:px-5 sm:py-3">
                 <dt className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#4D7C0F]">
@@ -488,7 +488,7 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
                   <span className="text-[#30362B] dark:text-stone-200">{ing.name}</span>
                   {ing.amount && (
                     <>
-                      <span className="flex-1 border-b border-dotted border-[#E2E6D9] dark:border-stone-700" />
+                      <span className="flex-1 border-b border-dotted border-[#E2E6D9] dark:border-stone-600" />
                       <span
                         title={ing.estimated ? t.estimatedShort : undefined}
                         className={`shrink-0 whitespace-nowrap text-sm tabular-nums ${
@@ -550,7 +550,7 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
     return (
       <button
         onClick={() => window.dispatchEvent(new Event("avocato:open-signin"))}
-        className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+        className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
       >
         <BookmarkIcon />
         {t.signInToSave}
@@ -694,13 +694,13 @@ function CardFooter({ recipe, t }: { recipe: Recipe; t: Translation }) {
   if (recipe.tags.length === 0 && !recipe.notes && !recipe.sourceUrl) return null;
 
   return (
-    <footer className="flex flex-col gap-4 border-t border-stone-200 dark:border-stone-800 pt-6">
+    <footer className="flex flex-col gap-4 border-t border-stone-200 dark:border-stone-700 pt-6">
       {recipe.tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {recipe.tags.map((tag) => (
             <span
               key={tag}
-              className="text-xs rounded-full border border-stone-200 dark:border-stone-700 px-3 py-1 text-stone-500 dark:text-stone-400"
+              className="text-xs rounded-full border border-stone-200 dark:border-stone-600 px-3 py-1 text-stone-500 dark:text-stone-400"
             >
               {tag}
             </span>
@@ -708,7 +708,7 @@ function CardFooter({ recipe, t }: { recipe: Recipe; t: Translation }) {
         </div>
       )}
       {recipe.notes && (
-        <p className="rounded-lg bg-stone-100/70 dark:bg-stone-800/60 px-4 py-3 text-xs leading-relaxed text-stone-500 dark:text-stone-400 whitespace-pre-line">
+        <p className="rounded-lg bg-stone-100/70 dark:bg-stone-700/60 px-4 py-3 text-xs leading-relaxed text-stone-500 dark:text-stone-400 whitespace-pre-line">
           <span className="font-semibold text-stone-600 dark:text-stone-300">{t.notes} — </span>
           {recipe.notes}
         </p>
@@ -808,7 +808,7 @@ function RecipeNotes({ title, t }: { title: string; t: Translation }) {
   const [note, setNote] = useRecipeNote(title);
 
   return (
-    <section className="print:hidden flex flex-col gap-2 rounded-3xl border border-[#E2E6D9] dark:border-stone-800 bg-[#FCFCF9] dark:bg-stone-900 p-5">
+    <section className="print:hidden flex flex-col gap-2 rounded-3xl border border-[#E2E6D9] dark:border-stone-700 bg-[#FCFCF9] dark:bg-stone-800 p-5">
       <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#4D7C0F]">
         {t.myNotesTitle}
       </h3>
@@ -817,7 +817,7 @@ function RecipeNotes({ title, t }: { title: string; t: Translation }) {
         onChange={(e) => setNote(e.target.value)}
         placeholder={t.myNotesPlaceholder}
         rows={note ? Math.min(Math.max(note.split("\n").length, 2), 8) : 2}
-        className="w-full resize-y rounded-xl border border-transparent bg-transparent text-sm leading-relaxed text-[#30362B] dark:text-stone-200 placeholder-[#9AA093] dark:placeholder-stone-600 outline-none focus:border-[#E2E6D9] dark:focus:border-stone-700"
+        className="w-full resize-y rounded-xl border border-transparent bg-transparent text-sm leading-relaxed text-[#30362B] dark:text-stone-200 placeholder-[#9AA093] dark:placeholder-stone-500 outline-none focus:border-[#E2E6D9] dark:focus:border-stone-600"
       />
     </section>
   );
@@ -844,7 +844,7 @@ function NutritionRow({ recipe, t }: { recipe: Recipe; t: Translation }) {
         {items.map((i) => (
           <span
             key={i.label}
-            className="flex items-baseline gap-1.5 rounded-full bg-[#EFF4E5] dark:bg-stone-800 px-3 py-1.5"
+            className="flex items-baseline gap-1.5 rounded-full bg-[#EFF4E5] dark:bg-stone-700 px-3 py-1.5"
           >
             <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#4D7C0F]">
               {i.label}

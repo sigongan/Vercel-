@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   configureNativeStatusBar,
   hideNativeSplashScreen,
@@ -9,14 +9,24 @@ import {
   registerNativeShareListener,
   signalWebReady,
 } from "@/lib/nativeApp";
-import { AvocadoMark } from "@/lib/avocadoMark";
 
 const ONBOARDING_SIGNIN_KEY = "avocato:onboarding-signin-seen";
 
+/** Fades out and hides the static #native-boot-splash div (see
+ *  app/layout.tsx) — the boot splash lives outside React entirely so it can
+ *  paint before hydration, so dismissing it is plain DOM too. */
+function dismissBootSplash() {
+  const el = document.getElementById("native-boot-splash");
+  if (!el) return;
+  el.style.transition = "opacity 300ms ease-out";
+  el.style.opacity = "0";
+  setTimeout(() => {
+    el.style.display = "none";
+  }, 300);
+}
+
 /** No-ops entirely on the regular website — only does anything inside the Capacitor iOS shell. */
 export function NativeAppInit() {
-  const [showSplash, setShowSplash] = useState(isNativeApp);
-
   useEffect(() => {
     configureNativeStatusBar();
     registerNativeShareListener();
@@ -44,7 +54,7 @@ export function NativeAppInit() {
     // AvocatoViewController.swift's webReady().
     const timer = setTimeout(() => {
       hideNativeSplashScreen();
-      setShowSplash(false);
+      dismissBootSplash();
 
       // Once per install: offer sign-in right after the splash, the way
       // Deglaze's onboarding does. SignInGate already listens for this
@@ -69,20 +79,5 @@ export function NativeAppInit() {
     };
   }, []);
 
-  if (!showSplash) return null;
-
-  return (
-    <div
-      aria-hidden
-      className="fixed inset-0 z-[999] flex flex-col items-center justify-center gap-4 bg-[#FAFAF7]"
-    >
-      <div className="animate-avocado-bounce">
-        <AvocadoMark size={64} />
-      </div>
-      <div className="h-2.5 w-11 rounded-full bg-[#4D7C0F] animate-avocado-bounce-shadow" />
-      <p className="mt-2 text-[15px] font-medium text-[#5D6551] animate-pulse">
-        Warming up the kitchen…
-      </p>
-    </div>
-  );
+  return null;
 }

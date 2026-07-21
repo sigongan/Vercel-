@@ -29,7 +29,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   if (!post) notFound();
 
   return (
-    <main className="min-h-screen bg-stone-50 dark:bg-stone-950 px-5 py-16">
+    <main className="min-h-screen bg-stone-50 dark:bg-stone-900 px-5 py-16">
       <article className="mx-auto flex w-full max-w-2xl flex-col gap-10">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200">
@@ -95,7 +95,7 @@ function BlockRenderer({ block }: { block: Block }) {
       );
     case "callout":
       return (
-        <p className="rounded-xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 px-5 py-4 text-sm leading-relaxed text-stone-600 dark:text-stone-400">
+        <p className="rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 px-5 py-4 text-sm leading-relaxed text-stone-600 dark:text-stone-400">
           {block.text}
         </p>
       );

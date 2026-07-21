@@ -29,7 +29,7 @@ export default async function AlternativePage({ params }: { params: Promise<{ sl
   if (!alt) notFound();
 
   return (
-    <main className="min-h-screen bg-stone-50 dark:bg-stone-950 px-5 py-16">
+    <main className="min-h-screen bg-stone-50 dark:bg-stone-900 px-5 py-16">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-14">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200">
@@ -68,10 +68,10 @@ export default async function AlternativePage({ params }: { params: Promise<{ sl
           <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-400">
             Feature by feature
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900">
+          <div className="overflow-x-auto rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800">
             <table className="w-full min-w-[480px] text-sm">
               <thead>
-                <tr className="border-b border-stone-200 dark:border-stone-800 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">
+                <tr className="border-b border-stone-200 dark:border-stone-700 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">
                   <th className="px-5 py-3 font-semibold">Feature</th>
                   <th className="px-3 py-3 text-center font-semibold">{alt.name}</th>
                   <th className="px-3 py-3 text-center font-semibold">{SITE_NAME}</th>
@@ -79,7 +79,7 @@ export default async function AlternativePage({ params }: { params: Promise<{ sl
               </thead>
               <tbody>
                 {alt.rows.map((row) => (
-                  <tr key={row.feature} className="border-t border-stone-100 dark:border-stone-800">
+                  <tr key={row.feature} className="border-t border-stone-100 dark:border-stone-700">
                     <td className="px-5 py-3 text-stone-700 dark:text-stone-300">{row.feature}</td>
                     <td className="px-3 py-3 text-center">
                       <Cell value={row.them} />
@@ -95,7 +95,7 @@ export default async function AlternativePage({ params }: { params: Promise<{ sl
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6">
+          <div className="flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-6">
             <h3 className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">
               Choose {alt.name} if…
             </h3>
@@ -121,7 +121,7 @@ export default async function AlternativePage({ params }: { params: Promise<{ sl
           </div>
         </section>
 
-        <section className="flex flex-col items-center gap-4 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-8 py-12 text-center">
+        <section className="flex flex-col items-center gap-4 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-8 py-12 text-center">
           <h2 className="font-display text-2xl sm:text-3xl tracking-tight text-stone-900 dark:text-stone-50">
             Try it yourself, free
           </h2>

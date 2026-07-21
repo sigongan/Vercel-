@@ -33,7 +33,7 @@ const DEMO_RECIPE: Recipe = {
 
 export default function MarginCalculatorPage() {
   return (
-    <main className="min-h-screen bg-stone-50 dark:bg-stone-950 px-5 py-16">
+    <main className="min-h-screen bg-stone-50 dark:bg-stone-900 px-5 py-16">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-16">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200">
@@ -80,7 +80,7 @@ export default function MarginCalculatorPage() {
             ].map((card) => (
               <div
                 key={card.title}
-                className="flex flex-col gap-2 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6"
+                className="flex flex-col gap-2 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-6"
               >
                 <h3 className="text-[15px] font-semibold text-stone-900 dark:text-stone-100">{card.title}</h3>
                 <p className="text-sm leading-relaxed text-stone-500 dark:text-stone-400">{card.desc}</p>
@@ -113,7 +113,7 @@ export default function MarginCalculatorPage() {
             ].map((s) => (
               <li
                 key={s.step}
-                className="flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6"
+                className="flex flex-col gap-3 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-6"
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 text-sm font-semibold">
                   {s.step}

@@ -65,7 +65,7 @@ function aud(n: number): string {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 px-2.5 py-1.5 text-sm text-stone-900 dark:text-stone-100 outline-none focus:border-stone-500 tabular-nums";
+  "w-full rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-900 px-2.5 py-1.5 text-sm text-stone-900 dark:text-stone-100 outline-none focus:border-stone-500 tabular-nums";
 
 export function MarginCalculator({ recipe }: { recipe: Recipe }) {
   const [rows, setRows] = useState<CostRow[]>(() =>
@@ -95,7 +95,7 @@ export function MarginCalculator({ recipe }: { recipe: Recipe }) {
   const achievedGp = priceExGst > 0 ? (marginPerPortion / priceExGst) * 100 : 0;
 
   return (
-    <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 sm:p-8 flex flex-col gap-6">
+    <div className="rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-4 sm:p-8 flex flex-col gap-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-base font-semibold text-stone-900 dark:text-stone-50">
           Cost &amp; Margin Calculator
@@ -118,7 +118,7 @@ export function MarginCalculator({ recipe }: { recipe: Recipe }) {
           </thead>
           <tbody>
             {rows.map((row, i) => (
-              <tr key={i} className="border-t border-stone-100 dark:border-stone-800">
+              <tr key={i} className="border-t border-stone-100 dark:border-stone-700">
                 <td className="py-2 pr-3 text-stone-800 dark:text-stone-200">{row.name}</td>
                 <td className="py-2 pr-3">
                   <input
@@ -166,7 +166,7 @@ export function MarginCalculator({ recipe }: { recipe: Recipe }) {
             ))}
           </tbody>
           <tfoot>
-            <tr className="border-t border-stone-200 dark:border-stone-700 font-medium">
+            <tr className="border-t border-stone-200 dark:border-stone-600 font-medium">
               <td colSpan={4} className="py-2 pr-3 text-right text-stone-500">
                 Batch food cost
               </td>
@@ -196,13 +196,13 @@ export function MarginCalculator({ recipe }: { recipe: Recipe }) {
           <span className="text-[11px] font-semibold uppercase tracking-wide text-stone-400">
             Price by
           </span>
-          <div className="flex rounded-full border border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-950 p-1 text-xs font-medium">
+          <div className="flex rounded-full border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 p-1 text-xs font-medium">
             <button
               type="button"
               onClick={() => setMode("gp")}
               className={`rounded-full px-3.5 py-1.5 transition-colors ${
                 mode === "gp"
-                  ? "bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm"
+                  ? "bg-white dark:bg-stone-600 text-stone-900 dark:text-stone-100 shadow-sm"
                   : "text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
               }`}
             >
@@ -216,7 +216,7 @@ export function MarginCalculator({ recipe }: { recipe: Recipe }) {
               }}
               className={`rounded-full px-3.5 py-1.5 transition-colors ${
                 mode === "price"
-                  ? "bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 shadow-sm"
+                  ? "bg-white dark:bg-stone-600 text-stone-900 dark:text-stone-100 shadow-sm"
                   : "text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
               }`}
             >
@@ -295,7 +295,7 @@ function StatTile({
       className={`rounded-xl border px-4 py-3 ${
         highlight
           ? "border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40"
-          : "border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950/40"
+          : "border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/40"
       }`}
     >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">{label}</p>

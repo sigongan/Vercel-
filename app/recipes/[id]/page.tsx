@@ -63,7 +63,7 @@ export default function RecipeDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-stone-50 dark:bg-stone-950 px-4 py-10 pb-28 sm:py-16">
+    <main className="min-h-screen bg-stone-50 dark:bg-stone-900 px-4 py-10 pb-28 sm:py-16">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         <div className="flex items-center justify-between">
           <Link
@@ -76,16 +76,16 @@ export default function RecipeDetailPage() {
 
         {status === "loading" && (
           <div
-            className="animate-pulse rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 sm:p-10 flex flex-col gap-4"
+            className="animate-pulse rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-5 sm:p-10 flex flex-col gap-4"
             aria-hidden
           >
-            <div className="h-3 w-16 rounded bg-stone-200 dark:bg-stone-800" />
-            <div className="h-8 w-3/4 rounded-lg bg-stone-200 dark:bg-stone-800" />
-            <div className="h-4 w-full rounded bg-stone-100 dark:bg-stone-800/70" />
-            <div className="h-4 w-2/3 rounded bg-stone-100 dark:bg-stone-800/70" />
+            <div className="h-3 w-16 rounded bg-stone-200 dark:bg-stone-700" />
+            <div className="h-8 w-3/4 rounded-lg bg-stone-200 dark:bg-stone-700" />
+            <div className="h-4 w-full rounded bg-stone-100 dark:bg-stone-700/70" />
+            <div className="h-4 w-2/3 rounded bg-stone-100 dark:bg-stone-700/70" />
             <div className="mt-4 grid gap-6 sm:grid-cols-[minmax(220px,260px)_1fr]">
-              <div className="h-40 rounded-xl bg-stone-100 dark:bg-stone-800/70" />
-              <div className="h-40 rounded-xl bg-stone-100 dark:bg-stone-800/70" />
+              <div className="h-40 rounded-xl bg-stone-100 dark:bg-stone-700/70" />
+              <div className="h-40 rounded-xl bg-stone-100 dark:bg-stone-700/70" />
             </div>
           </div>
         )}
@@ -105,7 +105,7 @@ export default function RecipeDetailPage() {
         )}
 
         {status === "signed-out" && (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-white/60 dark:bg-stone-900/40 px-8 py-14 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-stone-300 dark:border-stone-600 bg-white/60 dark:bg-stone-800/40 px-8 py-14 text-center">
             <p className="text-sm text-stone-500 dark:text-stone-400 max-w-xs">{t.auth.signInPrompt}</p>
             <Link
               href="/"
@@ -117,7 +117,7 @@ export default function RecipeDetailPage() {
         )}
 
         {status === "not-found" && (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 bg-white/60 dark:bg-stone-900/40 px-8 py-14 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-stone-300 dark:border-stone-600 bg-white/60 dark:bg-stone-800/40 px-8 py-14 text-center">
             <p className="text-sm text-stone-500 dark:text-stone-400 max-w-xs">
               This recipe doesn&apos;t exist or isn&apos;t yours.
             </p>
@@ -140,7 +140,7 @@ export default function RecipeDetailPage() {
               </h2>
               <PaywallGate locked={!isPro}>
                 <div className="flex flex-col gap-4">
-                  <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-8 flex flex-col gap-2">
+                  <div className="rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-6 sm:p-8 flex flex-col gap-2">
                     <h3 className="text-base font-semibold text-stone-900 dark:text-stone-50">
                       Chef&apos;s Technical Tips
                     </h3>

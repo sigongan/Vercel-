@@ -5,7 +5,7 @@ import type { Ingredient, Recipe } from "@/lib/types/recipe";
 import type { Translation } from "@/lib/i18n";
 
 const inputClass =
-  "w-full rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 px-3 py-2 text-sm text-stone-900 dark:text-stone-100 outline-none focus:border-stone-500 focus:ring-2 focus:ring-stone-900/5";
+  "w-full rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-900 px-3 py-2 text-sm text-stone-900 dark:text-stone-100 outline-none focus:border-stone-500 focus:ring-2 focus:ring-stone-900/5";
 
 export function RecipeEditForm({
   recipe,
@@ -74,7 +74,7 @@ export function RecipeEditForm({
   }
 
   return (
-    <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 sm:p-8 flex flex-col gap-6">
+    <div className="rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-6 sm:p-8 flex flex-col gap-6">
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-semibold uppercase tracking-wide text-stone-400">{t.editTitleLabel}</span>
         <input className={inputClass} value={draft.title} onChange={(e) => updateField("title", e.target.value)} />
@@ -230,11 +230,11 @@ export function RecipeEditForm({
         />
       </label>
 
-      <div className="flex justify-end gap-2 pt-2 border-t border-stone-200 dark:border-stone-800">
+      <div className="flex justify-end gap-2 pt-2 border-t border-stone-200 dark:border-stone-700">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-full border border-stone-200 dark:border-stone-800 px-4 py-2 text-sm font-medium text-stone-600 dark:text-stone-300 hover:border-stone-400"
+          className="rounded-full border border-stone-200 dark:border-stone-700 px-4 py-2 text-sm font-medium text-stone-600 dark:text-stone-300 hover:border-stone-400"
         >
           {t.editCancel}
         </button>

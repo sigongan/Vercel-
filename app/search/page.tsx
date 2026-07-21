@@ -55,7 +55,7 @@ export default function SearchPage() {
   }, [recent, saved]);
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-950">
+    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="relative w-full max-w-2xl">
         <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
           <SearchGlyph />
@@ -66,7 +66,7 @@ export default function SearchPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.searchPlaceholder}
-          className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-900 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
+          className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
         />
       </div>
 
@@ -87,7 +87,7 @@ export default function SearchPage() {
                       hapticTap();
                       setQuery(tag);
                     }}
-                    className="rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-[#5E7A33] dark:text-stone-300 transition-colors hover:border-[#C0DC8C]"
+                    className="rounded-full border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-800 px-3.5 py-1.5 text-xs font-medium text-[#5E7A33] dark:text-stone-300 transition-colors hover:border-[#C0DC8C]"
                   >
                     {tag}
                   </button>
@@ -112,7 +112,7 @@ export default function SearchPage() {
               <li key={item.id}>
                 <Link
                   href={`/extract?recent=${item.id}`}
-                  className="flex items-center gap-3 rounded-2xl border border-transparent bg-white dark:bg-stone-900 dark:border-stone-800 px-4 py-3 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]"
+                  className="flex items-center gap-3 rounded-2xl border border-transparent bg-white dark:bg-stone-800 dark:border-stone-700 px-4 py-3 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]"
                 >
                   <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#30362B] dark:text-stone-200">
                     {item.recipe.title}
@@ -134,7 +134,7 @@ export default function SearchPage() {
               <li key={item.id}>
                 <Link
                   href={`/recipes/${item.id}`}
-                  className="flex items-center gap-3 rounded-2xl border border-transparent bg-white dark:bg-stone-900 dark:border-stone-800 px-4 py-3 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]"
+                  className="flex items-center gap-3 rounded-2xl border border-transparent bg-white dark:bg-stone-800 dark:border-stone-700 px-4 py-3 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]"
                 >
                   <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#30362B] dark:text-stone-200">
                     {item.title}

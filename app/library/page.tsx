@@ -37,13 +37,13 @@ export default function LibraryPage() {
     : recent;
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-10 pb-28 bg-[#FAFAF7] dark:bg-stone-950">
+    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-10 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="flex w-full max-w-2xl flex-col gap-1">
         <h1 className="text-2xl font-semibold text-[#232920] dark:text-stone-50">{t.libraryTitle}</h1>
       </div>
 
       {SUPABASE_CONFIGURED && (
-        <div className="grid w-full max-w-2xl grid-cols-2 gap-1 rounded-full bg-[#F1F4EA] dark:bg-stone-800 p-1">
+        <div className="grid w-full max-w-2xl grid-cols-2 gap-1 rounded-full bg-[#F1F4EA] dark:bg-stone-700 p-1">
           <button
             type="button"
             onClick={() => {
@@ -52,7 +52,7 @@ export default function LibraryPage() {
             }}
             className={`rounded-full py-2.5 text-sm font-semibold transition-colors ${
               libTab === "recent"
-                ? "bg-white dark:bg-stone-900 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
+                ? "bg-white dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
                 : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"
             }`}
           >
@@ -66,7 +66,7 @@ export default function LibraryPage() {
             }}
             className={`rounded-full py-2.5 text-sm font-semibold transition-colors ${
               libTab === "saved"
-                ? "bg-white dark:bg-stone-900 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
+                ? "bg-white dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
                 : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"
             }`}
           >
@@ -83,19 +83,19 @@ export default function LibraryPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t.recentSearch}
-              className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-2.5 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
+              className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-2.5 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
             />
           )}
 
           {recent.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-800 bg-white/60 dark:bg-stone-900/40 px-5 py-14 text-center text-sm text-[#9AA093]">
+            <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 bg-white/60 dark:bg-stone-800/40 px-5 py-14 text-center text-sm text-[#9AA093]">
               {t.libraryEmptyRecent}
             </p>
           ) : (
             <ul className="flex flex-col gap-2">
               {filtered.map((item) => (
                 <li key={item.id}>
-                  <div className="flex items-center gap-3 rounded-2xl border border-transparent bg-white dark:bg-stone-900 dark:border-stone-800 px-4 py-3 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]">
+                  <div className="flex items-center gap-3 rounded-2xl border border-transparent bg-white dark:bg-stone-800 dark:border-stone-700 px-4 py-3 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]">
                     <Link
                       href={`/extract?recent=${item.id}`}
                       className="flex min-w-0 flex-1 flex-col items-start gap-0.5"
@@ -214,7 +214,7 @@ function SavedRecipesSection({ t }: { t: Translation }) {
 
   if (plan === "signed-out") {
     return (
-      <div className="flex w-full max-w-2xl flex-col items-center gap-3 rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 bg-white/60 dark:bg-stone-900/40 px-8 py-14 text-center">
+      <div className="flex w-full max-w-2xl flex-col items-center gap-3 rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-600 bg-white/60 dark:bg-stone-800/40 px-8 py-14 text-center">
         <p className="text-sm text-[#5D6551] dark:text-stone-400 max-w-xs">{t.auth.signInPrompt}</p>
         <Link
           href="/profile"
@@ -229,7 +229,7 @@ function SavedRecipesSection({ t }: { t: Translation }) {
   if (plan === "free") {
     return (
       <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-amber-200 dark:border-amber-900 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/20 px-8 py-10 flex flex-col items-center text-center gap-4">
-        <span className="flex h-14 w-14 items-center justify-center rounded-full border border-amber-300 dark:border-amber-700 bg-white dark:bg-stone-900 text-amber-600 dark:text-amber-400 shadow-sm">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full border border-amber-300 dark:border-amber-700 bg-white dark:bg-stone-800 text-amber-600 dark:text-amber-400 shadow-sm">
           <BookmarkIcon size={24} />
         </span>
         <div className="flex flex-col gap-1">
@@ -266,8 +266,8 @@ function SavedRecipesSection({ t }: { t: Translation }) {
       )}
 
       {recipes !== null && recipes.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 bg-white/60 dark:bg-stone-900/40 px-8 py-14 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F2F7E8] dark:bg-stone-800 text-[#9AA093]">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-600 bg-white/60 dark:bg-stone-800/40 px-8 py-14 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F2F7E8] dark:bg-stone-700 text-[#9AA093]">
             <BookmarkIcon size={20} />
           </span>
           <p className="text-sm text-[#5D6551] dark:text-stone-400 max-w-xs">{t.noSavedRecipes}</p>
@@ -287,7 +287,7 @@ function SavedRecipesSection({ t }: { t: Translation }) {
             .map((r) => (
               <li
                 key={r.id}
-                className={`group flex flex-col gap-3 rounded-2xl border border-[#E2E6D9] dark:border-stone-800 bg-white dark:bg-stone-900 p-5 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)] ${
+                className={`group flex flex-col gap-3 rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 p-5 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)] ${
                   openId === r.id ? "sm:col-span-2" : ""
                 }`}
               >
@@ -309,7 +309,7 @@ function SavedRecipesSection({ t }: { t: Translation }) {
 
                 <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#9AA093]">
                   {r.recipe.servings && (
-                    <span className="rounded-full border border-[#E2E6D9] dark:border-stone-700 px-2 py-0.5">
+                    <span className="rounded-full border border-[#E2E6D9] dark:border-stone-600 px-2 py-0.5">
                       {r.recipe.servings}
                     </span>
                   )}
@@ -327,19 +327,19 @@ function SavedRecipesSection({ t }: { t: Translation }) {
                       if (e.key === "Enter") e.currentTarget.blur();
                       if (e.key === "Escape") setEditingCollectionId(null);
                     }}
-                    className="w-full rounded-lg border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-950 px-2.5 py-1 text-xs text-[#30362B] dark:text-stone-100 outline-none focus:border-[#61A00E]"
+                    className="w-full rounded-lg border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-2.5 py-1 text-xs text-[#30362B] dark:text-stone-100 outline-none focus:border-[#61A00E]"
                   />
                 ) : (
                   <button
                     onClick={() => setEditingCollectionId(r.id)}
-                    className="flex w-fit items-center gap-1.5 rounded-full bg-[#F2F7E8] dark:bg-stone-800 px-2.5 py-1 text-[11px] font-medium text-[#5E7A33] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
+                    className="flex w-fit items-center gap-1.5 rounded-full bg-[#F2F7E8] dark:bg-stone-700 px-2.5 py-1 text-[11px] font-medium text-[#5E7A33] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
                   >
                     <FolderIcon />
                     {r.collection || UNCATEGORIZED}
                   </button>
                 )}
 
-                <div className="mt-1 flex items-center gap-3 border-t border-[#E2E6D9] dark:border-stone-800 pt-3">
+                <div className="mt-1 flex items-center gap-3 border-t border-[#E2E6D9] dark:border-stone-700 pt-3">
                   <Link
                     href={`/recipes/${r.id}`}
                     className="flex items-center gap-1.5 text-xs font-semibold text-[#4D7C0F] dark:text-lime-500 hover:text-[#232920] dark:hover:text-stone-100"
@@ -356,7 +356,7 @@ function SavedRecipesSection({ t }: { t: Translation }) {
                 </div>
 
                 {openId === r.id && (
-                  <div className="border-t border-[#E2E6D9] dark:border-stone-800 pt-4">
+                  <div className="border-t border-[#E2E6D9] dark:border-stone-700 pt-4">
                     <RecipeCard
                       recipe={r.recipe}
                       saveable={false}
@@ -385,10 +385,10 @@ function RecipesSkeleton() {
   return (
     <div className="grid w-full max-w-2xl animate-pulse gap-4 sm:grid-cols-2" aria-hidden>
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="flex flex-col gap-3 rounded-2xl border border-[#E2E6D9] dark:border-stone-800 bg-white dark:bg-stone-900 p-5">
-          <div className="h-4 w-3/4 rounded bg-[#F1F4EA] dark:bg-stone-800" />
-          <div className="h-3 w-1/3 rounded bg-[#F1F4EA]/70 dark:bg-stone-800/70" />
-          <div className="h-6 w-24 rounded-full bg-[#F1F4EA]/70 dark:bg-stone-800/70" />
+        <div key={i} className="flex flex-col gap-3 rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 p-5">
+          <div className="h-4 w-3/4 rounded bg-[#F1F4EA] dark:bg-stone-700" />
+          <div className="h-3 w-1/3 rounded bg-[#F1F4EA]/70 dark:bg-stone-700/70" />
+          <div className="h-6 w-24 rounded-full bg-[#F1F4EA]/70 dark:bg-stone-700/70" />
         </div>
       ))}
     </div>
@@ -420,7 +420,7 @@ function CollectionFilterPills({
         className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
           activeFilter === null
             ? "bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white"
-            : "bg-[#F1F4EA] dark:bg-stone-800 text-[#6B7261] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
+            : "bg-[#F1F4EA] dark:bg-stone-700 text-[#6B7261] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
         }`}
       >
         All ({recipes.length})
@@ -432,7 +432,7 @@ function CollectionFilterPills({
           className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
             activeFilter === c
               ? "bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white"
-              : "bg-[#F1F4EA] dark:bg-stone-800 text-[#6B7261] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
+              : "bg-[#F1F4EA] dark:bg-stone-700 text-[#6B7261] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
           }`}
         >
           {c} ({counts.get(c)})

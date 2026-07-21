@@ -93,7 +93,7 @@ export function TodayMenuCard() {
   }
 
   return (
-    <section className="relative z-10 flex w-full max-w-2xl flex-col gap-4 rounded-2xl border border-[#E2E6D9] dark:border-stone-800 bg-white dark:bg-stone-900 p-5">
+    <section className="relative z-10 flex w-full max-w-2xl flex-col gap-4 rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 p-5">
       {mode !== "recipe" && (
         <div className="flex flex-col gap-0.5">
           <h2 className="text-[17px] font-semibold text-[#232920] dark:text-stone-50">{t.todayMenuTitle}</h2>
@@ -108,10 +108,10 @@ export function TodayMenuCard() {
             onChange={(e) => setText(e.target.value)}
             placeholder={t.todayMenuPlaceholder}
             rows={2}
-            className="w-full resize-none rounded-xl border-none bg-[#F1F4EA] dark:bg-stone-800 px-4 py-3 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
+            className="w-full resize-none rounded-xl border-none bg-[#F1F4EA] dark:bg-stone-700 px-4 py-3 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
           />
           {photo && (
-            <div className="flex items-center gap-2 rounded-xl bg-[#F2F7E8] dark:bg-stone-800 px-3 py-2 text-xs font-medium text-[#4D7C0F] dark:text-stone-300">
+            <div className="flex items-center gap-2 rounded-xl bg-[#F2F7E8] dark:bg-stone-700 px-3 py-2 text-xs font-medium text-[#4D7C0F] dark:text-stone-300">
               <CameraIcon />
               <span className="flex-1 truncate">{photo.name}</span>
               <button type="button" onClick={() => setPhoto(null)} className="text-[#9AA093] hover:text-[#232920] dark:hover:text-stone-200">
@@ -127,7 +127,7 @@ export function TodayMenuCard() {
                 setUploadSheetOpen(true);
               }}
               aria-label={t.todayMenuPhoto}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E2E6D9] dark:border-stone-700 text-[#5E7A33] dark:text-stone-300 transition-colors hover:bg-[#F1F4EA] dark:hover:bg-stone-800"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E2E6D9] dark:border-stone-600 text-[#5E7A33] dark:text-stone-300 transition-colors hover:bg-[#F1F4EA] dark:hover:bg-stone-700"
             >
               <CameraIcon />
             </button>
@@ -135,7 +135,7 @@ export function TodayMenuCard() {
               type="button"
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="h-11 flex-1 rounded-full bg-[#61A00E] text-[15px] font-semibold text-white transition-opacity hover:opacity-90 active:opacity-80 disabled:bg-[#F1F4EA] disabled:text-[#9AA093] dark:disabled:bg-stone-800 dark:disabled:text-stone-500"
+              className="h-11 flex-1 rounded-full bg-[#61A00E] text-[15px] font-semibold text-white transition-opacity hover:opacity-90 active:opacity-80 disabled:bg-[#F1F4EA] disabled:text-[#9AA093] dark:disabled:bg-stone-700 dark:disabled:text-stone-500"
             >
               {t.todayMenuSubmit}
             </button>
@@ -158,7 +158,7 @@ export function TodayMenuCard() {
           <button
             type="button"
             onClick={reset}
-            className="rounded-full bg-white dark:bg-stone-900 border border-red-200 dark:border-red-900 px-4 py-2 text-xs font-semibold text-red-700 dark:text-red-300"
+            className="rounded-full bg-white dark:bg-stone-800 border border-red-200 dark:border-red-900 px-4 py-2 text-xs font-semibold text-red-700 dark:text-red-300"
           >
             {t.todayMenuTryAgain}
           </button>
@@ -174,7 +174,7 @@ export function TodayMenuCard() {
                 <button
                   type="button"
                   onClick={() => pickSuggestion(s)}
-                  className="flex w-full flex-col items-start gap-1 rounded-2xl border border-[#E2E6D9] dark:border-stone-800 bg-[#FCFCF9] dark:bg-stone-950 px-4 py-3 text-left transition-colors hover:border-[#C0DC8C]"
+                  className="flex w-full flex-col items-start gap-1 rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-[#FCFCF9] dark:bg-stone-900 px-4 py-3 text-left transition-colors hover:border-[#C0DC8C]"
                 >
                   <span className="text-sm font-semibold text-[#232920] dark:text-stone-100">{s.title}</span>
                   {s.description && (

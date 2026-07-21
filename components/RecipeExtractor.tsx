@@ -238,7 +238,7 @@ export function RecipeExtractor() {
           {t.sources.map((source) => (
             <li
               key={source}
-              className="flex items-center gap-1.5 text-xs font-medium text-[#5D6551] dark:text-stone-400 bg-white dark:bg-stone-900/70 shadow-[0_2px_8px_rgba(110,150,60,0.10)] dark:shadow-none border border-transparent dark:border-stone-800 rounded-full pl-2.5 pr-3 py-1"
+              className="flex items-center gap-1.5 text-xs font-medium text-[#5D6551] dark:text-stone-400 bg-white dark:bg-stone-800/70 shadow-[0_2px_8px_rgba(110,150,60,0.10)] dark:shadow-none border border-transparent dark:border-stone-700 rounded-full pl-2.5 pr-3 py-1"
             >
               {SOURCE_ICONS[source]}
               {source}
@@ -247,7 +247,7 @@ export function RecipeExtractor() {
         </ul>
       </header>
 
-      <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-800 bg-white dark:bg-stone-900 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
+      <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-700 bg-white dark:bg-stone-800 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
         {status === "loading" ? (
           <div className="flex flex-col items-center gap-4 py-14 animate-fade-in-up">
             <div className="animate-avocado-spin">
@@ -257,7 +257,7 @@ export function RecipeExtractor() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-1 rounded-full bg-[#F1F4EA] dark:bg-stone-800 p-1">
+            <div className="grid grid-cols-3 gap-1 rounded-full bg-[#F1F4EA] dark:bg-stone-700 p-1">
               <TabButton
                 active={tab === "file"}
                 onClick={() => setTab("file")}
@@ -296,9 +296,9 @@ export function RecipeExtractor() {
                     const dropped = e.dataTransfer.files?.[0];
                     if (dropped) handleFileSelected(dropped);
                   }}
-                  className="rounded-[24px] border-2 border-dashed border-[#E2E6D9] dark:border-stone-700 bg-[#FCFCF9] dark:bg-stone-950/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-[#61A00E80] hover:bg-[#F1F4EA] dark:hover:bg-stone-800/50"
+                  className="rounded-[24px] border-2 border-dashed border-[#E2E6D9] dark:border-stone-600 bg-[#FCFCF9] dark:bg-stone-900/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-[#61A00E80] hover:bg-[#F1F4EA] dark:hover:bg-stone-700/50"
                 >
-                  <span className="flex items-center justify-center w-13 h-13 rounded-full bg-[#F2F7E8] dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-400">
+                  <span className="flex items-center justify-center w-13 h-13 rounded-full bg-[#F2F7E8] dark:bg-stone-700 text-[#4D7C0F] dark:text-stone-400">
                     <UploadIcon size={22} />
                   </span>
                   {preparingFile ? (
@@ -346,7 +346,7 @@ export function RecipeExtractor() {
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder={t.urlPlaceholder}
-                    className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
+                    className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-3 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-500 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
                   />
                 </label>
               )}
@@ -361,7 +361,7 @@ export function RecipeExtractor() {
                     onChange={(e) => setText(e.target.value)}
                     placeholder={t.textPlaceholder}
                     rows={8}
-                    className="w-full resize-y rounded-xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm leading-relaxed text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
+                    className="w-full resize-y rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-3 text-sm leading-relaxed text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-500 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
                   />
                 </label>
               )}
@@ -515,7 +515,7 @@ function TabButton({
       onClick={onClick}
       className={`flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-1 py-2.5 text-sm font-semibold transition-colors ${
         active
-          ? "bg-white dark:bg-stone-900 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
+          ? "bg-white dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
           : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"
       }`}
     >

@@ -26,7 +26,7 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-[#E2E6D9] bg-[#FAFAF7]/95 backdrop-blur dark:border-stone-800 dark:bg-stone-950/95 pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-[#E2E6D9] bg-[#FAFAF7]/95 backdrop-blur dark:border-stone-700 dark:bg-stone-900/95 pb-[env(safe-area-inset-bottom)]"
       aria-label={t.tabBarNav}
     >
       <div className="mx-auto flex max-w-2xl items-stretch justify-around">
@@ -45,7 +45,7 @@ export function BottomTabBar() {
             >
               <span
                 className={`flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ease-out ${
-                  active ? "scale-100 bg-[#F2F7E8] dark:bg-stone-800" : "scale-90 bg-transparent"
+                  active ? "scale-100 bg-[#F2F7E8] dark:bg-stone-700" : "scale-90 bg-transparent"
                 }`}
               >
                 <Icon active={active} />

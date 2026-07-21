@@ -48,7 +48,7 @@ export async function configureNativeStatusBar() {
     const { StatusBar, Style } = await import("@capacitor/status-bar");
     const isDark = document.documentElement.classList.contains("dark");
     await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
-    await StatusBar.setBackgroundColor({ color: isDark ? "#0c0a09" : "#FAFAF7" });
+    await StatusBar.setBackgroundColor({ color: isDark ? "#1c1917" : "#FAFAF7" });
   } catch {
     // Plugin not available — nothing to do.
   }

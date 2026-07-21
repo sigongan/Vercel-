@@ -83,7 +83,7 @@ export default function ProfilePage() {
   const avatarLetter = profile?.name?.charAt(0) || profile?.email?.charAt(0) || "?";
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-4 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-950">
+    <main className="relative flex-1 flex flex-col items-center gap-4 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="flex w-full max-w-2xl flex-col pb-1">
         <h1 className="text-[28px] font-bold tracking-tight text-[#232920] dark:text-stone-50">
           {tRoot.profileTitle}
@@ -91,13 +91,13 @@ export default function ProfilePage() {
       </div>
 
       {SUPABASE_CONFIGURED && (
-        <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-800 dark:bg-stone-900 dark:divide-stone-800">
+        <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-700 dark:bg-stone-800 dark:divide-stone-700">
           {profile === undefined ? (
             <div className="flex items-center gap-4 px-5 py-4">
-              <div className="h-12 w-12 animate-pulse rounded-full bg-[#F1F4EA] dark:bg-stone-800" />
+              <div className="h-12 w-12 animate-pulse rounded-full bg-[#F1F4EA] dark:bg-stone-700" />
               <div className="flex flex-1 flex-col gap-2">
-                <div className="h-3.5 w-32 animate-pulse rounded bg-[#F1F4EA] dark:bg-stone-800" />
-                <div className="h-3 w-24 animate-pulse rounded bg-[#F1F4EA]/70 dark:bg-stone-800/70" />
+                <div className="h-3.5 w-32 animate-pulse rounded bg-[#F1F4EA] dark:bg-stone-700" />
+                <div className="h-3 w-24 animate-pulse rounded bg-[#F1F4EA]/70 dark:bg-stone-700/70" />
               </div>
             </div>
           ) : profile === null ? (
@@ -107,9 +107,9 @@ export default function ProfilePage() {
                 hapticTap();
                 window.dispatchEvent(new Event("avocato:open-signin"));
               }}
-              className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-800/40"
+              className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-800 text-[#9AA093]">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[#9AA093]">
                 <PersonIcon />
               </span>
               <span className="flex min-w-0 flex-1 flex-col">
@@ -143,7 +143,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={handleBuyCredits}
-                  className="w-full px-5 py-3.5 text-left text-[15px] text-[#4D7C0F] dark:text-lime-500 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-800/40"
+                  className="w-full px-5 py-3.5 text-left text-[15px] text-[#4D7C0F] dark:text-lime-500 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
                 >
                   {t.buyCredits}
                 </button>

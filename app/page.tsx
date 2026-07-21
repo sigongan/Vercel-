@@ -35,7 +35,7 @@ export default function Home() {
   const unchecked = groceryItems.filter((i) => !i.checked).length;
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-950">
+    <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
       <nav className="flex w-full max-w-2xl items-center gap-2">
         <AvocadoMark size={26} />
         <span className="font-display italic text-[19px] text-[#232920] dark:text-stone-50">{t.title}</span>
@@ -65,9 +65,9 @@ export default function Home() {
           hapticTap();
           setGroceryOpen(true);
         }}
-        className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] bg-white px-5 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:border-stone-800 dark:bg-stone-900 dark:hover:bg-stone-800/40"
+        className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] bg-white px-5 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:border-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700/40"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-400">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[#4D7C0F] dark:text-stone-400">
           <CartIcon />
         </span>
         <span className="flex-1 text-[15px] font-medium text-[#232920] dark:text-stone-100">
@@ -97,16 +97,16 @@ export default function Home() {
         </div>
 
         {recent.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-800 px-5 py-9 text-center text-sm text-[#9AA093]">
+          <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 px-5 py-9 text-center text-sm text-[#9AA093]">
             {t.homeEmptyRecent}
           </p>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-800 dark:bg-stone-900 dark:divide-stone-800">
+          <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-700 dark:bg-stone-800 dark:divide-stone-700">
             {recent.slice(0, 3).map((item) => (
               <Link
                 key={item.id}
                 href={`/extract?recent=${item.id}`}
-                className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-800/40"
+                className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
               >
                 <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-[#232920] dark:text-stone-100">
                   {item.recipe.title}

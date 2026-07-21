@@ -43,7 +43,7 @@ export function PaywallGate({ locked, children }: { locked: boolean; children: R
         {children}
       </div>
 
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white/70 dark:bg-stone-950/70 px-6 text-center">
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white/70 dark:bg-stone-900/70 px-6 text-center">
         <span className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
           <LockIcon />
         </span>
