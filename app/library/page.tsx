@@ -37,7 +37,7 @@ export default function LibraryPage() {
     : recent;
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-10 pb-28 bg-gradient-to-b from-[#FAFAF7] via-[#F4F6EE] to-[#FAFAF7] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
+    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-10 pb-28 bg-[#FAFAF7] dark:bg-stone-950">
       <div className="flex w-full max-w-2xl flex-col gap-1">
         <h1 className="text-2xl font-semibold text-[#232920] dark:text-stone-50">{t.libraryTitle}</h1>
       </div>

@@ -93,11 +93,11 @@ export function TodayMenuCard() {
   }
 
   return (
-    <section className="relative z-10 flex w-full max-w-2xl flex-col gap-4 rounded-[28px] border border-[#E2E6D9] dark:border-stone-800 bg-white dark:bg-stone-900 p-5 sm:p-6 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-none">
+    <section className="relative z-10 flex w-full max-w-2xl flex-col gap-4 rounded-2xl border border-[#E2E6D9] dark:border-stone-800 bg-white dark:bg-stone-900 p-5">
       {mode !== "recipe" && (
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold text-[#232920] dark:text-stone-50">{t.todayMenuTitle}</h2>
-          <p className="text-sm text-[#6B7261] dark:text-stone-400">{t.todayMenuSub}</p>
+        <div className="flex flex-col gap-0.5">
+          <h2 className="text-[17px] font-semibold text-[#232920] dark:text-stone-50">{t.todayMenuTitle}</h2>
+          <p className="text-[13px] text-[#9AA093]">{t.todayMenuSub}</p>
         </div>
       )}
 
@@ -108,7 +108,7 @@ export function TodayMenuCard() {
             onChange={(e) => setText(e.target.value)}
             placeholder={t.todayMenuPlaceholder}
             rows={2}
-            className="w-full resize-none rounded-xl border border-[#E2E6D9] dark:border-stone-700 bg-[#FCFCF9] dark:bg-stone-950 px-4 py-3 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
+            className="w-full resize-none rounded-xl border-none bg-[#F1F4EA] dark:bg-stone-800 px-4 py-3 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
           />
           {photo && (
             <div className="flex items-center gap-2 rounded-xl bg-[#F2F7E8] dark:bg-stone-800 px-3 py-2 text-xs font-medium text-[#4D7C0F] dark:text-stone-300">
@@ -126,16 +126,16 @@ export function TodayMenuCard() {
                 hapticTap();
                 setUploadSheetOpen(true);
               }}
-              className="flex items-center gap-1.5 rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-2.5 text-sm font-medium text-[#5E7A33] dark:text-stone-300 transition-colors hover:border-[#C0DC8C]"
+              aria-label={t.todayMenuPhoto}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E2E6D9] dark:border-stone-700 text-[#5E7A33] dark:text-stone-300 transition-colors hover:bg-[#F1F4EA] dark:hover:bg-stone-800"
             >
               <CameraIcon />
-              {t.todayMenuPhoto}
             </button>
             <button
               type="button"
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="flex-1 rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white py-2.5 text-sm font-semibold shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="h-11 flex-1 rounded-full bg-[#61A00E] text-[15px] font-semibold text-white transition-opacity hover:opacity-90 active:opacity-80 disabled:bg-[#F1F4EA] disabled:text-[#9AA093] dark:disabled:bg-stone-800 dark:disabled:text-stone-500"
             >
               {t.todayMenuSubmit}
             </button>
@@ -224,7 +224,7 @@ export function TodayMenuCard() {
 
 function CameraIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 8a2 2 0 0 1 2-2h1.5l1-1.5h7l1 1.5H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z" />
       <circle cx="12" cy="13" r="3.5" />
     </svg>

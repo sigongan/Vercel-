@@ -53,31 +53,22 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  return (
-    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-gradient-to-b from-[#FAFAF7] via-[#F4F6EE] to-[#FAFAF7] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
-      <div
-        aria-hidden
-        className="pointer-events-none fixed top-[-60px] right-[-60px] h-56 w-56 rounded-full bg-[#D9EEB2] opacity-40 blur-3xl dark:hidden"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none fixed bottom-24 left-[-60px] h-44 w-44 rounded-full bg-[#C6E596] opacity-40 blur-3xl dark:hidden"
-      />
+  const unchecked = groceryItems.filter((i) => !i.checked).length;
 
-      <nav className="relative z-10 flex w-full max-w-2xl items-center gap-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] dark:from-stone-800 dark:to-stone-800">
-          <AvocadoMark size={20} />
-        </span>
-        <span className="font-display italic text-xl text-[#232920] dark:text-stone-50">{t.title}</span>
+  return (
+    <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-950">
+      <nav className="flex w-full max-w-2xl items-center gap-2">
+        <AvocadoMark size={26} />
+        <span className="font-display italic text-[19px] text-[#232920] dark:text-stone-50">{t.title}</span>
       </nav>
 
       <AuthErrorBanner />
 
-      <div className="relative z-10 flex w-full max-w-2xl flex-col gap-1">
-        <h1 className="text-[26px] sm:text-3xl font-semibold leading-tight text-[#232920] dark:text-stone-50">
+      <div className="flex w-full max-w-2xl flex-col gap-1 pb-1">
+        <h1 className="text-[28px] font-bold leading-tight tracking-tight text-[#232920] dark:text-stone-50">
           {displayName ? t.homeHiUser(displayName) : t.homeGreeting}
         </h1>
-        <p className="text-[15px] text-[#5D6551] dark:text-stone-400">{t.homeGreetingSub}</p>
+        <p className="text-[15px] text-[#6B7261] dark:text-stone-400">{t.homeGreetingSub}</p>
       </div>
 
       <TodayMenuCard />
@@ -85,7 +76,7 @@ export default function Home() {
       <Link
         href="/extract"
         onClick={() => hapticTap()}
-        className="relative z-10 flex w-full max-w-2xl items-center justify-center gap-2.5 rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white py-4 text-[15px] font-semibold shadow-[0_8px_20px_rgba(97,160,14,0.35)] transition-opacity hover:opacity-90"
+        className="flex w-full max-w-2xl items-center justify-center gap-2 rounded-2xl bg-[#61A00E] py-4 text-[16px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90 active:opacity-80"
       >
         <PlusIcon />
         {t.homeStartExtract}
@@ -97,30 +88,31 @@ export default function Home() {
           hapticTap();
           setGroceryOpen(true);
         }}
-        className="relative z-10 flex w-full max-w-2xl items-center gap-3 rounded-2xl border border-[#E2E6D9] dark:border-stone-800 bg-white dark:bg-stone-900 px-5 py-3.5 text-left shadow-[0_4px_14px_rgba(105,150,55,0.08)] transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]"
+        className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] bg-white px-5 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:border-stone-800 dark:bg-stone-900 dark:hover:bg-stone-800/40"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F2F7E8] dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-400">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-400">
           <CartIcon />
         </span>
-        <span className="flex-1 text-sm font-medium text-[#232920] dark:text-stone-200">
+        <span className="flex-1 text-[15px] font-medium text-[#232920] dark:text-stone-100">
           {t.homeGroceryShortcut}
         </span>
-        {groceryItems.length > 0 && (
+        {unchecked > 0 && (
           <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#61A00E] px-1.5 text-xs font-semibold text-white">
-            {groceryItems.filter((i) => !i.checked).length}
+            {unchecked}
           </span>
         )}
+        <Chevron />
       </button>
 
-      <section className="relative z-10 flex w-full max-w-2xl flex-col gap-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9AA093]">
+      <section className="flex w-full max-w-2xl flex-col gap-2">
+        <div className="flex items-baseline justify-between px-1">
+          <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[#9AA093]">
             {t.homeRecentTitle}
           </h2>
           {recent.length > 0 && (
             <Link
               href="/library"
-              className="text-xs font-medium text-[#4D7C0F] dark:text-lime-500 hover:text-[#232920] dark:hover:text-stone-100"
+              className="text-[13px] font-medium text-[#4D7C0F] dark:text-lime-500 hover:opacity-80"
             >
               {t.homeSeeAll}
             </Link>
@@ -128,24 +120,24 @@ export default function Home() {
         </div>
 
         {recent.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-800 bg-white/60 dark:bg-stone-900/40 px-5 py-8 text-center text-sm text-[#9AA093]">
+          <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-800 px-5 py-9 text-center text-sm text-[#9AA093]">
             {t.homeEmptyRecent}
           </p>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-800 dark:bg-stone-900 dark:divide-stone-800">
             {recent.slice(0, 3).map((item) => (
-              <li key={item.id}>
-                <Link
-                  href={`/extract?recent=${item.id}`}
-                  className="flex items-center gap-3 rounded-2xl border border-transparent bg-white dark:bg-stone-900 px-4 py-3 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none dark:border-stone-800 transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]"
-                >
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#30362B] dark:text-stone-200">
-                    {item.recipe.title}
-                  </span>
-                </Link>
-              </li>
+              <Link
+                key={item.id}
+                href={`/extract?recent=${item.id}`}
+                className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-800/40"
+              >
+                <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-[#232920] dark:text-stone-100">
+                  {item.recipe.title}
+                </span>
+                <Chevron />
+              </Link>
             ))}
-          </ul>
+          </div>
         )}
       </section>
 
@@ -153,6 +145,14 @@ export default function Home() {
         <GroceryListSheet open={groceryOpen} onClose={() => setGroceryOpen(false)} t={t} />
       )}
     </main>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-[#CDD4C2] dark:text-stone-600">
+      <path d="m9 5 7 7-7 7" />
+    </svg>
   );
 }
 

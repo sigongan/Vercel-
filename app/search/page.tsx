@@ -55,7 +55,7 @@ export default function SearchPage() {
   }, [recent, saved]);
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-gradient-to-b from-[#FAFAF7] via-[#F4F6EE] to-[#FAFAF7] dark:bg-stone-950 dark:from-transparent dark:via-transparent dark:to-transparent">
+    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-950">
       <div className="relative w-full max-w-2xl">
         <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
           <SearchGlyph />
