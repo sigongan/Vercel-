@@ -12,6 +12,8 @@ import { hapticTap, hapticSuccess, shareText, printRecipe } from "@/lib/nativeAp
 import { GroceryListSheet } from "./GroceryList";
 import { addRecipeToGroceryList } from "@/lib/groceryList";
 import { useRecipeNote } from "@/lib/recipeNotes";
+import { useIsWantToCook, toggleWantToCook } from "@/lib/wantToCook";
+import { CalendarDateSheet } from "./CalendarDateSheet";
 import {
   hasConvertibleAmounts,
   toMetricRecipe,
@@ -73,6 +75,8 @@ export function RecipeCard({
   const [cookModeOpen, setCookModeOpen] = useState(false);
   const [groceryOpen, setGroceryOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const wanted = useIsWantToCook(recipe.title);
 
   // Remember the g/ml preference across recipes and sessions — someone who
   // cooks metric always cooks metric. useSyncExternalStore over an effect:
@@ -253,6 +257,16 @@ export function RecipeCard({
           onStepScale={stepScale}
           saveable={saveable && SUPABASE_CONFIGURED}
           recipe={recipe}
+          wanted={wanted}
+          onToggleWantToCook={() => {
+            hapticTap();
+            toggleWantToCook(recipe);
+          }}
+          onOpenCalendar={() => {
+            hapticTap();
+            setCalendarOpen(true);
+            setMoreOpen(false);
+          }}
           onEdit={() => {
             hapticTap();
             setEditing(true);
@@ -275,6 +289,9 @@ export function RecipeCard({
           }}
         />
       )}
+      {calendarOpen && (
+        <CalendarDateSheet recipe={recipe} onClose={() => setCalendarOpen(false)} t={t} />
+      )}
     </div>
   );
 }
@@ -292,6 +309,9 @@ function RecipeActionsSheet({
   onStepScale,
   saveable,
   recipe,
+  wanted,
+  onToggleWantToCook,
+  onOpenCalendar,
   onEdit,
   groceryable,
   onAddGroceries,
@@ -312,6 +332,9 @@ function RecipeActionsSheet({
   onStepScale: (direction: 1 | -1) => void;
   saveable: boolean;
   recipe: Recipe;
+  wanted: boolean;
+  onToggleWantToCook: () => void;
+  onOpenCalendar: () => void;
   onEdit: () => void;
   groceryable: boolean;
   onAddGroceries: () => void;
@@ -388,6 +411,13 @@ function RecipeActionsSheet({
         )}
 
         <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-700 dark:bg-stone-800 dark:divide-stone-700">
+          <MenuRow
+            icon={<HeartIcon filled={wanted} />}
+            label={t.wantToCook}
+            onClick={onToggleWantToCook}
+            trailing={wanted ? t.wantToCookAdded : undefined}
+          />
+          <MenuRow icon={<CalendarIcon />} label={t.calendarAdd} onClick={onOpenCalendar} />
           {saveable && (
             <div className="px-4 py-2.5">
               <SaveButton recipe={recipe} t={t} />
@@ -777,6 +807,43 @@ function ShareIcon() {
       <path d="M12 3v13" />
       <polyline points="7 8 12 3 17 8" />
       <path d="M20 13v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6" />
+    </svg>
+  );
+}
+
+function HeartIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   );
 }

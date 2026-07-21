@@ -6,6 +6,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation } from "@/lib/i18n";
 import { RecipeCard } from "@/components/RecipeCard";
 import { useRecentRecipes, removeRecentRecipe } from "@/lib/recentRecipes";
+import { useWantToCook, removeWantToCook, type WantToCookItem } from "@/lib/wantToCook";
+import { CalendarDateSheet } from "@/components/CalendarDateSheet";
 import { hapticTap } from "@/lib/nativeApp";
 import type { Recipe } from "@/lib/types/recipe";
 
@@ -23,7 +25,7 @@ interface SavedRecipe {
 
 const UNCATEGORIZED = "Uncategorized";
 type Plan = "loading" | "signed-out" | "free" | "pro" | "error";
-type LibraryTab = "recent" | "saved";
+type LibraryTab = "recent" | "wantToCook" | "saved";
 
 export default function LibraryPage() {
   const { language } = useLanguage();
@@ -42,22 +44,40 @@ export default function LibraryPage() {
         <h1 className="text-2xl font-semibold text-[#232920] dark:text-stone-50">{t.libraryTitle}</h1>
       </div>
 
-      {SUPABASE_CONFIGURED && (
-        <div className="grid w-full max-w-2xl grid-cols-2 gap-1 rounded-full bg-[#F1F4EA] dark:bg-stone-700 p-1">
-          <button
-            type="button"
-            onClick={() => {
-              hapticTap();
-              setLibTab("recent");
-            }}
-            className={`rounded-full py-2.5 text-sm font-semibold transition-colors ${
-              libTab === "recent"
-                ? "bg-white dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
-                : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"
-            }`}
-          >
-            {t.libraryRecentTab}
-          </button>
+      <div
+        className={`grid w-full max-w-2xl gap-1 rounded-full bg-[#F1F4EA] dark:bg-stone-700 p-1 ${
+          SUPABASE_CONFIGURED ? "grid-cols-3" : "grid-cols-2"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            hapticTap();
+            setLibTab("recent");
+          }}
+          className={`rounded-full py-2.5 text-sm font-semibold transition-colors ${
+            libTab === "recent"
+              ? "bg-white dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
+              : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"
+          }`}
+        >
+          {t.libraryRecentTab}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            hapticTap();
+            setLibTab("wantToCook");
+          }}
+          className={`rounded-full py-2.5 text-sm font-semibold transition-colors ${
+            libTab === "wantToCook"
+              ? "bg-white dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
+              : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"
+          }`}
+        >
+          {t.libraryWantToCookTab}
+        </button>
+        {SUPABASE_CONFIGURED && (
           <button
             type="button"
             onClick={() => {
@@ -72,8 +92,8 @@ export default function LibraryPage() {
           >
             {t.librarySavedTab}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {libTab === "recent" && (
         <div className="flex w-full max-w-2xl flex-col gap-3">
@@ -121,8 +141,88 @@ export default function LibraryPage() {
         </div>
       )}
 
+      {libTab === "wantToCook" && <WantToCookSection t={t} />}
+
       {libTab === "saved" && SUPABASE_CONFIGURED && <SavedRecipesSection t={t} />}
     </main>
+  );
+}
+
+function WantToCookSection({ t }: { t: Translation }) {
+  const items = useWantToCook();
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [calendarFor, setCalendarFor] = useState<WantToCookItem | null>(null);
+
+  if (items.length === 0) {
+    return (
+      <p className="w-full max-w-2xl rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 bg-white/60 dark:bg-stone-800/40 px-5 py-14 text-center text-sm text-[#9AA093]">
+        {t.libraryEmptyWantToCook}
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex w-full max-w-2xl flex-col gap-2">
+      <ul className="flex flex-col gap-2">
+        {items.map((item) => (
+          <li
+            key={item.id}
+            className="overflow-hidden rounded-2xl border border-transparent bg-white dark:bg-stone-800 dark:border-stone-700 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none"
+          >
+            <div className="flex items-center gap-3 px-4 py-3">
+              <button
+                type="button"
+                onClick={() => setOpenId(openId === item.id ? null : item.id)}
+                className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left"
+              >
+                <span className="w-full truncate text-sm font-medium text-[#30362B] dark:text-stone-200">
+                  {item.recipe.title}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  hapticTap();
+                  setCalendarFor(item);
+                }}
+                aria-label={t.calendarAdd}
+                className="shrink-0 text-[#9AA093] transition-colors hover:text-[#4D7C0F] dark:hover:text-lime-500"
+              >
+                <CalendarIcon />
+              </button>
+              <button
+                type="button"
+                aria-label={t.recentRemove}
+                onClick={() => removeWantToCook(item.id)}
+                className="shrink-0 text-[#9AA093] transition-colors hover:text-[#232920] dark:hover:text-stone-200"
+              >
+                ✕
+              </button>
+            </div>
+            {openId === item.id && (
+              <div className="border-t border-[#E2E6D9] dark:border-stone-700 px-4 pb-4 pt-4">
+                <RecipeCard recipe={item.recipe} />
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {calendarFor && (
+        <CalendarDateSheet recipe={calendarFor.recipe} onClose={() => setCalendarFor(null)} t={t} />
+      )}
+    </div>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
   );
 }
 
