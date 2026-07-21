@@ -3,8 +3,12 @@ import type { Language } from "@/lib/i18n";
 import { ExtractedContent, ExtractionError } from "./types";
 
 const NO_INFO_WARNING: Record<Language, string> = {
-  ko: "이 영상은 자막과 설명란 정보가 부족해 제목만으로 레시피를 추정합니다. 정확도가 낮을 수 있습니다.",
   en: "This video has little caption or description info, so the recipe is inferred from the title alone. Accuracy may be low.",
+  de: "Dieses Video hat wenig Informationen in Untertiteln oder Beschreibung, daher wird das Rezept nur anhand des Titels geschätzt. Die Genauigkeit kann gering sein.",
+  it: "Questo video ha poche informazioni nei sottotitoli o nella descrizione, quindi la ricetta viene dedotta solo dal titolo. L'accuratezza potrebbe essere bassa.",
+  es: "Este vídeo tiene poca información en subtítulos o descripción, por lo que la receta se infiere solo del título. La precisión puede ser baja.",
+  fr: "Cette vidéo contient peu d'informations dans les sous-titres ou la description, donc la recette est déduite uniquement du titre. La précision peut être faible.",
+  pt: "Este vídeo tem poucas informações em legendas ou descrição, então a receita é inferida apenas pelo título. A precisão pode ser baixa.",
 };
 
 function extractVideoId(url: string): string | null {

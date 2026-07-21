@@ -4,8 +4,12 @@ import { ExtractedContent, ExtractionError } from "./types";
 const SUPPORTED_MEDIA_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
 
 const WARNING: Record<Language, string> = {
-  ko: "동영상 프레임 분석은 아직 지원되지 않습니다. 현재는 파일명 정보만 사용됩니다. 더 정확한 결과를 원하면 레시피가 보이는 장면의 스크린샷을 대신 업로드해 주세요.",
   en: "Video frame analysis isn't supported yet — only the file name is used for now. For better results, upload a screenshot of the recipe instead.",
+  de: "Die Analyse von Videobildern wird noch nicht unterstützt — vorerst wird nur der Dateiname verwendet. Lade stattdessen für bessere Ergebnisse einen Screenshot des Rezepts hoch.",
+  it: "L'analisi dei fotogrammi video non è ancora supportata — per ora viene usato solo il nome del file. Per risultati migliori, carica invece uno screenshot della ricetta.",
+  es: "El análisis de fotogramas de vídeo aún no es compatible — por ahora solo se usa el nombre del archivo. Para mejores resultados, sube en su lugar una captura de pantalla de la receta.",
+  fr: "L'analyse des images vidéo n'est pas encore prise en charge — seul le nom du fichier est utilisé pour l'instant. Pour de meilleurs résultats, importez plutôt une capture d'écran de la recette.",
+  pt: "A análise de quadros de vídeo ainda não é compatível — por enquanto, apenas o nome do arquivo é usado. Para melhores resultados, envie uma captura de tela da receita.",
 };
 
 /**

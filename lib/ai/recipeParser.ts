@@ -96,8 +96,12 @@ Output a JSON array of exactly 3 objects, each matching this schema:
 Output only the JSON array, with no other explanatory text.`;
 
 const OUTPUT_LANGUAGE_INSTRUCTION: Record<Language, string> = {
-  ko: "모든 출력 값(title, description, ingredients, steps, tags, notes)은 한국어로 작성하세요. 원본이 다른 언어라면 한국어로 번역하세요.",
   en: "Write every output value (title, description, ingredients, steps, tags, notes) in English. Translate the source content if it is in another language.",
+  de: "Schreibe jeden Ausgabewert (title, description, ingredients, steps, tags, notes) auf Deutsch. Übersetze den Quellinhalt, falls er in einer anderen Sprache vorliegt.",
+  it: "Scrivi ogni valore di output (title, description, ingredients, steps, tags, notes) in italiano. Traduci il contenuto originale se è in un'altra lingua.",
+  es: "Escribe cada valor de salida (title, description, ingredients, steps, tags, notes) en español. Traduce el contenido de origen si está en otro idioma.",
+  fr: "Rédige chaque valeur de sortie (title, description, ingredients, steps, tags, notes) en français. Traduis le contenu source s'il est dans une autre langue.",
+  pt: "Escreva cada valor de saída (title, description, ingredients, steps, tags, notes) em português. Traduza o conteúdo de origem se estiver em outro idioma.",
 };
 
 function isConfigured(): boolean {

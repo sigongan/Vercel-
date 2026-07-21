@@ -37,13 +37,19 @@ export function BottomTabBar() {
               key={href}
               href={href}
               onClick={() => hapticTap()}
-              className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+              className={`flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium transition-colors duration-300 ${
                 active
                   ? "text-[#61A00E] dark:text-lime-500"
                   : "text-[#9AA093] hover:text-[#5D6551] dark:hover:text-stone-400"
               }`}
             >
-              <Icon active={active} />
+              <span
+                className={`flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ease-out ${
+                  active ? "scale-100 bg-[#F2F7E8] dark:bg-stone-800" : "scale-90 bg-transparent"
+                }`}
+              >
+                <Icon active={active} />
+              </span>
               {t[labelKey]}
             </Link>
           );

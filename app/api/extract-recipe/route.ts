@@ -26,8 +26,10 @@ type Input =
   | { kind: "text"; text: string; lang: Language }
   | { kind: "pantry"; text: string; lang: Language };
 
+const VALID_LANGUAGES: readonly Language[] = ["en", "de", "it", "es", "fr", "pt"];
+
 function asLanguage(value: unknown): Language {
-  return value === "ko" ? "ko" : "en";
+  return VALID_LANGUAGES.includes(value as Language) ? (value as Language) : "en";
 }
 
 export async function POST(req: NextRequest) {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTheme } from "@/hooks/useTheme";
-import { translations } from "@/lib/i18n";
+import { translations, LANGUAGE_NAMES } from "@/lib/i18n";
 import { hapticTap } from "@/lib/nativeApp";
 
 const CLEAR_KEYS = ["avocato:recent-recipes", "avocato:grocery-list", "avocato:recipe-notes"];
@@ -15,7 +15,7 @@ const CLEAR_KEYS = ["avocato:recent-recipes", "avocato:grocery-list", "avocato:r
  * — embedded directly on the Profile page below the account card.
  */
 export function SettingsFields() {
-  const { language, setLanguage } = useLanguage();
+  const { language } = useLanguage();
   const { theme, setTheme } = useTheme();
   const t = translations[language].settings;
   const [confirmClear, setConfirmClear] = useState(false);
@@ -46,16 +46,17 @@ export function SettingsFields() {
   return (
     <>
       <Group>
-        <Row label={t.language}>
-          <div className="flex rounded-full bg-[#F1F4EA] dark:bg-stone-800 p-0.5">
-            <SegmentButton active={language === "en"} onClick={() => { hapticTap(); setLanguage("en"); }}>
-              English
-            </SegmentButton>
-            <SegmentButton active={language === "ko"} onClick={() => { hapticTap(); setLanguage("ko"); }}>
-              한국어
-            </SegmentButton>
-          </div>
-        </Row>
+        <Link
+          href="/language"
+          onClick={() => hapticTap()}
+          className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-800/40"
+        >
+          <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.language}</span>
+          <span className="flex items-center gap-1.5 text-[15px] text-[#9AA093]">
+            {LANGUAGE_NAMES[language]}
+            <Chevron />
+          </span>
+        </Link>
         <Row label={t.theme}>
           <div className="flex items-center gap-3">
             <ThemeDot
@@ -128,30 +129,6 @@ function LinkRow({ href, label }: { href: string; label: string }) {
       <span className="text-[15px] text-[#232920] dark:text-stone-100">{label}</span>
       <Chevron />
     </Link>
-  );
-}
-
-function SegmentButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
-        active
-          ? "bg-white text-[#232920] shadow-sm dark:bg-stone-600 dark:text-stone-50"
-          : "text-[#6B7261] dark:text-stone-400"
-      }`}
-    >
-      {children}
-    </button>
   );
 }
 

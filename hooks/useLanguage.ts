@@ -5,6 +5,7 @@ import type { Language } from "@/lib/i18n";
 
 const STORAGE_KEY = "language";
 const CHANGE_EVENT = "app:language-change";
+const VALID_LANGUAGES: readonly Language[] = ["en", "de", "it", "es", "fr", "pt"];
 
 function subscribe(callback: () => void) {
   window.addEventListener("storage", callback);
@@ -17,7 +18,8 @@ function subscribe(callback: () => void) {
 
 function getSnapshot(): Language {
   try {
-    return localStorage.getItem(STORAGE_KEY) === "ko" ? "ko" : "en";
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return VALID_LANGUAGES.includes(stored as Language) ? (stored as Language) : "en";
   } catch {
     return "en";
   }
