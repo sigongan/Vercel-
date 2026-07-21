@@ -9,7 +9,7 @@ import {
 } from "@/lib/ai/recipeParser";
 import type { Language } from "@/lib/i18n";
 import type { Recipe } from "@/lib/types/recipe";
-import { consumeTextIpQuota, getClientIp } from "@/lib/anonIpQuota";
+import { consumeTextIpQuota, consumePhotoIpQuota, getClientIp } from "@/lib/anonIpQuota";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const runtime = "nodejs";
@@ -60,7 +60,25 @@ export async function POST(req: NextRequest) {
       if (!(file instanceof File) || file.size === 0) {
         return fail("No photo was uploaded.", "INVALID_INPUT", 400);
       }
-      // Photos have no daily cap — same as file-upload recipe extraction.
+
+      if (isSupabaseConfigured()) {
+        const ip = getClientIp(req);
+        if (ip) {
+          try {
+            const cap = await consumePhotoIpQuota(ip);
+            if (!cap.allowed) {
+              return fail(
+                "오늘 사진으로 받을 수 있는 추천 횟수를 모두 사용했어요. 악용 방지를 위해 하루 한도가 있어요 — 내일 다시 이용하거나, 재료를 텍스트로 입력해 주세요.",
+                "RATE_LIMITED",
+                429,
+              );
+            }
+          } catch (capErr) {
+            console.error("photo IP cap check failed; allowing through", capErr);
+          }
+        }
+      }
+
       const content = await extractFromImage(file);
       const recipes = await parsePantrySuggestions(content, lang, preferences, count);
       return NextResponse.json({ ok: true, recipes } satisfies PantrySuggestionsResult);

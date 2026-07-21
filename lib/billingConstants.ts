@@ -13,5 +13,13 @@ export const ANON_COOKIE_NAME = "rx_anon";
  */
 export const TEXT_DAILY_IP_LIMIT = 30;
 
+/**
+ * "What should I eat today?" photo suggestions are unmetered (no sign-in,
+ * no monthly cap) same as text — this per-IP daily cap is the same kind of
+ * abuse/cost backstop as TEXT_DAILY_IP_LIMIT, just lower since a vision
+ * call costs more per request than a text one.
+ */
+export const PHOTO_DAILY_IP_LIMIT = 20;
+
 /** "My Recipes" — save/organize extracted recipes. */
 export const SUBSCRIPTION_PRICE_USD = 4;
