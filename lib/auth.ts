@@ -17,24 +17,27 @@ export type OAuthProvider = "google" | "apple";
  * So here we ask Supabase for the provider URL without auto-redirecting
  * (skipBrowserRedirect), open it in the system browser via @capacitor/browser
  * (a real Safari view, which Google/Apple accept), and point Supabase's
- * redirect at our own https:// Universal Link instead of the custom scheme
- * OAuth providers don't allow — when the provider redirects back to it,
- * iOS hands control back to the app (see registerNativeShareListener /
- * otherPathFrom in lib/nativeApp.ts), which finishes the same way a magic
- * link does at app/auth/callback/route.ts.
+ * final redirect at the app's own avocato:// custom scheme rather than an
+ * https:// Universal Link — Universal Links depend on Apple re-validating
+ * apple-app-site-association against the app's Associated Domains
+ * entitlement, which in practice was slow/unreliable to pick up. A
+ * registered URL scheme hands off to the app immediately with no such
+ * validation. When the browser lands on it, iOS hands control back to the
+ * app (see registerNativeShareListener / otherPathFrom in lib/nativeApp.ts),
+ * which finishes the same way a magic link does at app/auth/callback/route.ts.
  */
 export async function signInWithProvider(provider: OAuthProvider): Promise<{ error: string | null }> {
   const supabase = createSupabaseBrowserClient();
-  const redirectTo = `${window.location.origin}/auth/callback`;
 
   if (!isNativeApp()) {
+    const redirectTo = `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
     return { error: error?.message ?? null };
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
-    options: { redirectTo, skipBrowserRedirect: true },
+    options: { redirectTo: "avocato://auth-callback", skipBrowserRedirect: true },
   });
   if (error || !data?.url) {
     return { error: error?.message ?? "Could not start sign-in." };

@@ -72,16 +72,18 @@ export function onSharedUrl(callback: (url: string) => void): () => void {
 }
 
 /**
- * Handles every Universal Link (https://<domain>/...) that can open the app:
- * both the share extension's https://<domain>/?url=<link> and, more
- * generally, an OAuth provider (Google/Apple) redirecting back to
- * https://<domain>/auth/callback?code=... after signInWithGoogle/Apple opens
- * a system browser (see signInWithProvider in lib/auth.ts) — Safari can't
- * hand control back to an embedded WKWebView any other way. Covers both the
- * warm case (app already running → appUrlOpen event) and the cold case (app
- * launched by the URL → getLaunchUrl). Scheme-agnostic parsing, so this also
- * still handles the old avocato:// custom scheme if anything ever opens that
- * instead.
+ * Handles every link that can open the app: the share extension's
+ * https://<domain>/?url=<link>, and an OAuth provider (Google/Apple)
+ * finishing sign-in and Supabase redirecting the in-app browser back to
+ * avocato://auth-callback?code=... (see signInWithProvider in lib/auth.ts) —
+ * the browser can't hand control back to an embedded WKWebView any other
+ * way. The OAuth leg deliberately uses the avocato:// custom scheme rather
+ * than a Universal Link: custom-scheme handoff is handled entirely by iOS
+ * from the URL Type registered in Info.plist, with no Apple-side domain
+ * validation (apple-app-site-association) to go stale or mis-cache the way
+ * Universal Links did here. Covers both the warm case (app already running
+ * → appUrlOpen event) and the cold case (app launched by the URL →
+ * getLaunchUrl).
  */
 export async function registerNativeShareListener() {
   if (!isNativeApp()) return;
@@ -97,14 +99,22 @@ export async function registerNativeShareListener() {
       }
     }
 
-    // Any other in-app path a Universal Link can point at (currently just
-    // /auth/callback) — the share link above is the one special case that
-    // skips a reload for speed; everything else navigates for real.
+    // Any other in-app path a Universal Link or the avocato:// scheme can
+    // point at (currently just /auth/callback) — the share link above is
+    // the one special case that skips a reload for speed; everything else
+    // navigates for real.
     function otherPathFrom(openedUrl: string | undefined): string | null {
       if (!openedUrl) return null;
       try {
         const u = new URL(openedUrl);
         if (u.pathname === "/" && u.searchParams.has("url")) return null;
+        // avocato://auth-callback?code=... has no real path to read (the
+        // host is "auth-callback", pathname is empty) — route it at the
+        // same /auth/callback the magic-link and web OAuth flows use.
+        if (u.protocol === "avocato:" && u.searchParams.has("code")) {
+          return `/auth/callback${u.search}`;
+        }
+        if (u.protocol !== "https:" && u.protocol !== "http:") return null;
         return u.pathname === "/" ? null : `${u.pathname}${u.search}`;
       } catch {
         return null;
