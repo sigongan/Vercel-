@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useLanguage } from "@/hooks/useLanguage";
-import { translations } from "@/lib/i18n";
+import { translations, type Translation } from "@/lib/i18n";
 import { AvocadoMark } from "@/lib/avocadoMark";
 import { RecipeCard } from "./RecipeCard";
 import { UploadSourceSheet } from "./UploadSourceSheet";
@@ -38,6 +39,8 @@ export function TodayMenuCard() {
   const [error, setError] = useState<string | null>(null);
   const [cuisineIndex, setCuisineIndex] = useState(0);
   const [methodIndex, setMethodIndex] = useState(0);
+  const [count, setCount] = useState(3);
+  const [optionsOpen, setOptionsOpen] = useState(false);
 
   const canSubmit = Boolean(photo) || text.trim().length > 0;
 
@@ -60,6 +63,7 @@ export function TodayMenuCard() {
         const formData = new FormData();
         formData.append("image", photo);
         formData.append("lang", language);
+        formData.append("count", String(count));
         if (cuisine) formData.append("cuisine", cuisine);
         if (method) formData.append("method", method);
         res = await fetch("/api/pantry-suggestions", { method: "POST", body: formData });
@@ -67,7 +71,7 @@ export function TodayMenuCard() {
         res = await fetch("/api/pantry-suggestions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: text.trim(), lang: language, cuisine, method }),
+          body: JSON.stringify({ text: text.trim(), lang: language, cuisine, method, count }),
         });
       }
       const data: PantrySuggestionsResult = await res.json();
@@ -131,8 +135,6 @@ export function TodayMenuCard() {
               </button>
             </div>
           )}
-          <PreferenceChips label={t.todayMenuCuisineLabel} options={t.todayMenuCuisines} selected={cuisineIndex} onSelect={setCuisineIndex} />
-          <PreferenceChips label={t.todayMenuMethodLabel} options={t.todayMenuMethods} selected={methodIndex} onSelect={setMethodIndex} />
           <div className="flex gap-2">
             <button
               type="button"
@@ -147,11 +149,22 @@ export function TodayMenuCard() {
             </button>
             <button
               type="button"
+              onClick={() => {
+                hapticTap();
+                setOptionsOpen(true);
+              }}
+              aria-label={t.todayMenuOptions}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E2E6D9] dark:border-stone-600 text-[#5E7A33] dark:text-stone-300 transition-colors hover:bg-[#F1F4EA] dark:hover:bg-stone-700"
+            >
+              <OptionsIcon />
+            </button>
+            <button
+              type="button"
               onClick={handleSubmit}
               disabled={!canSubmit}
               className="h-11 flex-1 rounded-full bg-[#61A00E] text-[15px] font-semibold text-white transition-opacity hover:opacity-90 active:opacity-80 disabled:bg-[#F1F4EA] disabled:text-[#9AA093] dark:disabled:bg-stone-700 dark:disabled:text-stone-500"
             >
-              {t.todayMenuSubmit}
+              {t.todayMenuSubmit(count)}
             </button>
           </div>
         </div>
@@ -232,6 +245,19 @@ export function TodayMenuCard() {
         fileAccept={PHOTO_ACCEPT_TYPES}
         t={t}
       />
+
+      {optionsOpen && (
+        <TodayMenuOptionsSheet
+          t={t}
+          count={count}
+          onSelectCount={setCount}
+          cuisineIndex={cuisineIndex}
+          onSelectCuisine={setCuisineIndex}
+          methodIndex={methodIndex}
+          onSelectMethod={setMethodIndex}
+          onClose={() => setOptionsOpen(false)}
+        />
+      )}
     </section>
   );
 }
@@ -273,6 +299,89 @@ function PreferenceChips({
         ))}
       </div>
     </div>
+  );
+}
+
+/** Everything that narrows down the idea generation (cuisine, method, how
+ *  many) lives behind one icon button instead of sitting inline on the
+ *  card, so the default view stays a textarea and two buttons. */
+function TodayMenuOptionsSheet({
+  t,
+  count,
+  onSelectCount,
+  cuisineIndex,
+  onSelectCuisine,
+  methodIndex,
+  onSelectMethod,
+  onClose,
+}: {
+  t: Translation;
+  count: number;
+  onSelectCount: (n: number) => void;
+  cuisineIndex: number;
+  onSelectCuisine: (i: number) => void;
+  methodIndex: number;
+  onSelectMethod: (i: number) => void;
+  onClose: () => void;
+}) {
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40" onClick={onClose}>
+      <div
+        className="flex w-full flex-col gap-5 rounded-t-3xl bg-[#FAFAF7] dark:bg-stone-900 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.25)] sm:mx-auto sm:w-full sm:max-w-sm sm:rounded-3xl sm:shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-[#232920] dark:text-stone-50">{t.todayMenuOptions}</h2>
+          <button
+            onClick={onClose}
+            aria-label={t.groceryClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EDF1E4] dark:bg-stone-800 text-[#5E7A33] dark:text-stone-300 transition-colors hover:opacity-80"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-[#9AA093]">{t.todayMenuHowMany}</span>
+          <div className="flex gap-1.5">
+            {[1, 2, 3].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => {
+                  hapticTap();
+                  onSelectCount(n);
+                }}
+                className={`h-10 flex-1 rounded-xl text-[15px] font-semibold transition-colors ${
+                  count === n
+                    ? "bg-[#61A00E] text-white"
+                    : "bg-[#F1F4EA] text-[#5E7A33] dark:bg-stone-800 dark:text-stone-300"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <PreferenceChips label={t.todayMenuCuisineLabel} options={t.todayMenuCuisines} selected={cuisineIndex} onSelect={onSelectCuisine} />
+        <PreferenceChips label={t.todayMenuMethodLabel} options={t.todayMenuMethods} selected={methodIndex} onSelect={onSelectMethod} />
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function OptionsIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="4" y1="18" x2="20" y2="18" />
+      <circle cx="9" cy="6" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="11" cy="18" r="1.6" fill="currentColor" stroke="none" />
+    </svg>
   );
 }
 

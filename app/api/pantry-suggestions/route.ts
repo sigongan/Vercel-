@@ -37,6 +37,11 @@ function asPreferences(cuisine: unknown, method: unknown): PantryPreferences {
   };
 }
 
+function asCount(value: unknown): number {
+  const n = typeof value === "string" ? Number(value) : typeof value === "number" ? value : 3;
+  return [1, 2, 3].includes(n) ? n : 3;
+}
+
 export async function POST(req: NextRequest) {
   function fail(error: string, code: ErrorCode, status: number) {
     const body: PantrySuggestionsResult = { ok: false, error: { error, code } };
@@ -51,18 +56,20 @@ export async function POST(req: NextRequest) {
       const file = formData.get("image");
       const lang = asLanguage(formData.get("lang"));
       const preferences = asPreferences(formData.get("cuisine"), formData.get("method"));
+      const count = asCount(formData.get("count"));
       if (!(file instanceof File) || file.size === 0) {
         return fail("No photo was uploaded.", "INVALID_INPUT", 400);
       }
       // Photos have no daily cap — same as file-upload recipe extraction.
       const content = await extractFromImage(file);
-      const recipes = await parsePantrySuggestions(content, lang, preferences);
+      const recipes = await parsePantrySuggestions(content, lang, preferences, count);
       return NextResponse.json({ ok: true, recipes } satisfies PantrySuggestionsResult);
     }
 
     const body = await req.json().catch(() => null);
     const lang = asLanguage(body?.lang);
     const preferences = asPreferences(body?.cuisine, body?.method);
+    const count = asCount(body?.count);
     const text = typeof body?.text === "string" ? body.text.trim() : "";
     if (!text) {
       return fail("List a few ingredients you have on hand.", "INVALID_INPUT", 400);
@@ -91,7 +98,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const recipes = await parsePantrySuggestions({ sourceType: "text", text }, lang, preferences);
+    const recipes = await parsePantrySuggestions({ sourceType: "text", text }, lang, preferences, count);
     return NextResponse.json({ ok: true, recipes } satisfies PantrySuggestionsResult);
   } catch (err) {
     if (err instanceof ExtractionError) {

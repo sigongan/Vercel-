@@ -73,7 +73,7 @@ export default function Home() {
       <Link
         href="/extract"
         onClick={() => hapticTap()}
-        className="flex w-full max-w-2xl items-center gap-4 rounded-[28px] bg-gradient-to-br from-[#8BC926] to-[#4D7C0F] px-5 py-4 shadow-[0_10px_28px_rgba(97,160,14,0.35)] transition-transform active:scale-[0.98]"
+        className="flex w-full max-w-2xl items-center gap-4 rounded-[28px] bg-gradient-to-br from-[#9ED13A] to-[#6FAE15] px-5 py-4 shadow-[0_10px_28px_rgba(97,160,14,0.25)] transition-transform active:scale-[0.98]"
       >
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
           <AvocadoMark size={28} />

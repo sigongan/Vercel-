@@ -62,17 +62,21 @@ Nutrition estimate:
 
 ${JSON_SCHEMA}`;
 
+const COUNT_WORDS: Record<number, string> = { 1: "ONE", 2: "TWO", 3: "THREE" };
+
 /** "What should I eat today?" — Home's photo/text pantry card. Same idea as
- *  PANTRY_PROMPT but asks for three distinct options instead of committing
- *  to one, and accepts a fridge/pantry photo instead of just a typed list. */
-const PANTRY_SUGGESTIONS_PROMPT = `You are a practical home-cooking assistant helping someone decide what to cook right now. They'll show you what they have — a photo of their fridge/pantry/counter, and/or a typed list of ingredients, which may be as short as a single item (e.g. just "chicken"). Suggest exactly THREE distinct, realistic, simple dishes they could cook tonight, each built primarily from what they have.
+ *  PANTRY_PROMPT but asks for one or more distinct options instead of
+ *  committing to a single dish, and accepts a fridge/pantry photo instead of
+ *  just a typed list. */
+function buildPantrySuggestionsPrompt(count: number): string {
+  const word = COUNT_WORDS[count] ?? COUNT_WORDS[3];
+  return `You are a practical home-cooking assistant helping someone decide what to cook right now. They'll show you what they have — a photo of their fridge/pantry/counter, and/or a typed list of ingredients, which may be as short as a single item (e.g. just "chicken"). Suggest exactly ${word} realistic, simple dish${count === 1 ? "" : "es"} they could cook tonight, ${count === 1 ? "built" : "each built"} primarily from what they have.
 
 Rules:
 - If a photo is provided, identify the ingredients yourself from what's actually visible — don't invent items that aren't shown or listed.
-- However sparse the input is — even a single ingredient with no other context — never ask a clarifying question and never reply with anything other than the JSON array below. Use your own culinary judgment to fill the gaps: pick three genuinely different, complete, realistic dishes built around whatever was given, the way an experienced cook would riff on one ingredient.
-- If the user stated a cuisine and/or cooking method preference, lean into it for all three dishes when it's a reasonable fit for the ingredients; otherwise use your best judgment and vary the styles across the three.
-- The three suggestions must be meaningfully different dishes, not three variations of the same one.
-- You may assume basic pantry staples (salt, pepper, cooking oil, water, sugar, common dried spices) and include them in each ingredient list.
+- However sparse the input is — even a single ingredient with no other context — never ask a clarifying question and never reply with anything other than the JSON array below. Use your own culinary judgment to fill the gaps: pick ${count === 1 ? "a complete, realistic dish" : "genuinely different, complete, realistic dishes"} built around whatever was given, the way an experienced cook would riff on one ingredient.
+- If the user stated a cuisine and/or cooking method preference, lean into it for all dishes when it's a reasonable fit for the ingredients; otherwise use your best judgment${count > 1 ? " and vary the styles across them" : ""}.
+${count > 1 ? "- The suggestions must be meaningfully different dishes, not variations of the same one.\n" : ""}- You may assume basic pantry staples (salt, pepper, cooking oil, water, sugar, common dried spices) and include them in each ingredient list.
 - Never require an important ingredient that wasn't shown/listed — suggest it in that dish's notes as an optional upgrade instead.
 - Every ingredient needs a concrete, cookable amount, marked estimated: true (these are your suggestions, not a source's).
 - Steps should be short, confident, and include times where relevant.
@@ -80,7 +84,7 @@ Rules:
 - confidence: "high" when the ingredients make a coherent dish, "medium" when you had to stretch.
 - In notes, add one short tip or variation for each dish.
 
-Output a JSON array of exactly 3 objects, each matching this schema:
+Output a JSON array of exactly ${count} object${count === 1 ? "" : "s"}, each matching this schema:
 {
   "title": string,
   "description": string (optional),
@@ -96,6 +100,7 @@ Output a JSON array of exactly 3 objects, each matching this schema:
 }
 
 Output only the JSON array, with no other explanatory text.`;
+}
 
 const OUTPUT_LANGUAGE_INSTRUCTION: Record<Language, string> = {
   en: "Write every output value (title, description, ingredients, steps, tags, notes) in English. Translate the source content if it is in another language.",
@@ -298,10 +303,12 @@ export async function parsePantrySuggestions(
   content: ExtractedContent,
   lang: Language,
   preferences?: PantryPreferences,
+  count: number = 3,
 ): Promise<Recipe[]> {
   if (!isConfigured()) {
     throw new AiNotConfiguredError();
   }
+  const requestedCount = [1, 2, 3].includes(count) ? count : 3;
 
   const contentBlocks = buildContentBlocks(content);
   const cuisineLabel = preferences?.cuisine && CUISINE_LABELS[preferences.cuisine];
@@ -314,7 +321,7 @@ export async function parsePantrySuggestions(
     contentBlocks.push({ type: "text", text: parts.join(" ") });
   }
 
-  const message = await callClaude(PANTRY_SUGGESTIONS_PROMPT, lang, contentBlocks);
+  const message = await callClaude(buildPantrySuggestionsPrompt(requestedCount), lang, contentBlocks);
 
   console.log(
     `[recipeParser:pantry-suggestions] model=${message.model} input=${message.usage.input_tokens} output=${message.usage.output_tokens} cache_write=${message.usage.cache_creation_input_tokens ?? 0} cache_read=${message.usage.cache_read_input_tokens ?? 0}`
@@ -343,7 +350,7 @@ export async function parsePantrySuggestions(
   const recipes = parsedArray
     .map((item) => normalizeRecipe(item as Partial<Omit<Recipe, "sourceType" | "sourceUrl">>, content))
     .filter((r): r is Recipe => r !== null)
-    .slice(0, 3);
+    .slice(0, requestedCount);
 
   if (recipes.length === 0) {
     throw new RecipeParseError(
