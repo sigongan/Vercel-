@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { SUBSCRIPTION_PRICE_USD } from "@/lib/billingConstants";
-import { isNativeApp } from "@/lib/nativeApp";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
+import { startProSubscription } from "@/lib/subscribePro";
 
 /**
  * Blurs its children and overlays a subscribe CTA when locked.
@@ -16,24 +16,19 @@ export function PaywallGate({ locked, children }: { locked: boolean; children: R
   const t = translations[language];
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const native = isNativeApp();
 
   if (!locked) return <>{children}</>;
 
   async function handleSubscribe() {
     setError(null);
     setRedirecting(true);
-    try {
-      const res = await fetch("/api/stripe/subscribe", { method: "POST" });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-        return;
-      }
-      setError(data.error || "Subscriptions aren't available yet. Please try again later.");
-    } catch {
-      setError("Subscriptions aren't available yet. Please try again later.");
+    const outcome = await startProSubscription();
+    if (outcome === "success") {
+      window.location.reload();
+      return;
     }
+    if (outcome === "pending") setError(t.subscribePending);
+    else if (outcome === "error" || outcome === "unavailable") setError(t.subscribeUnavailable);
     setRedirecting(false);
   }
 
@@ -56,19 +51,13 @@ export function PaywallGate({ locked, children }: { locked: boolean; children: R
             recipes to your library.
           </p>
         </div>
-        {native ? (
-          // Apple bars linking to external purchase flows from inside the
-          // native app (Guideline 3.1.1) — no Stripe redirect here.
-          <p className="text-xs text-stone-500 dark:text-stone-400">{t.manageOnWeb}</p>
-        ) : (
-          <button
-            onClick={handleSubscribe}
-            disabled={redirecting}
-            className="rounded-full bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
-          >
-            {redirecting ? "Redirecting…" : `Subscribe Now — $${SUBSCRIPTION_PRICE_USD}/month`}
-          </button>
-        )}
+        <button
+          onClick={handleSubscribe}
+          disabled={redirecting}
+          className="rounded-full bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
+        >
+          {redirecting ? "Redirecting…" : `Subscribe Now — $${SUBSCRIPTION_PRICE_USD}/month`}
+        </button>
         {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
     </div>

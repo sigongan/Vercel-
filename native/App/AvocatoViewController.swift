@@ -62,6 +62,7 @@ class AvocatoViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(SplashReadyPlugin())
         bridge?.registerPluginInstance(PrintPlugin())
+        bridge?.registerPluginInstance(StoreKitPlugin())
         // Registered by the Live Activities setup — uncomment after adding
         // CookActivityPlugin.swift and CookTimerAttributes.swift to the App
         // target (docs/ios-live-activities.md):

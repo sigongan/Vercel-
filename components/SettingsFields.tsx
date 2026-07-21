@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTheme } from "@/hooks/useTheme";
 import { translations, LANGUAGE_NAMES } from "@/lib/i18n";
-import { hapticTap } from "@/lib/nativeApp";
+import { hapticTap, isNativeApp, restorePurchases } from "@/lib/nativeApp";
 
 const CLEAR_KEYS = ["avocato:recent-recipes", "avocato:grocery-list", "avocato:recipe-notes"];
 
@@ -20,6 +20,22 @@ export function SettingsFields() {
   const t = translations[language].settings;
   const [confirmClear, setConfirmClear] = useState(false);
   const [cleared, setCleared] = useState(false);
+  const [restoreMsg, setRestoreMsg] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
+
+  async function handleRestore() {
+    hapticTap();
+    setRestoring(true);
+    setRestoreMsg(null);
+    const outcome = await restorePurchases();
+    if (outcome === "restored") {
+      setRestoreMsg(t.restoreRestored);
+      setTimeout(() => window.location.reload(), 800);
+    } else {
+      setRestoreMsg(t.restoreEmpty);
+    }
+    setRestoring(false);
+  }
 
   function handleClearData() {
     hapticTap();
@@ -90,6 +106,19 @@ export function SettingsFields() {
           {cleared ? t.dataClearedConfirm : confirmClear ? t.dataClearConfirm : t.dataClear}
         </button>
       </Group>
+
+      {isNativeApp() && (
+        <Group>
+          <button
+            type="button"
+            onClick={handleRestore}
+            disabled={restoring}
+            className="w-full px-5 py-3.5 text-left text-[15px] text-[#232920] transition-colors hover:bg-[#FCFCF9] disabled:opacity-60 dark:text-stone-100 dark:hover:bg-stone-700/40"
+          >
+            {restoreMsg ?? t.restorePurchases}
+          </button>
+        </Group>
+      )}
 
       <Group>
         <LinkRow href="/terms" label={t.terms} />

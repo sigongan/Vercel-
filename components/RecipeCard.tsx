@@ -13,6 +13,7 @@ import { GroceryListSheet } from "./GroceryList";
 import { addRecipeToGroceryList } from "@/lib/groceryList";
 import { useRecipeNote } from "@/lib/recipeNotes";
 import { useIsWantToCook, toggleWantToCook } from "@/lib/wantToCook";
+import { startProSubscription } from "@/lib/subscribePro";
 import { CalendarDateSheet } from "./CalendarDateSheet";
 import {
   hasConvertibleAmounts,
@@ -594,15 +595,12 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
         <button
           onClick={async () => {
             setSubscribeError(null);
-            try {
-              const res = await fetch("/api/stripe/subscribe", { method: "POST" });
-              const data = await res.json();
-              if (data.url) {
-                window.location.href = data.url;
-              } else {
-                setSubscribeError(data.error || t.subscribeUnavailable);
-              }
-            } catch {
+            const outcome = await startProSubscription();
+            if (outcome === "success") {
+              window.location.reload();
+            } else if (outcome === "pending") {
+              setSubscribeError(t.subscribePending);
+            } else if (outcome === "error" || outcome === "unavailable") {
               setSubscribeError(t.subscribeUnavailable);
             }
           }}

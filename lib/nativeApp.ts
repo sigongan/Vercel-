@@ -338,3 +338,108 @@ export async function nativeKeepAwake(enable: boolean) {
     // Plugin not available — CookMode's Web Wake Lock fallback still applies.
   }
 }
+
+/* ---------- Pro subscription via Apple IAP (native/App/StoreKitPlugin.swift) ----------
+ * Required inside the iOS app by App Store review guideline 3.1.1 — Stripe
+ * stays the checkout path on the website, this is the app-only equivalent.
+ * The plugin only ever returns a *signed* transaction; the actual "does
+ * this person have Pro" decision is made server-side in
+ * /api/apple/verify-purchase after re-verifying that signature against
+ * Apple's certificate (see lib/apple/verifyTransaction.ts) — nothing here
+ * is trusted on its own. */
+
+interface StoreKitProduct {
+  id: string;
+  displayName: string;
+  description: string;
+  displayPrice: string;
+}
+
+type StoreKitPurchaseResult =
+  | { status: "success"; jwsRepresentation: string }
+  | { status: "cancelled" | "pending" };
+
+type StoreKitRestoreResult =
+  | { status: "restored"; productId: string; jwsRepresentation: string }
+  | { status: "empty" };
+
+interface StoreKitPluginApi {
+  getProduct(options: { productId: string }): Promise<StoreKitProduct>;
+  purchase(options: { productId: string }): Promise<StoreKitPurchaseResult>;
+  restore(): Promise<StoreKitRestoreResult>;
+}
+
+async function getStoreKitPlugin(): Promise<StoreKitPluginApi | null> {
+  if (!isNativeApp()) return null;
+  try {
+    const { registerPlugin } = await import("@capacitor/core");
+    return registerPlugin<StoreKitPluginApi>("StoreKitPlugin");
+  } catch {
+    return null;
+  }
+}
+
+/** Sends a freshly-verified transaction to the server to activate Pro. */
+async function activatePro(jwsRepresentation: string): Promise<boolean> {
+  try {
+    const res = await fetch("/api/apple/verify-purchase", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ signedTransaction: jwsRepresentation }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Product info (localized price, name) for the paywall UI. Null if the
+ *  plugin isn't available (web, or native build without it installed yet). */
+export async function getProProductInfo(productId: string): Promise<StoreKitProduct | null> {
+  const plugin = await getStoreKitPlugin();
+  if (!plugin) return null;
+  try {
+    return await plugin.getProduct({ productId });
+  } catch (err) {
+    console.error("StoreKit getProduct failed", err);
+    return null;
+  }
+}
+
+/**
+ * Buys Pro through StoreKit and, on success, activates it server-side.
+ * Returns "success" | "cancelled" | "pending" | "unavailable" | "error" so
+ * the caller can show the right message without needing to know anything
+ * about StoreKit itself.
+ */
+export async function purchasePro(
+  productId: string,
+): Promise<"success" | "cancelled" | "pending" | "unavailable" | "error"> {
+  const plugin = await getStoreKitPlugin();
+  if (!plugin) return "unavailable";
+  try {
+    const result = await plugin.purchase({ productId });
+    if (result.status !== "success") return result.status;
+    const activated = await activatePro(result.jwsRepresentation);
+    return activated ? "success" : "error";
+  } catch (err) {
+    console.error("StoreKit purchase failed", err);
+    return "error";
+  }
+}
+
+/** Re-links an existing purchase (new device, reinstalled app) to this
+ *  account — required by App Store review for any app selling IAP. */
+export async function restorePurchases(): Promise<"restored" | "empty" | "unavailable" | "error"> {
+  const plugin = await getStoreKitPlugin();
+  if (!plugin) return "unavailable";
+  try {
+    const result = await plugin.restore();
+    if (result.status !== "restored") return result.status;
+    const activated = await activatePro(result.jwsRepresentation);
+    return activated ? "restored" : "error";
+  } catch (err) {
+    console.error("StoreKit restore failed", err);
+    return "error";
+  }
+}

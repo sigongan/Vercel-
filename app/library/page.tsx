@@ -9,6 +9,7 @@ import { useRecentRecipes, removeRecentRecipe } from "@/lib/recentRecipes";
 import { useWantToCook, removeWantToCook, type WantToCookItem } from "@/lib/wantToCook";
 import { CalendarDateSheet } from "@/components/CalendarDateSheet";
 import { hapticTap } from "@/lib/nativeApp";
+import { startProSubscription } from "@/lib/subscribePro";
 import type { Recipe } from "@/lib/types/recipe";
 
 const SUPABASE_CONFIGURED = Boolean(
@@ -272,14 +273,15 @@ function SavedRecipesSection({ t }: { t: Translation }) {
 
   async function handleSubscribe() {
     setBillingError(null);
-    try {
-      const res = await fetch("/api/stripe/subscribe", { method: "POST" });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setBillingError(data.error || t.subscribeUnavailable);
-    } catch {
+    const outcome = await startProSubscription();
+    if (outcome === "success") {
+      window.location.reload();
+    } else if (outcome === "pending") {
+      setBillingError(t.subscribePending);
+    } else if (outcome === "error" || outcome === "unavailable") {
       setBillingError(t.subscribeUnavailable);
     }
+    // "redirecting" (Stripe) and "cancelled" (user backed out) need no action.
   }
 
   async function handleManage() {
