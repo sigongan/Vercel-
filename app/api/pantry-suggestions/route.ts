@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractFromImage } from "@/lib/extractors/image";
 import { ExtractionError } from "@/lib/extractors/types";
-import { parsePantrySuggestions, AiNotConfiguredError, RecipeParseError } from "@/lib/ai/recipeParser";
+import {
+  parsePantrySuggestions,
+  AiNotConfiguredError,
+  RecipeParseError,
+  type PantryPreferences,
+} from "@/lib/ai/recipeParser";
 import type { Language } from "@/lib/i18n";
 import type { Recipe } from "@/lib/types/recipe";
 import { consumeTextIpQuota, getClientIp } from "@/lib/anonIpQuota";
@@ -22,6 +27,16 @@ function asLanguage(value: unknown): Language {
   return VALID_LANGUAGES.includes(value as Language) ? (value as Language) : "en";
 }
 
+const VALID_CUISINES = ["korean", "italian", "mexican", "chinese", "american"];
+const VALID_METHODS = ["roast", "fry", "grill", "soup", "bake"];
+
+function asPreferences(cuisine: unknown, method: unknown): PantryPreferences {
+  return {
+    cuisine: typeof cuisine === "string" && VALID_CUISINES.includes(cuisine) ? cuisine : undefined,
+    method: typeof method === "string" && VALID_METHODS.includes(method) ? method : undefined,
+  };
+}
+
 export async function POST(req: NextRequest) {
   function fail(error: string, code: ErrorCode, status: number) {
     const body: PantrySuggestionsResult = { ok: false, error: { error, code } };
@@ -35,17 +50,19 @@ export async function POST(req: NextRequest) {
       const formData = await req.formData();
       const file = formData.get("image");
       const lang = asLanguage(formData.get("lang"));
+      const preferences = asPreferences(formData.get("cuisine"), formData.get("method"));
       if (!(file instanceof File) || file.size === 0) {
         return fail("No photo was uploaded.", "INVALID_INPUT", 400);
       }
       // Photos have no daily cap — same as file-upload recipe extraction.
       const content = await extractFromImage(file);
-      const recipes = await parsePantrySuggestions(content, lang);
+      const recipes = await parsePantrySuggestions(content, lang, preferences);
       return NextResponse.json({ ok: true, recipes } satisfies PantrySuggestionsResult);
     }
 
     const body = await req.json().catch(() => null);
     const lang = asLanguage(body?.lang);
+    const preferences = asPreferences(body?.cuisine, body?.method);
     const text = typeof body?.text === "string" ? body.text.trim() : "";
     if (!text) {
       return fail("List a few ingredients you have on hand.", "INVALID_INPUT", 400);
@@ -74,7 +91,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const recipes = await parsePantrySuggestions({ sourceType: "text", text }, lang);
+    const recipes = await parsePantrySuggestions({ sourceType: "text", text }, lang, preferences);
     return NextResponse.json({ ok: true, recipes } satisfies PantrySuggestionsResult);
   } catch (err) {
     if (err instanceof ExtractionError) {

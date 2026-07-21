@@ -16,6 +16,12 @@ const PHOTO_ACCEPT_TYPES = "image/jpeg,image/png,image/webp,image/gif";
 
 type Mode = "idle" | "loading" | "results" | "recipe" | "error";
 
+// Index-paired with t.todayMenuCuisines / t.todayMenuMethods — index 0
+// ("Any") sends nothing, so the AI keeps free rein instead of being pinned
+// to a made-up default.
+const CUISINE_KEYS = [undefined, "korean", "italian", "mexican", "chinese", "american"] as const;
+const METHOD_KEYS = [undefined, "roast", "fry", "grill", "soup", "bake"] as const;
+
 /** Home's "what should I eat today?" card: a fridge photo or a quick
  *  ingredient list in, three distinct dish ideas out. Picking one shows the
  *  full recipe right here and saves it to Recent, same as a real extraction. */
@@ -30,6 +36,8 @@ export function TodayMenuCard() {
   const [suggestions, setSuggestions] = useState<Recipe[]>([]);
   const [selected, setSelected] = useState<Recipe | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cuisineIndex, setCuisineIndex] = useState(0);
+  const [methodIndex, setMethodIndex] = useState(0);
 
   const canSubmit = Boolean(photo) || text.trim().length > 0;
 
@@ -44,18 +52,22 @@ export function TodayMenuCard() {
     hapticTap();
     setMode("loading");
     setError(null);
+    const cuisine = CUISINE_KEYS[cuisineIndex];
+    const method = METHOD_KEYS[methodIndex];
     try {
       let res: Response;
       if (photo) {
         const formData = new FormData();
         formData.append("image", photo);
         formData.append("lang", language);
+        if (cuisine) formData.append("cuisine", cuisine);
+        if (method) formData.append("method", method);
         res = await fetch("/api/pantry-suggestions", { method: "POST", body: formData });
       } else {
         res = await fetch("/api/pantry-suggestions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: text.trim(), lang: language }),
+          body: JSON.stringify({ text: text.trim(), lang: language, cuisine, method }),
         });
       }
       const data: PantrySuggestionsResult = await res.json();
@@ -119,6 +131,8 @@ export function TodayMenuCard() {
               </button>
             </div>
           )}
+          <PreferenceChips label={t.todayMenuCuisineLabel} options={t.todayMenuCuisines} selected={cuisineIndex} onSelect={setCuisineIndex} />
+          <PreferenceChips label={t.todayMenuMethodLabel} options={t.todayMenuMethods} selected={methodIndex} onSelect={setMethodIndex} />
           <div className="flex gap-2">
             <button
               type="button"
@@ -219,6 +233,46 @@ export function TodayMenuCard() {
         t={t}
       />
     </section>
+  );
+}
+
+/** Quick-tap preference row (cuisine / cooking style) — lets someone narrow
+ *  down "chicken" into something more specific without typing, since a
+ *  single ingredient alone is otherwise the vaguest possible input. */
+function PreferenceChips({
+  label,
+  options,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  options: readonly string[];
+  selected: number;
+  onSelect: (index: number) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-[#9AA093]">{label}</span>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((option, i) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => {
+              hapticTap();
+              onSelect(i);
+            }}
+            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+              selected === i
+                ? "bg-[#61A00E] text-white"
+                : "bg-[#F1F4EA] text-[#5E7A33] dark:bg-stone-700 dark:text-stone-300"
+            }`}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

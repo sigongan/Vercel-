@@ -65,10 +65,12 @@ ${JSON_SCHEMA}`;
 /** "What should I eat today?" — Home's photo/text pantry card. Same idea as
  *  PANTRY_PROMPT but asks for three distinct options instead of committing
  *  to one, and accepts a fridge/pantry photo instead of just a typed list. */
-const PANTRY_SUGGESTIONS_PROMPT = `You are a practical home-cooking assistant helping someone decide what to cook right now. They'll show you what they have — a photo of their fridge/pantry/counter, and/or a typed list of ingredients. Suggest exactly THREE distinct, realistic, simple dishes they could cook tonight, each built primarily from what they have.
+const PANTRY_SUGGESTIONS_PROMPT = `You are a practical home-cooking assistant helping someone decide what to cook right now. They'll show you what they have — a photo of their fridge/pantry/counter, and/or a typed list of ingredients, which may be as short as a single item (e.g. just "chicken"). Suggest exactly THREE distinct, realistic, simple dishes they could cook tonight, each built primarily from what they have.
 
 Rules:
 - If a photo is provided, identify the ingredients yourself from what's actually visible — don't invent items that aren't shown or listed.
+- However sparse the input is — even a single ingredient with no other context — never ask a clarifying question and never reply with anything other than the JSON array below. Use your own culinary judgment to fill the gaps: pick three genuinely different, complete, realistic dishes built around whatever was given, the way an experienced cook would riff on one ingredient.
+- If the user stated a cuisine and/or cooking method preference, lean into it for all three dishes when it's a reasonable fit for the ingredients; otherwise use your best judgment and vary the styles across the three.
 - The three suggestions must be meaningfully different dishes, not three variations of the same one.
 - You may assume basic pantry staples (salt, pepper, cooking oil, water, sugar, common dried spices) and include them in each ingredient list.
 - Never require an important ingredient that wasn't shown/listed — suggest it in that dish's notes as an optional upgrade instead.
@@ -104,12 +106,33 @@ const OUTPUT_LANGUAGE_INSTRUCTION: Record<Language, string> = {
   pt: "Escreva cada valor de saída (title, description, ingredients, steps, tags, notes) em português. Traduza o conteúdo de origem se estiver em outro idioma.",
 };
 
+const CUISINE_LABELS: Record<string, string> = {
+  korean: "Korean",
+  italian: "Italian",
+  mexican: "Mexican",
+  chinese: "Chinese",
+  american: "American",
+};
+
+const METHOD_LABELS: Record<string, string> = {
+  roast: "roasting",
+  fry: "pan-frying/sautéing",
+  grill: "grilling",
+  soup: "soup or stew",
+  bake: "baking",
+};
+
+export interface PantryPreferences {
+  cuisine?: string;
+  method?: string;
+}
+
 function isConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
-function buildContentBlocks(content: ExtractedContent): Anthropic.MessageParam["content"] {
-  const contentBlocks: Anthropic.MessageParam["content"] = [];
+function buildContentBlocks(content: ExtractedContent): Anthropic.ContentBlockParam[] {
+  const contentBlocks: Anthropic.ContentBlockParam[] = [];
 
   if (content.images) {
     for (const image of content.images) {
@@ -271,12 +294,27 @@ export async function parseRecipeFromContent(
  * parseRecipeFromContent, but asks for three distinct dish ideas instead of
  * one, returned as a JSON array.
  */
-export async function parsePantrySuggestions(content: ExtractedContent, lang: Language): Promise<Recipe[]> {
+export async function parsePantrySuggestions(
+  content: ExtractedContent,
+  lang: Language,
+  preferences?: PantryPreferences,
+): Promise<Recipe[]> {
   if (!isConfigured()) {
     throw new AiNotConfiguredError();
   }
 
-  const message = await callClaude(PANTRY_SUGGESTIONS_PROMPT, lang, buildContentBlocks(content));
+  const contentBlocks = buildContentBlocks(content);
+  const cuisineLabel = preferences?.cuisine && CUISINE_LABELS[preferences.cuisine];
+  const methodLabel = preferences?.method && METHOD_LABELS[preferences.method];
+  if (cuisineLabel || methodLabel) {
+    const parts = [
+      cuisineLabel ? `Preferred cuisine: ${cuisineLabel}.` : null,
+      methodLabel ? `Preferred cooking method: ${methodLabel}.` : null,
+    ].filter(Boolean);
+    contentBlocks.push({ type: "text", text: parts.join(" ") });
+  }
+
+  const message = await callClaude(PANTRY_SUGGESTIONS_PROMPT, lang, contentBlocks);
 
   console.log(
     `[recipeParser:pantry-suggestions] model=${message.model} input=${message.usage.input_tokens} output=${message.usage.output_tokens} cache_write=${message.usage.cache_creation_input_tokens ?? 0} cache_read=${message.usage.cache_read_input_tokens ?? 0}`

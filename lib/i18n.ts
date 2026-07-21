@@ -290,6 +290,10 @@ export const translations = {
     todayMenuTryAgain: "Try again",
     todayMenuBackToIdeas: "← Back to ideas",
     todayMenuPickOne: "Tap one to see the full recipe",
+    todayMenuCuisineLabel: "Cuisine",
+    todayMenuMethodLabel: "Cooking style",
+    todayMenuCuisines: ["Any", "Korean", "Italian", "Mexican", "Chinese", "American"],
+    todayMenuMethods: ["Any", "Roast", "Pan-fry", "Grill", "Soup", "Bake"],
   },
   de: {
     title: "Avocato",
@@ -569,6 +573,10 @@ export const translations = {
     todayMenuTryAgain: "Erneut versuchen",
     todayMenuBackToIdeas: "← Zurück zu den Ideen",
     todayMenuPickOne: "Tippe eins an, um das ganze Rezept zu sehen",
+    todayMenuCuisineLabel: "Küche",
+    todayMenuMethodLabel: "Zubereitungsart",
+    todayMenuCuisines: ["Beliebig", "Koreanisch", "Italienisch", "Mexikanisch", "Chinesisch", "Amerikanisch"],
+    todayMenuMethods: ["Beliebig", "Braten", "Anbraten", "Grillen", "Suppe", "Backen"],
   },
   it: {
     title: "Avocato",
@@ -848,6 +856,10 @@ export const translations = {
     todayMenuTryAgain: "Riprova",
     todayMenuBackToIdeas: "← Torna alle idee",
     todayMenuPickOne: "Toccane una per vedere la ricetta completa",
+    todayMenuCuisineLabel: "Cucina",
+    todayMenuMethodLabel: "Metodo di cottura",
+    todayMenuCuisines: ["Qualsiasi", "Coreana", "Italiana", "Messicana", "Cinese", "Americana"],
+    todayMenuMethods: ["Qualsiasi", "Arrosto", "In padella", "Alla griglia", "Zuppa", "Al forno"],
   },
   es: {
     title: "Avocato",
@@ -1127,6 +1139,10 @@ export const translations = {
     todayMenuTryAgain: "Intentar de nuevo",
     todayMenuBackToIdeas: "← Volver a las ideas",
     todayMenuPickOne: "Toca una para ver la receta completa",
+    todayMenuCuisineLabel: "Cocina",
+    todayMenuMethodLabel: "Método de cocción",
+    todayMenuCuisines: ["Cualquiera", "Coreana", "Italiana", "Mexicana", "China", "Estadounidense"],
+    todayMenuMethods: ["Cualquiera", "Asado", "Salteado", "A la parrilla", "Sopa", "Al horno"],
   },
   fr: {
     title: "Avocato",
@@ -1406,6 +1422,10 @@ export const translations = {
     todayMenuTryAgain: "Réessayer",
     todayMenuBackToIdeas: "← Retour aux idées",
     todayMenuPickOne: "Touchez-en une pour voir la recette complète",
+    todayMenuCuisineLabel: "Cuisine",
+    todayMenuMethodLabel: "Mode de cuisson",
+    todayMenuCuisines: ["Peu importe", "Coréenne", "Italienne", "Mexicaine", "Chinoise", "Américaine"],
+    todayMenuMethods: ["Peu importe", "Rôti", "Poêlé", "Grillé", "Soupe", "Au four"],
   },
   pt: {
     title: "Avocato",
@@ -1685,6 +1705,10 @@ export const translations = {
     todayMenuTryAgain: "Tentar novamente",
     todayMenuBackToIdeas: "← Voltar às ideias",
     todayMenuPickOne: "Toque em uma para ver a receita completa",
+    todayMenuCuisineLabel: "Culinária",
+    todayMenuMethodLabel: "Modo de preparo",
+    todayMenuCuisines: ["Qualquer", "Coreana", "Italiana", "Mexicana", "Chinesa", "Americana"],
+    todayMenuMethods: ["Qualquer", "Assado", "Frito", "Grelhado", "Sopa", "No forno"],
   },
 } as const;
 
