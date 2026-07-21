@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import type { Recipe, RecipeStep } from "@/lib/types/recipe";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation } from "@/lib/i18n";
@@ -71,6 +72,7 @@ export function RecipeCard({
   const [editing, setEditing] = useState(false);
   const [cookModeOpen, setCookModeOpen] = useState(false);
   const [groceryOpen, setGroceryOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // Remember the g/ml preference across recipes and sessions — someone who
   // cooks metric always cooks metric. useSyncExternalStore over an effect:
@@ -188,117 +190,32 @@ export function RecipeCard({
 
   return (
     <div className="print-area flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {convertible && !editing && (
-            <button
-              onClick={toggleUnits}
-              title={t.unitsToggleTitle}
-              className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-                units === "metric"
-                  ? "bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white shadow-sm"
-                  : "border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-900 text-[#6B7261] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-200"
-              }`}
-            >
-              {t.unitsToggle}
-            </button>
-          )}
-          {!editing && recipe.ingredients.some((i) => i.amount) && (
-            <div className="flex shrink-0 items-center whitespace-nowrap rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-900">
-              <button
-                onClick={() => stepScale(-1)}
-                aria-label={t.scaleDown}
-                className="px-3 py-1.5 text-sm font-semibold text-[#6B7261] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
-                disabled={Math.abs(scaleFactor - FACTOR_STEPS[0]) < 1e-6}
-              >
-                −
-              </button>
-              <span
-                title={t.scaleTitle}
-                className={`min-w-8 text-center text-xs font-semibold tabular-nums ${scaleFactor !== 1 ? "text-[#4D7C0F] dark:text-stone-100" : "text-[#6B7261] dark:text-stone-400"}`}
-              >
-                {scaleLabel}
-              </span>
-              <button
-                onClick={() => stepScale(1)}
-                aria-label={t.scaleUp}
-                className="px-3 py-1.5 text-sm font-semibold text-[#6B7261] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
-                disabled={Math.abs(scaleFactor - FACTOR_STEPS[FACTOR_STEPS.length - 1]) < 1e-6}
-              >
-                +
-              </button>
-            </div>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {!editing && steps.length > 0 && (
+      {!editing && (
+        <div className="flex items-center gap-2.5 print:hidden">
+          {steps.length > 0 && (
             <button
               onClick={() => {
                 hapticTap();
                 setCookModeOpen(true);
               }}
-              className="flex items-center gap-1.5 rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] py-3 text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             >
               <CookIcon />
               {t.cookMode}
             </button>
           )}
-          {!editing && saveable && SUPABASE_CONFIGURED && <SaveButton recipe={recipe} t={t} />}
           <button
             onClick={() => {
               hapticTap();
-              setEditing((e) => !e);
+              setMoreOpen(true);
             }}
-            className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+            aria-label={t.moreActions}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
           >
-            <EditIcon />
-            {editing ? t.editCancel : t.edit}
+            <MoreIcon />
           </button>
-          {!editing && displayRecipe.ingredients.length > 0 && (
-            <button
-              onClick={() => {
-                hapticSuccess();
-                addRecipeToGroceryList(displayRecipe);
-                setGroceryOpen(true);
-              }}
-              className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
-            >
-              <CartIcon />
-              {t.groceryAdd}
-            </button>
-          )}
-          {!editing && (
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
-            >
-              <ShareIcon />
-              {t.share}
-            </button>
-          )}
-          {!editing && (
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
-            >
-              <CopyIcon />
-              {copied ? t.copied : t.copy}
-            </button>
-          )}
-          {!editing && (
-            <button
-              onClick={() => {
-                hapticTap();
-                printRecipe(fitPrintArea, resetPrintArea);
-              }}
-              className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
-            >
-              <PrintIcon />
-              {t.print}
-            </button>
-          )}
         </div>
-      </div>
+      )}
 
       {editing ? (
         <RecipeEditForm
@@ -322,7 +239,203 @@ export function RecipeCard({
       {groceryOpen && (
         <GroceryListSheet open={groceryOpen} onClose={() => setGroceryOpen(false)} t={t} />
       )}
+      {moreOpen && (
+        <RecipeActionsSheet
+          onClose={() => setMoreOpen(false)}
+          t={t}
+          convertible={convertible}
+          units={units}
+          onToggleUnits={toggleUnits}
+          scalable={recipe.ingredients.some((i) => i.amount)}
+          scaleLabel={scaleLabel}
+          canScaleDown={Math.abs(scaleFactor - FACTOR_STEPS[0]) >= 1e-6}
+          canScaleUp={Math.abs(scaleFactor - FACTOR_STEPS[FACTOR_STEPS.length - 1]) >= 1e-6}
+          onStepScale={stepScale}
+          saveable={saveable && SUPABASE_CONFIGURED}
+          recipe={recipe}
+          onEdit={() => {
+            hapticTap();
+            setEditing(true);
+            setMoreOpen(false);
+          }}
+          groceryable={displayRecipe.ingredients.length > 0}
+          onAddGroceries={() => {
+            hapticSuccess();
+            addRecipeToGroceryList(displayRecipe);
+            setGroceryOpen(true);
+            setMoreOpen(false);
+          }}
+          onShare={handleShare}
+          onCopy={handleCopy}
+          copied={copied}
+          onPrint={() => {
+            hapticTap();
+            printRecipe(fitPrintArea, resetPrintArea);
+            setMoreOpen(false);
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function RecipeActionsSheet({
+  onClose,
+  t,
+  convertible,
+  units,
+  onToggleUnits,
+  scalable,
+  scaleLabel,
+  canScaleDown,
+  canScaleUp,
+  onStepScale,
+  saveable,
+  recipe,
+  onEdit,
+  groceryable,
+  onAddGroceries,
+  onShare,
+  onCopy,
+  copied,
+  onPrint,
+}: {
+  onClose: () => void;
+  t: Translation;
+  convertible: boolean;
+  units: UnitSystem;
+  onToggleUnits: () => void;
+  scalable: boolean;
+  scaleLabel: string;
+  canScaleDown: boolean;
+  canScaleUp: boolean;
+  onStepScale: (direction: 1 | -1) => void;
+  saveable: boolean;
+  recipe: Recipe;
+  onEdit: () => void;
+  groceryable: boolean;
+  onAddGroceries: () => void;
+  onShare: () => void;
+  onCopy: () => void;
+  copied: boolean;
+  onPrint: () => void;
+}) {
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40" onClick={onClose}>
+      <div
+        className="flex max-h-[85vh] flex-col gap-5 overflow-y-auto rounded-t-3xl bg-[#FAFAF7] dark:bg-stone-900 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.25)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-[#232920] dark:text-stone-50">{t.actionsTitle}</h2>
+          <button
+            onClick={onClose}
+            aria-label={t.groceryClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EDF1E4] dark:bg-stone-800 text-[#5E7A33] dark:text-stone-300 transition-colors hover:opacity-80"
+          >
+            ✕
+          </button>
+        </div>
+
+        {(convertible || scalable) && (
+          <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-800 dark:bg-stone-900 dark:divide-stone-800">
+            {convertible && (
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.unitsRowLabel}</span>
+                <button
+                  onClick={onToggleUnits}
+                  title={t.unitsToggleTitle}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                    units === "metric"
+                      ? "bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white"
+                      : "border border-[#E2E6D9] dark:border-stone-700 text-[#6B7261] dark:text-stone-400"
+                  }`}
+                >
+                  {t.unitsToggle}
+                </button>
+              </div>
+            )}
+            {scalable && (
+              <div className="flex items-center justify-between gap-3 px-4 py-3">
+                <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.serves}</span>
+                <div className="flex items-center rounded-full border border-[#E2E6D9] dark:border-stone-700">
+                  <button
+                    onClick={() => onStepScale(-1)}
+                    aria-label={t.scaleDown}
+                    className="px-3 py-1.5 text-sm font-semibold text-[#6B7261] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
+                    disabled={!canScaleDown}
+                  >
+                    −
+                  </button>
+                  <span
+                    title={t.scaleTitle}
+                    className="min-w-8 text-center text-xs font-semibold tabular-nums text-[#232920] dark:text-stone-100"
+                  >
+                    {scaleLabel}
+                  </span>
+                  <button
+                    onClick={() => onStepScale(1)}
+                    aria-label={t.scaleUp}
+                    className="px-3 py-1.5 text-sm font-semibold text-[#6B7261] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
+                    disabled={!canScaleUp}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-800 dark:bg-stone-900 dark:divide-stone-800">
+          {saveable && (
+            <div className="px-4 py-2.5">
+              <SaveButton recipe={recipe} t={t} />
+            </div>
+          )}
+          <MenuRow icon={<EditIcon />} label={t.edit} onClick={onEdit} />
+          {groceryable && <MenuRow icon={<CartIcon />} label={t.groceryAdd} onClick={onAddGroceries} />}
+          <MenuRow icon={<ShareIcon />} label={t.share} onClick={onShare} />
+          <MenuRow icon={<CopyIcon />} label={t.copy} onClick={onCopy} trailing={copied ? t.copied : undefined} />
+          <MenuRow icon={<PrintIcon />} label={t.print} onClick={onPrint} />
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function MenuRow({
+  icon,
+  label,
+  onClick,
+  trailing,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  trailing?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-800/40"
+    >
+      <span className="flex h-5 w-5 items-center justify-center text-[#5E7A33] dark:text-stone-400">{icon}</span>
+      <span className="flex-1 text-[15px] font-medium text-[#232920] dark:text-stone-100">{label}</span>
+      {trailing && <span className="text-xs font-medium text-[#4D7C0F] dark:text-lime-500">{trailing}</span>}
+    </button>
+  );
+}
+
+function MoreIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="5" cy="12" r="2" />
+      <circle cx="12" cy="12" r="2" />
+      <circle cx="19" cy="12" r="2" />
+    </svg>
   );
 }
 
