@@ -23,7 +23,7 @@ import { useGroceryList } from "@/lib/groceryList";
 import { GroceryListSheet } from "./GroceryList";
 import { UploadSourceSheet } from "./UploadSourceSheet";
 
-type Tab = "file" | "url" | "text" | "fridge";
+type Tab = "file" | "url" | "text";
 
 interface SubmitError {
   message: string;
@@ -47,7 +47,6 @@ export function RecipeExtractor() {
   const [uploadSheetOpen, setUploadSheetOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
-  const [fridgeText, setFridgeText] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<SubmitError | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
@@ -92,9 +91,7 @@ export function RecipeExtractor() {
       ? Boolean(file) && !preparingFile
       : tab === "url"
         ? url.trim().length > 0
-        : tab === "fridge"
-          ? fridgeText.trim().length > 0
-          : text.trim().length > 0;
+        : text.trim().length > 0;
 
   const errorMessage = error
     ? error.code && error.code in t.errors
@@ -106,8 +103,7 @@ export function RecipeExtractor() {
     input:
       | { kind: "file"; file: File }
       | { kind: "url"; url: string }
-      | { kind: "text"; text: string }
-      | { kind: "pantry"; text: string },
+      | { kind: "text"; text: string },
   ) {
     setStatus("loading");
     setError(null);
@@ -119,9 +115,7 @@ export function RecipeExtractor() {
         ? submitFile(input.file, language)
         : input.kind === "url"
           ? submitJson({ url: input.url, lang: language })
-          : input.kind === "pantry"
-            ? submitJson({ text: input.text, pantry: true, lang: language })
-            : submitJson({ text: input.text, lang: language }));
+          : submitJson({ text: input.text, lang: language }));
 
       const rawBody = await response.text();
       let data: ExtractRecipeResult;
@@ -215,8 +209,6 @@ export function RecipeExtractor() {
     if (tab === "file")
       return startExtraction({ kind: "file", file: file as File });
     if (tab === "url") return startExtraction({ kind: "url", url: url.trim() });
-    if (tab === "fridge")
-      return startExtraction({ kind: "pantry", text: fridgeText.trim() });
     return startExtraction({ kind: "text", text: text.trim() });
   }
 
@@ -265,7 +257,7 @@ export function RecipeExtractor() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-4 gap-1 rounded-full bg-[#F1F4EA] dark:bg-stone-800 p-1">
+            <div className="grid grid-cols-3 gap-1 rounded-full bg-[#F1F4EA] dark:bg-stone-800 p-1">
               <TabButton
                 active={tab === "file"}
                 onClick={() => setTab("file")}
@@ -286,13 +278,6 @@ export function RecipeExtractor() {
                 icon={<TextIcon />}
               >
                 {t.tabText}
-              </TabButton>
-              <TabButton
-                active={tab === "fridge"}
-                onClick={() => setTab("fridge")}
-                icon={<FridgeIcon />}
-              >
-                {t.tabFridge}
               </TabButton>
             </div>
 
@@ -378,22 +363,6 @@ export function RecipeExtractor() {
                     rows={8}
                     className="w-full resize-y rounded-xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm leading-relaxed text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
                   />
-                </label>
-              )}
-
-              {tab === "fridge" && (
-                <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-[#232920] dark:text-stone-300">
-                    {t.fridgeLabel}
-                  </span>
-                  <textarea
-                    value={fridgeText}
-                    onChange={(e) => setFridgeText(e.target.value)}
-                    placeholder={t.fridgePlaceholder}
-                    rows={4}
-                    className="w-full resize-y rounded-xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-sm leading-relaxed text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-600 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
-                  />
-                  <span className="text-xs text-[#9AA093]">{t.fridgeHint}</span>
                 </label>
               )}
 
@@ -608,26 +577,6 @@ function TextIcon() {
       <line x1="4" y1="6" x2="20" y2="6" />
       <line x1="4" y1="12" x2="20" y2="12" />
       <line x1="4" y1="18" x2="14" y2="18" />
-    </svg>
-  );
-}
-
-function FridgeIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="6" y="2" width="12" height="20" rx="2" />
-      <line x1="6" y1="10" x2="18" y2="10" />
-      <line x1="9" y1="5" x2="9" y2="7" />
-      <line x1="9" y1="13" x2="9" y2="16" />
     </svg>
   );
 }

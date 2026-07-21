@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -45,6 +45,15 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     statusBarStyle: "default",
   },
+};
+
+// Caps zoom so a small-font input (e.g. the notes textarea) can't trigger
+// iOS Safari's focus auto-zoom and leave the app stuck zoomed in.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
