@@ -19,8 +19,6 @@ import {
   addRecentRecipe,
   removeRecentRecipe,
 } from "@/lib/recentRecipes";
-import { useGroceryList } from "@/lib/groceryList";
-import { GroceryListSheet } from "./GroceryList";
 import { UploadSourceSheet } from "./UploadSourceSheet";
 
 type Tab = "file" | "url" | "text";
@@ -51,8 +49,6 @@ export function RecipeExtractor() {
   const [error, setError] = useState<SubmitError | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const recent = useRecentRecipes();
-  const groceryItems = useGroceryList();
-  const [groceryOpen, setGroceryOpen] = useState(false);
   const [recentQuery, setRecentQuery] = useState("");
   const filteredRecent = recentQuery.trim()
     ? recent.filter((item) =>
@@ -384,25 +380,6 @@ export function RecipeExtractor() {
             {errorMessage}
           </p>
         </div>
-      )}
-
-      {status !== "loading" && groceryItems.length > 0 && (
-        <button
-          type="button"
-          onClick={() => {
-            hapticTap();
-            setGroceryOpen(true);
-          }}
-          className="flex items-center gap-2 rounded-full border border-[#E2E6D9] bg-white px-4 py-2 text-sm font-medium text-[#5E7A33] shadow-[0_4px_14px_rgba(105,150,55,0.08)] transition-colors hover:border-[#C0DC8C]"
-        >
-          🛒 {t.groceryTitle}
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#61A00E] px-1.5 text-[11px] font-semibold text-white">
-            {groceryItems.filter((i) => !i.checked).length}
-          </span>
-        </button>
-      )}
-      {groceryOpen && (
-        <GroceryListSheet open={groceryOpen} onClose={() => setGroceryOpen(false)} t={t} />
       )}
 
       <UploadSourceSheet

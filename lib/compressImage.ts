@@ -4,15 +4,29 @@ const MAX_DIMENSION = 1568; // matches Claude's default vision resize target —
 const SKIP_BELOW_BYTES = 900_000; // already small enough, don't bother re-encoding
 const JPEG_QUALITY = 0.82;
 
+// The server only accepts jpeg/png/webp/gif (what Claude's vision API takes).
+// iPhones default to shooting in this format — both the Camera capture and,
+// on many devices, a Photo Library pick — so without this the single most
+// common real-world photo (a snap of the fridge) gets rejected outright.
+const HEIC_TYPES = ["image/heic", "image/heif"];
+
+function isHeic(file: File): boolean {
+  return HEIC_TYPES.includes(file.type.toLowerCase()) || /\.hei[cf]$/i.test(file.name);
+}
+
 /**
- * Resizes/re-encodes large photos client-side before upload. Mainly guards
- * against phone camera photos (often 3-5MB) blowing past Vercel's ~4.5MB
- * request body limit once base64-encoded, and speeds up mobile uploads.
- * Falls back to the original file on any failure or if compression doesn't
- * actually shrink it.
+ * Resizes/re-encodes large photos client-side before upload, and always
+ * converts HEIC/HEIF to JPEG regardless of size since the server can't read
+ * that format at all. Mainly guards against phone camera photos (often
+ * 3-5MB) blowing past Vercel's ~4.5MB request body limit once base64-encoded,
+ * and speeds up mobile uploads. Falls back to the original file if
+ * compression fails or doesn't actually shrink it — except for HEIC, where
+ * the original would just fail server-side, so a failed conversion here
+ * surfaces as the extraction error instead of silently passing through.
  */
 export async function compressImageFile(file: File): Promise<File> {
-  if (!file.type.startsWith("image/") || file.size < SKIP_BELOW_BYTES) {
+  const heic = isHeic(file);
+  if (!heic && (!file.type.startsWith("image/") || file.size < SKIP_BELOW_BYTES)) {
     return file;
   }
 
@@ -20,7 +34,7 @@ export async function compressImageFile(file: File): Promise<File> {
     const bitmap = await createImageBitmap(file);
     const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
 
-    if (scale === 1) {
+    if (scale === 1 && !heic) {
       bitmap.close();
       return file;
     }
@@ -41,7 +55,13 @@ export async function compressImageFile(file: File): Promise<File> {
       canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY)
     );
 
-    if (!blob || blob.size >= file.size) {
+    if (!blob) {
+      return file;
+    }
+    // A HEIC source must use the converted blob no matter the size — the
+    // original would just be rejected server-side, and HEIC's compression
+    // is good enough that the JPEG re-encode can end up larger.
+    if (!heic && blob.size >= file.size) {
       return file;
     }
 
