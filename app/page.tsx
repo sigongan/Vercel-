@@ -13,10 +13,6 @@ import { AuthErrorBanner } from "@/components/AuthErrorBanner";
 import { TodayMenuCard } from "@/components/TodayMenuCard";
 import { hapticTap } from "@/lib/nativeApp";
 
-const SUPABASE_CONFIGURED = Boolean(
-  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-);
-
 export default function Home() {
   const { language } = useLanguage();
   const t = translations[language];
@@ -24,7 +20,6 @@ export default function Home() {
   const recent = useRecentRecipes();
   const groceryItems = useGroceryList();
   const [groceryOpen, setGroceryOpen] = useState(false);
-  const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
     // Any Universal Link into the app (share extension, marketing links,
@@ -37,22 +32,6 @@ export default function Home() {
     if (shared) router.replace(`/extract?url=${encodeURIComponent(shared)}`);
   }, [router]);
 
-  useEffect(() => {
-    if (!SUPABASE_CONFIGURED) return;
-    fetch("/api/me", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((body) => {
-        if (!body.signedIn) return;
-        // Only Google/Apple sign-in has a real name on file — email
-        // magic-link users get the email's local part as a reasonable
-        // stand-in ("jess@..." -> "Jess") rather than no name at all.
-        const fallback = typeof body.email === "string" ? body.email.split("@")[0] : null;
-        const name: string | null = body.name || fallback;
-        if (name) setDisplayName(name.charAt(0).toUpperCase() + name.slice(1));
-      })
-      .catch(() => {});
-  }, []);
-
   const unchecked = groceryItems.filter((i) => !i.checked).length;
 
   return (
@@ -64,22 +43,20 @@ export default function Home() {
 
       <AuthErrorBanner />
 
-      <div className="flex w-full max-w-2xl flex-col gap-1 pb-1">
-        <h1 className="text-[28px] font-bold leading-tight tracking-tight text-[#232920] dark:text-stone-50">
-          {displayName ? t.homeHiUser(displayName) : t.homeGreeting}
-        </h1>
-        <p className="text-[15px] text-[#6B7261] dark:text-stone-400">{t.homeGreetingSub}</p>
-      </div>
-
       <TodayMenuCard />
 
       <Link
         href="/extract"
         onClick={() => hapticTap()}
-        className="flex w-full max-w-2xl items-center justify-center gap-2 rounded-2xl bg-[#61A00E] py-4 text-[16px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90 active:opacity-80"
+        className="flex w-full max-w-2xl items-center gap-4 rounded-[28px] bg-gradient-to-br from-[#8BC926] to-[#4D7C0F] px-5 py-4 shadow-[0_10px_28px_rgba(97,160,14,0.35)] transition-transform active:scale-[0.98]"
       >
-        <PlusIcon />
-        {t.homeStartExtract}
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
+          <AvocadoMark size={28} />
+        </span>
+        <span className="flex-1 text-[17px] font-semibold text-white">{t.homeStartExtract}</span>
+        <span className="text-white/70">
+          <Chevron />
+        </span>
       </Link>
 
       <button
@@ -152,14 +129,6 @@ function Chevron() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-[#CDD4C2] dark:text-stone-600">
       <path d="m9 5 7 7-7 7" />
-    </svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 5v14M5 12h14" />
     </svg>
   );
 }
