@@ -64,14 +64,6 @@ class AvocatoViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(PrintPlugin())
         bridge?.registerPluginInstance(StoreKitPlugin())
         bridge?.registerPluginInstance(AppleSignInPlugin())
-        // GoogleSignInPlugin.swift only compiles with the GoogleSignIn SPM
-        // package installed, so it's optional: look it up by name instead of
-        // referencing the type. If the file isn't in the target, the Google
-        // button just falls back to the browser-based sign-in flow.
-        if let googleType = NSClassFromString("GoogleSignInPlugin") as? NSObject.Type,
-           let plugin = googleType.init() as? CAPPlugin {
-            bridge?.registerPluginInstance(plugin)
-        }
         // Registered by the Live Activities setup — uncomment after adding
         // CookActivityPlugin.swift and CookTimerAttributes.swift to the App
         // target (docs/ios-live-activities.md):
