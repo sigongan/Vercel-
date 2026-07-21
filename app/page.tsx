@@ -13,6 +13,10 @@ import { AuthErrorBanner } from "@/components/AuthErrorBanner";
 import { TodayMenuCard } from "@/components/TodayMenuCard";
 import { hapticTap } from "@/lib/nativeApp";
 
+const SUPABASE_CONFIGURED = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+);
+
 export default function Home() {
   const { language } = useLanguage();
   const t = translations[language];
@@ -20,6 +24,7 @@ export default function Home() {
   const recent = useRecentRecipes();
   const groceryItems = useGroceryList();
   const [groceryOpen, setGroceryOpen] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
     // Any Universal Link into the app (share extension, marketing links,
@@ -32,13 +37,33 @@ export default function Home() {
     if (shared) router.replace(`/extract?url=${encodeURIComponent(shared)}`);
   }, [router]);
 
+  useEffect(() => {
+    if (!SUPABASE_CONFIGURED) return;
+    fetch("/api/me", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((body) => {
+        if (!body.signedIn) return;
+        // Only Google/Apple sign-in has a real name on file — email
+        // magic-link users get the email's local part as a reasonable
+        // stand-in ("jess@..." -> "Jess") rather than no name at all.
+        const fallback = typeof body.email === "string" ? body.email.split("@")[0] : null;
+        const name: string | null = body.name || fallback;
+        if (name) setDisplayName(name.charAt(0).toUpperCase() + name.slice(1));
+      })
+      .catch(() => {});
+  }, []);
+
   const unchecked = groceryItems.filter((i) => !i.checked).length;
 
   return (
     <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
       <nav className="flex w-full max-w-2xl items-center gap-2">
         <AvocadoMark size={26} />
-        <span className="font-display italic text-[19px] text-[#232920] dark:text-stone-50">{t.title}</span>
+        {displayName && (
+          <span className="text-[17px] font-semibold text-[#232920] dark:text-stone-50">
+            {t.homeHiUser(displayName)}
+          </span>
+        )}
       </nav>
 
       <AuthErrorBanner />
