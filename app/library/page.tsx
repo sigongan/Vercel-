@@ -235,6 +235,7 @@ function SavedRecipesSection({ t }: { t: Translation }) {
   const [editingCollectionId, setEditingCollectionId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [billingError, setBillingError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     fetch("/api/recipes", { cache: "no-store" })
@@ -366,6 +367,16 @@ function SavedRecipesSection({ t }: { t: Translation }) {
 
       {recipes === null && <RecipesSkeleton />}
 
+      {recipes !== null && recipes.length > 5 && (
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t.recentSearch}
+          className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-2.5 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
+        />
+      )}
+
       {recipes !== null && recipes.length > 0 && (
         <CollectionFilterPills recipes={recipes} activeFilter={activeFilter} onSelect={setActiveFilter} />
       )}
@@ -389,6 +400,7 @@ function SavedRecipesSection({ t }: { t: Translation }) {
         <ul className="grid gap-4 sm:grid-cols-2">
           {recipes
             .filter((r) => activeFilter === null || (r.collection || UNCATEGORIZED) === activeFilter)
+            .filter((r) => !query.trim() || r.title.toLowerCase().includes(query.trim().toLowerCase()))
             .map((r) => (
               <li
                 key={r.id}
