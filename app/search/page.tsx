@@ -34,6 +34,21 @@ export default function SearchPage() {
   const [saved, setSaved] = useState<SavedRecipe[] | null>(null);
   const [scan, setScan] = useState<ScanState>({ status: "idle" });
 
+  // Deep-link entry: /search?q=<query>&auto=1 — what Home's search bar
+  // sends. Prefills the box and kicks off a scan immediately.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const initial = params.get("q")?.trim();
+    if (!initial) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    queueMicrotask(() => {
+      setQuery(initial);
+      if (params.get("auto") === "1") runScan(initial);
+    });
+    // Run once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (!SUPABASE_CONFIGURED) return;
     fetch("/api/recipes", { cache: "no-store" })
@@ -61,10 +76,9 @@ export default function SearchPage() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([tag]) => tag);
   }, [recent, saved]);
 
-  async function handleScan(e?: React.FormEvent) {
-    e?.preventDefault();
-    const trimmed = query.trim();
-    if (trimmed.length < 2 || scan.status === "loading") return;
+  async function runScan(text: string) {
+    const trimmed = text.trim();
+    if (trimmed.length < 2) return;
     hapticTap();
     setScan({ status: "loading" });
     try {
@@ -82,6 +96,12 @@ export default function SearchPage() {
     } catch {
       setScan({ status: "error", message: t.searchScanError });
     }
+  }
+
+  function handleScan(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (scan.status === "loading") return;
+    runScan(query);
   }
 
   return (
@@ -139,7 +159,7 @@ export default function SearchPage() {
             <ul className="flex flex-col gap-3">
               {scan.results.map((result, i) => (
                 <li key={`${result.url}-${i}`}>
-                  <ScanResultCard result={result} getLabel={t.searchScanGet} />
+                  <ScanResultCard result={result} getLabel={t.searchScanGet} badgeLabel={t.searchScanBadge} />
                 </li>
               ))}
             </ul>
@@ -224,13 +244,32 @@ export default function SearchPage() {
 
 /** One web result — Skyscanner-style card: source, quality signals, and a
  *  one-tap handoff into the normal extraction flow. */
-function ScanResultCard({ result, getLabel }: { result: RecipeSearchResult; getLabel: string }) {
+function ScanResultCard({
+  result,
+  getLabel,
+  badgeLabel,
+}: {
+  result: RecipeSearchResult;
+  getLabel: string;
+  badgeLabel: string;
+}) {
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-transparent bg-white dark:bg-stone-800 dark:border-stone-700 px-4 py-3.5 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none">
+    <div
+      className={`flex flex-col gap-2 rounded-2xl border px-4 py-3.5 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none ${
+        result.recommended
+          ? "border-[#9ED13A] bg-[#F7FBEE] dark:border-lime-700 dark:bg-stone-800"
+          : "border-transparent bg-white dark:border-stone-700 dark:bg-stone-800"
+      }`}
+    >
       <div className="flex items-baseline justify-between gap-3">
         <span className="min-w-0 flex-1 text-[15px] font-semibold text-[#232920] dark:text-stone-100">
           {result.title}
         </span>
+        {result.recommended && (
+          <span className="shrink-0 rounded-full bg-[#6FAE15] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+            {badgeLabel}
+          </span>
+        )}
       </div>
       <p className="text-xs font-medium text-[#5E7A33] dark:text-lime-500">
         {result.source}

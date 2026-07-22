@@ -12,6 +12,9 @@ export interface RecipeSearchResult {
   highlights?: string;
   /** One-sentence trust/quality assessment for the user. */
   whyGood?: string;
+  /** True for the 1-2 strongest picks by real popularity signal — lets users
+   *  decide fast instead of reading every result. */
+  recommended?: boolean;
 }
 
 const LANGUAGE_NAMES: Record<Language, string> = {
@@ -30,6 +33,7 @@ Process:
 - Use web search to find real recipes for the query, from a MIX of source types: established recipe sites, food blogs, and YouTube cooking channels.
 - Prefer recipes with visible quality signals: star ratings, review counts, well-known authors or channels, clear technique.
 - Return 5 to 7 results, ranked best first. Every result must be a real page that appeared in your search results — never invent or guess a URL.
+- Mark "recommended": true on the 1 or 2 results with the strongest real popularity signal you actually saw (highest review count, most views/likes for a video, or clearly the most widely-cooked/viral version) — these should be the ones a user in a hurry can pick without reading the rest. If nothing has a standout signal, leave every result unrecommended rather than guessing.
 
 Output ONLY a JSON array, with no other text before or after:
 [{
@@ -38,7 +42,8 @@ Output ONLY a JSON array, with no other text before or after:
   "source": string (site or channel name, e.g. "AllRecipes", "NYT Cooking", "YouTube - Joshua Weissman"),
   "summary": string (one short sentence: what makes this version distinctive),
   "highlights": string (optional — only real signals you actually saw, e.g. "4.8★ · 2,340 ratings · 35 min"; omit the field entirely rather than inventing numbers),
-  "whyGood": string (one short sentence on why this one looks trustworthy or good — ratings volume, author credibility, technique)
+  "whyGood": string (one short sentence on why this one looks trustworthy or good — ratings volume, author credibility, technique),
+  "recommended": boolean (true for the 1-2 strongest picks by real popularity signal, false otherwise)
 }]
 
 Write "title", "summary", "highlights", and "whyGood" in ${LANGUAGE_NAMES[lang]}. Keep "source" and "url" as-is.
@@ -126,7 +131,10 @@ export async function searchRecipes(query: string, lang: Language): Promise<Reci
       summary: typeof r.summary === "string" ? r.summary : "",
       highlights: typeof r.highlights === "string" && r.highlights ? r.highlights : undefined,
       whyGood: typeof r.whyGood === "string" && r.whyGood ? r.whyGood : undefined,
+      recommended: r.recommended === true,
     });
   }
+  // Recommended picks float to the top so they're the first thing seen.
+  results.sort((a, b) => Number(b.recommended) - Number(a.recommended));
   return results.slice(0, 8);
 }
