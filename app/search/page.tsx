@@ -6,7 +6,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { useRecentRecipes } from "@/lib/recentRecipes";
 import { hapticTap } from "@/lib/nativeApp";
-import { AvocadoMark } from "@/lib/avocadoMark";
+import { RecipeScoutRadar } from "@/components/RecipeScoutRadar";
 import type { Recipe } from "@/lib/types/recipe";
 import type { RecipeSearchResult } from "@/lib/ai/recipeSearch";
 
@@ -33,6 +33,16 @@ export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [saved, setSaved] = useState<SavedRecipe[] | null>(null);
   const [scan, setScan] = useState<ScanState>({ status: "idle" });
+  const [stepIndex, setStepIndex] = useState(0);
+
+  // Cycles through "searching sites / comparing reviews / picking the
+  // best" while the scan is in flight, so the radar's wait feels like it's
+  // actively doing something rather than just spinning.
+  useEffect(() => {
+    if (scan.status !== "loading") return;
+    const id = setInterval(() => setStepIndex((i) => (i + 1) % t.searchScoutSteps.length), 1400);
+    return () => clearInterval(id);
+  }, [scan.status, t.searchScoutSteps.length]);
 
   // Deep-link entry: /search?q=<query>&auto=1 — what Home's search bar
   // sends. Prefills the box and kicks off a scan immediately.
@@ -80,6 +90,7 @@ export default function SearchPage() {
     const trimmed = text.trim();
     if (trimmed.length < 2) return;
     hapticTap();
+    setStepIndex(0);
     setScan({ status: "loading" });
     try {
       const res = await fetch("/api/recipe-search", {
@@ -106,6 +117,15 @@ export default function SearchPage() {
 
   return (
     <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
+      <div className="flex w-full max-w-2xl items-center gap-2">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EDF3DF] text-[#4D7C0F] dark:bg-stone-800 dark:text-lime-400">
+          <ScoutIcon />
+        </span>
+        <span className="text-[13px] font-semibold uppercase tracking-wide text-[#4D7C0F] dark:text-lime-500">
+          {t.searchScoutName}
+        </span>
+      </div>
+
       <form onSubmit={handleScan} className="flex w-full max-w-2xl flex-col gap-3">
         <div className="relative w-full">
           <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
@@ -123,6 +143,7 @@ export default function SearchPage() {
             className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
           />
         </div>
+        <p className="px-1 text-xs leading-relaxed text-[#9AA093]">{t.searchScoutTagline}</p>
         {q && scan.status !== "loading" && (
           <button
             type="submit"
@@ -134,11 +155,9 @@ export default function SearchPage() {
       </form>
 
       {scan.status === "loading" && (
-        <div className="flex w-full max-w-2xl flex-col items-center gap-3 py-8 animate-fade-in-up">
-          <div className="animate-avocado-spin">
-            <AvocadoMark size={40} />
-          </div>
-          <p className="text-sm text-[#5D6551] dark:text-stone-400">{t.searchScanning}</p>
+        <div className="flex w-full max-w-2xl flex-col items-center gap-2 py-6 animate-fade-in-up">
+          <RecipeScoutRadar />
+          <p className="text-sm text-[#5D6551] dark:text-stone-400">{t.searchScoutSteps[stepIndex]}</p>
         </div>
       )}
 
@@ -291,6 +310,15 @@ function ScanResultCard({
         {getLabel} →
       </Link>
     </div>
+  );
+}
+
+function ScoutIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36z" />
+    </svg>
   );
 }
 

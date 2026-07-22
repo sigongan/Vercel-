@@ -4,6 +4,7 @@ import type { RecipeSearchResult } from "@/lib/ai/recipeSearch";
 import type { Language } from "@/lib/i18n";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { consumeSearchIpQuota, getClientIp } from "@/lib/anonIpQuota";
+import { getCachedSearch, setCachedSearch } from "@/lib/searchCache";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -28,6 +29,15 @@ export async function POST(req: NextRequest) {
     return fail("Type a dish name to search for.", "INVALID_INPUT", 400);
   }
 
+  // Popular dishes get searched by many different people — reusing a recent
+  // result avoids paying for the AI web search again, and skips the daily
+  // quota entirely since nothing was actually spent on this request.
+  const cached = await getCachedSearch(query, lang);
+  if (cached) {
+    const response: RecipeSearchResponse = { ok: true, results: cached };
+    return NextResponse.json(response);
+  }
+
   // Web search costs real money per query — per-IP daily backstop, same
   // pattern as text/photo extraction.
   if (isSupabaseConfigured()) {
@@ -50,6 +60,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const results = await searchRecipes(query, lang);
+    await setCachedSearch(query, lang, results);
     const response: RecipeSearchResponse = { ok: true, results };
     return NextResponse.json(response);
   } catch (err) {
