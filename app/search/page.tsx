@@ -6,7 +6,9 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { useRecentRecipes } from "@/lib/recentRecipes";
 import { hapticTap } from "@/lib/nativeApp";
+import { AvocadoMark } from "@/lib/avocadoMark";
 import type { Recipe } from "@/lib/types/recipe";
+import type { RecipeSearchResult } from "@/lib/ai/recipeSearch";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -18,12 +20,19 @@ interface SavedRecipe {
   recipe: Recipe;
 }
 
+type ScanState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "done"; results: RecipeSearchResult[] }
+  | { status: "error"; message: string };
+
 export default function SearchPage() {
   const { language } = useLanguage();
   const t = translations[language];
   const recent = useRecentRecipes();
   const [query, setQuery] = useState("");
   const [saved, setSaved] = useState<SavedRecipe[] | null>(null);
+  const [scan, setScan] = useState<ScanState>({ status: "idle" });
 
   useEffect(() => {
     if (!SUPABASE_CONFIGURED) return;
@@ -38,11 +47,9 @@ export default function SearchPage() {
   const q = query.trim().toLowerCase();
   const matchedRecent = q ? recent.filter((r) => r.recipe.title.toLowerCase().includes(q)) : [];
   const matchedSaved = q && saved ? saved.filter((r) => r.title.toLowerCase().includes(q)) : [];
-  const hasResults = matchedRecent.length > 0 || matchedSaved.length > 0;
 
-  // A lightweight "Discover" — since there's no outside content to browse,
-  // this browses the tags AI already attached to the user's own recipes
-  // (cuisine, meal type, etc.) as quick-filter chips instead.
+  // A lightweight "Discover" — browses the tags AI already attached to the
+  // user's own recipes (cuisine, meal type, etc.) as quick-filter chips.
   const tagCounts = useMemo(() => {
     const counts = new Map<string, number>();
     const allRecipes = [...recent.map((r) => r.recipe), ...(saved ?? []).map((r) => r.recipe)];
@@ -54,23 +61,93 @@ export default function SearchPage() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([tag]) => tag);
   }, [recent, saved]);
 
+  async function handleScan(e?: React.FormEvent) {
+    e?.preventDefault();
+    const trimmed = query.trim();
+    if (trimmed.length < 2 || scan.status === "loading") return;
+    hapticTap();
+    setScan({ status: "loading" });
+    try {
+      const res = await fetch("/api/recipe-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: trimmed, lang: language }),
+      });
+      const body = await res.json();
+      if (body.ok) {
+        setScan({ status: "done", results: body.results });
+      } else {
+        setScan({ status: "error", message: body.error || t.searchScanError });
+      }
+    } catch {
+      setScan({ status: "error", message: t.searchScanError });
+    }
+  }
+
   return (
     <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
-      <div className="relative w-full max-w-2xl">
-        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
-          <SearchGlyph />
-        </span>
-        <input
-          type="search"
-          autoFocus
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t.searchPlaceholder}
-          className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
-        />
-      </div>
+      <form onSubmit={handleScan} className="flex w-full max-w-2xl flex-col gap-3">
+        <div className="relative w-full">
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
+            <SearchGlyph />
+          </span>
+          <input
+            type="search"
+            autoFocus
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (scan.status !== "idle") setScan({ status: "idle" });
+            }}
+            placeholder={t.searchPlaceholder}
+            className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
+          />
+        </div>
+        {q && scan.status !== "loading" && (
+          <button
+            type="submit"
+            className="w-full rounded-full bg-gradient-to-br from-[#9ED13A] to-[#6FAE15] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+          >
+            {t.searchScanButton}
+          </button>
+        )}
+      </form>
 
-      {!q && (
+      {scan.status === "loading" && (
+        <div className="flex w-full max-w-2xl flex-col items-center gap-3 py-8 animate-fade-in-up">
+          <div className="animate-avocado-spin">
+            <AvocadoMark size={40} />
+          </div>
+          <p className="text-sm text-[#5D6551] dark:text-stone-400">{t.searchScanning}</p>
+        </div>
+      )}
+
+      {scan.status === "error" && (
+        <p className="w-full max-w-2xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400">
+          {scan.message}
+        </p>
+      )}
+
+      {scan.status === "done" && (
+        <section className="flex w-full max-w-2xl flex-col gap-2">
+          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9AA093]">
+            {t.searchScanSection}
+          </h2>
+          {scan.results.length === 0 ? (
+            <p className="px-1 text-sm text-[#9AA093]">{t.searchScanEmpty}</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {scan.results.map((result, i) => (
+                <li key={`${result.url}-${i}`}>
+                  <ScanResultCard result={result} getLabel={t.searchScanGet} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {!q && scan.status === "idle" && (
         <>
           <p className="w-full max-w-2xl px-1 text-sm text-[#9AA093]">{t.searchEmptyPrompt}</p>
           {tagCounts.length > 0 && (
@@ -96,10 +173,6 @@ export default function SearchPage() {
             </section>
           )}
         </>
-      )}
-
-      {q && !hasResults && (
-        <p className="w-full max-w-2xl px-1 text-sm text-[#9AA093]">{t.searchNoResults}</p>
       )}
 
       {matchedRecent.length > 0 && (
@@ -146,6 +219,39 @@ export default function SearchPage() {
         </section>
       )}
     </main>
+  );
+}
+
+/** One web result — Skyscanner-style card: source, quality signals, and a
+ *  one-tap handoff into the normal extraction flow. */
+function ScanResultCard({ result, getLabel }: { result: RecipeSearchResult; getLabel: string }) {
+  return (
+    <div className="flex flex-col gap-2 rounded-2xl border border-transparent bg-white dark:bg-stone-800 dark:border-stone-700 px-4 py-3.5 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="min-w-0 flex-1 text-[15px] font-semibold text-[#232920] dark:text-stone-100">
+          {result.title}
+        </span>
+      </div>
+      <p className="text-xs font-medium text-[#5E7A33] dark:text-lime-500">
+        {result.source}
+        {result.highlights ? <span className="text-[#9AA093] dark:text-stone-400"> · {result.highlights}</span> : null}
+      </p>
+      {result.summary && (
+        <p className="text-sm leading-relaxed text-[#5D6551] dark:text-stone-400">{result.summary}</p>
+      )}
+      {result.whyGood && (
+        <p className="text-xs leading-relaxed text-[#9AA093]">
+          {result.whyGood}
+        </p>
+      )}
+      <Link
+        href={`/extract?url=${encodeURIComponent(result.url)}`}
+        onClick={() => hapticTap()}
+        className="mt-1 self-start rounded-full bg-[#EDF3DF] px-4 py-2 text-xs font-semibold text-[#4D7C0F] transition-colors hover:bg-[#E0EBC8] dark:bg-stone-700 dark:text-lime-400 dark:hover:bg-stone-600"
+      >
+        {getLabel} →
+      </Link>
+    </div>
   );
 }
 

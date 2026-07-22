@@ -6,6 +6,7 @@ import { RecipeCard } from "./RecipeCard";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { compressImageFile } from "@/lib/compressImage";
+import { prefetchSocialCaption } from "@/lib/socialPrefetch";
 import { AvocadoMark } from "@/lib/avocadoMark";
 import { SOURCE_ICONS } from "@/components/SourceIcons";
 import {
@@ -107,11 +108,22 @@ export function RecipeExtractor() {
     hapticTap();
 
     try {
-      const response = await (input.kind === "file"
-        ? submitFile(input.file, language)
-        : input.kind === "url"
-          ? submitJson({ url: input.url, lang: language })
-          : submitJson({ text: input.text, lang: language }));
+      let response: Response;
+      if (input.kind === "file") {
+        response = await submitFile(input.file, language);
+      } else if (input.kind === "url") {
+        // Inside the iOS app, fetch social captions from the device first —
+        // Instagram blocks the server's requests but not a real phone's
+        // (lib/socialPrefetch.ts). Null on the website / non-social links.
+        const prefetched = await prefetchSocialCaption(input.url);
+        response = await submitJson({
+          url: input.url,
+          lang: language,
+          ...(prefetched ? { prefetched } : {}),
+        });
+      } else {
+        response = await submitJson({ text: input.text, lang: language });
+      }
 
       const rawBody = await response.text();
       let data: ExtractRecipeResult;

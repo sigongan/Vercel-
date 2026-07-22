@@ -27,7 +27,7 @@ export async function extractFromFile(file: File, lang: Language): Promise<Extra
   throw new ExtractionError(`Unsupported file format: ${file.type || "unknown"}`, "INVALID_INPUT");
 }
 
-export async function extractFromUrl(rawUrl: string): Promise<ExtractedContent> {
+export async function extractFromUrl(rawUrl: string, prefetched?: string): Promise<ExtractedContent> {
   let url: URL;
 
   try {
@@ -45,7 +45,7 @@ export async function extractFromUrl(rawUrl: string): Promise<ExtractedContent> 
     return extractFromTiktok(url.toString());
   }
   if (host === "instagram.com" || host.endsWith(".instagram.com")) {
-    return extractFromInstagram(url.toString());
+    return extractFromInstagram(url.toString(), prefetched);
   }
   if (host === "docs.google.com") {
     return extractFromGoogleDocs(url.toString());

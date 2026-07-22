@@ -10,7 +10,6 @@ import { useRecentRecipes } from "@/lib/recentRecipes";
 import { useGroceryList } from "@/lib/groceryList";
 import { GroceryListSheet } from "@/components/GroceryList";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
-import { TodayMenuCard } from "@/components/TodayMenuCard";
 import { hapticTap } from "@/lib/nativeApp";
 
 const SUPABASE_CONFIGURED = Boolean(
@@ -67,8 +66,6 @@ export default function Home() {
       </nav>
 
       <AuthErrorBanner />
-
-      <TodayMenuCard />
 
       <Link
         href="/extract"

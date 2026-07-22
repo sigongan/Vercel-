@@ -22,7 +22,7 @@ type ErrorCode =
 
 type Input =
   | { kind: "file"; file: File; lang: Language }
-  | { kind: "url"; url: string; lang: Language }
+  | { kind: "url"; url: string; lang: Language; prefetched?: string }
   | { kind: "text"; text: string; lang: Language }
   | { kind: "pantry"; text: string; lang: Language };
 
@@ -161,7 +161,15 @@ async function readJsonInput(req: NextRequest): Promise<Input> {
     throw new ExtractionError("URL 또는 텍스트를 입력해 주세요.", "INVALID_INPUT");
   }
 
-  return { kind: "url", url: url.trim(), lang };
+  // Caption text the app already fetched on-device (lib/socialPrefetch.ts) —
+  // the reliable path for Instagram, whose servers often block Vercel's IPs.
+  // Bounded so this can't become an unmetered long-text side door.
+  let prefetched: string | undefined;
+  if (typeof body?.prefetched === "string" && body.prefetched.trim()) {
+    prefetched = body.prefetched.trim().slice(0, 30_000);
+  }
+
+  return { kind: "url", url: url.trim(), lang, prefetched };
 }
 
 async function hashInput(input: Input): Promise<string> {
@@ -177,7 +185,7 @@ async function hashInput(input: Input): Promise<string> {
 
 async function extract(input: Input): Promise<ExtractedContent> {
   if (input.kind === "file") return extractFromFile(input.file, input.lang);
-  if (input.kind === "url") return extractFromUrl(input.url);
+  if (input.kind === "url") return extractFromUrl(input.url, input.prefetched);
   return extractFromText(input.text);
 }
 

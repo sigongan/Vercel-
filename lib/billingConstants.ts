@@ -21,5 +21,12 @@ export const TEXT_DAILY_IP_LIMIT = 30;
  */
 export const PHOTO_DAILY_IP_LIMIT = 20;
 
+/**
+ * Recipe Scanner (web search) — each query runs real web searches through
+ * the AI, which costs noticeably more than a plain extraction, so the daily
+ * per-IP backstop is tighter still.
+ */
+export const SEARCH_DAILY_IP_LIMIT = 15;
+
 /** "My Recipes" — save/organize extracted recipes. */
 export const SUBSCRIPTION_PRICE_USD = 4;
