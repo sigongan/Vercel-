@@ -7,7 +7,7 @@ import { signInWithProvider } from "@/lib/auth";
 import { AvocadoMark } from "@/lib/avocadoMark";
 import { SITE_NAME } from "@/lib/siteConfig";
 import type { Translation } from "@/lib/i18n";
-import { hapticTap, isNativeApp, lastAppleSignInDebug } from "@/lib/nativeApp";
+import { hapticTap, hapticSuccess, isNativeApp, lastAppleSignInDebug } from "@/lib/nativeApp";
 
 /**
  * Onboarding-style sign-in sheet: wordmark, one-line pitch, a single
@@ -38,14 +38,20 @@ export function SignInSheet({
     setError(null);
     setDebug(null);
     setBusy(true);
-    const { error } = await signInWithProvider("apple");
+    const { error, signedIn } = await signInWithProvider("apple");
+    if (signedIn) {
+      // Native path: session is already set, no reload needed — just close
+      // the sheet. (Web path never reaches here — it navigates to Apple.)
+      hapticSuccess();
+      handleClose();
+      setBusy(false);
+      return;
+    }
     if (error) setError(error);
     // Temporary — see lib/nativeApp.ts lastAppleSignInDebug. Lets us see
     // exactly why the native plugin path did or didn't run, straight from
     // the screen, no Xcode needed.
     setDebug(lastAppleSignInDebug);
-    // On success the page reloads (native) or navigates to Apple (web) —
-    // no local success state either way.
     setBusy(false);
   }
 

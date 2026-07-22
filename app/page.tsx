@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { AvocadoMark } from "@/lib/avocadoMark";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useRecentRecipes } from "@/lib/recentRecipes";
 import { useGroceryList } from "@/lib/groceryList";
 import { GroceryListSheet } from "@/components/GroceryList";
@@ -39,18 +40,36 @@ export default function Home() {
 
   useEffect(() => {
     if (!SUPABASE_CONFIGURED) return;
-    fetch("/api/me", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((body) => {
-        if (!body.signedIn) return;
-        // Only Google/Apple sign-in has a real name on file — email
-        // magic-link users get the email's local part as a reasonable
-        // stand-in ("jess@..." -> "Jess") rather than no name at all.
-        const fallback = typeof body.email === "string" ? body.email.split("@")[0] : null;
-        const name: string | null = body.name || fallback;
-        if (name) setDisplayName(name.charAt(0).toUpperCase() + name.slice(1));
-      })
-      .catch(() => {});
+
+    function loadDisplayName() {
+      fetch("/api/me", { cache: "no-store" })
+        .then((res) => res.json())
+        .then((body) => {
+          if (!body.signedIn) {
+            setDisplayName(null);
+            return;
+          }
+          // Only Google/Apple sign-in has a real name on file — email
+          // magic-link users get the email's local part as a reasonable
+          // stand-in ("jess@..." -> "Jess") rather than no name at all.
+          const fallback = typeof body.email === "string" ? body.email.split("@")[0] : null;
+          const name: string | null = body.name || fallback;
+          if (name) setDisplayName(name.charAt(0).toUpperCase() + name.slice(1));
+        })
+        .catch(() => {});
+    }
+
+    loadDisplayName();
+
+    // Native sign-in doesn't reload the page — it just sets the session and
+    // fires this event, so this greeting has to refresh itself in place.
+    const supabase = createSupabaseBrowserClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "INITIAL_SESSION") loadDisplayName();
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const unchecked = groceryItems.filter((i) => !i.checked).length;

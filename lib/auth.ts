@@ -28,7 +28,9 @@ export type OAuthProvider = "apple";
  * return via the avocato:// scheme (see registerNativeShareListener in
  * lib/nativeApp.ts).
  */
-export async function signInWithProvider(provider: OAuthProvider): Promise<{ error: string | null }> {
+export async function signInWithProvider(
+  provider: OAuthProvider,
+): Promise<{ error: string | null; signedIn?: boolean }> {
   const supabase = createSupabaseBrowserClient();
 
   if (isNativeApp()) {
@@ -49,7 +51,7 @@ async function finishNativeSignIn(
   supabase: SupabaseClient,
   provider: OAuthProvider,
   native: Extract<NativeSignInResult, { status: "success" }>,
-): Promise<{ error: string | null }> {
+): Promise<{ error: string | null; signedIn?: boolean }> {
   const { error } = await supabase.auth.signInWithIdToken({
     provider,
     token: native.token,
@@ -70,10 +72,13 @@ async function finishNativeSignIn(
     }
   }
 
-  // Cookie is set; reload so every server-rendered surface picks it up (same
-  // end state the redirect flows reach via /auth/callback).
-  window.location.reload();
-  return { error: null };
+  // No page reload — signInWithIdToken already set the session cookie, and
+  // it fires a Supabase onAuthStateChange event that every screen showing
+  // sign-in-dependent state (Home, Profile) listens for and refreshes from
+  // in place. A full reload here was the earlier, clunkier approach: it
+  // re-fetched the whole app over the network, which read as a stall right
+  // as the Face ID sheet was closing.
+  return { error: null, signedIn: true };
 }
 
 /**
