@@ -177,7 +177,7 @@ async function hashInput(input: Input): Promise<string> {
 
 async function extract(input: Input): Promise<ExtractedContent> {
   if (input.kind === "file") return extractFromFile(input.file, input.lang);
-  if (input.kind === "url") return extractFromUrl(input.url, input.lang);
+  if (input.kind === "url") return extractFromUrl(input.url);
   return extractFromText(input.text);
 }
 

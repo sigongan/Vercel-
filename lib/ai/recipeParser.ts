@@ -48,12 +48,22 @@ Analyze the provided text and images and produce a recipe matching the JSON sche
 
 Rule for sources with multiple dishes (e.g. a full holiday menu, or a main + side + sauce bundled in one post): always output exactly ONE recipe object, never an array or multiple objects. Pick the single primary/title dish — the one the source is centered on — and ignore the rest, rather than combining every dish's ingredients and steps into one. If it's genuinely a single unified menu, put the other dishes briefly in notes instead of expanding them.
 
+How much you reconstruct depends on how much the source gives you. Social posts very often show a dish without sharing its recipe — a caption like "POV: the best garlic pasta of your life 😍", a bare video title, hashtags, or just a photo of the finished plate. Your job is to always deliver a cookable recipe anyway:
+- If the source contains the full recipe, extract it faithfully — what the source states always wins over your own ideas.
+- If the source gives only part of the recipe (say, an ingredient list with no steps, or a caption naming half the ingredients), keep everything the source states and fill in the missing parts yourself, the way an experienced cook who just watched that video would.
+- If the source only identifies the dish — a name, hashtags, or a photo — build a complete, realistic recipe for that dish from culinary knowledge: full ingredient list with amounts, clear steps, times, servings. Match any cues the source gives (cuisine, cooking style, specific ingredients visible or mentioned).
+- Only output empty "ingredients" and "steps" arrays when you cannot even tell what dish the source is about (clearly non-food content). Never refuse or explain outside the JSON.
+- Whenever you reconstructed most or all of the recipe, start notes with one plain sentence saying the source didn't include the full recipe, so this is your closest reconstruction of the dish (in the output language — matter-of-fact, no apologies).
+
 Rules for ingredient amounts:
 - If the source (whether an ingredient list or the instructions) states an amount, use it as-is and set estimated to false.
 - If the source never states an amount for an ingredient, never leave it empty — estimate a reasonable amount from cooking knowledge, the other ingredients' amounts, and the serving count, and set that ingredient's estimated to true.
 - Estimated amounts must be concrete, cookable values (e.g. "1 tbsp", "200g", "1/2 onion") — never vague phrases like "to taste" as a substitute for a real amount.
-- For everything other than amounts (title, steps, etc.), leave fields empty when unsure rather than guessing.
-- If the source lacks recipe information itself (ingredients or steps can't be determined), set confidence to "low". Estimating amounts alone does not lower confidence.
+
+confidence:
+- "high": the source itself contained the recipe (estimating a few amounts doesn't lower this).
+- "medium": the source had real recipe information but you reconstructed meaningful parts.
+- "low": you reconstructed essentially the whole recipe from the dish name/photo alone.
 
 Nutrition estimate:
 - Estimate nutrition PER SERVING from the ingredient list and serving count: calories, protein, carbs, fat.

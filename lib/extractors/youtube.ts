@@ -1,15 +1,5 @@
 import { YoutubeTranscript } from "youtube-transcript";
-import type { Language } from "@/lib/i18n";
 import { ExtractedContent, ExtractionError } from "./types";
-
-const NO_INFO_WARNING: Record<Language, string> = {
-  en: "This video has little caption or description info, so the recipe is inferred from the title alone. Accuracy may be low.",
-  de: "Dieses Video hat wenig Informationen in Untertiteln oder Beschreibung, daher wird das Rezept nur anhand des Titels geschätzt. Die Genauigkeit kann gering sein.",
-  it: "Questo video ha poche informazioni nei sottotitoli o nella descrizione, quindi la ricetta viene dedotta solo dal titolo. L'accuratezza potrebbe essere bassa.",
-  es: "Este vídeo tiene poca información en subtítulos o descripción, por lo que la receta se infiere solo del título. La precisión puede ser baja.",
-  fr: "Cette vidéo contient peu d'informations dans les sous-titres ou la description, donc la recette est déduite uniquement du titre. La précision peut être faible.",
-  pt: "Este vídeo tem poucas informações em legendas ou descrição, então a receita é inferida apenas pelo título. A precisão pode ser baixa.",
-};
 
 function extractVideoId(url: string): string | null {
   try {
@@ -55,7 +45,7 @@ async function fetchDescription(url: string): Promise<string | undefined> {
   }
 }
 
-export async function extractFromYoutube(url: string, lang: Language): Promise<ExtractedContent> {
+export async function extractFromYoutube(url: string): Promise<ExtractedContent> {
   let title: string | undefined;
 
   try {
@@ -94,12 +84,9 @@ export async function extractFromYoutube(url: string, lang: Language): Promise<E
       );
     }
 
-    return {
-      sourceType: "youtube",
-      sourceUrl: url,
-      title,
-      warning: NO_INFO_WARNING[lang],
-    };
+    // Title only — the AI reconstructs the recipe from the dish name and
+    // says so in notes, so no extractor-level warning is needed.
+    return { sourceType: "youtube", sourceUrl: url, title };
   }
 
   return { sourceType: "youtube", sourceUrl: url, title, text: textParts.join("\n\n") };
