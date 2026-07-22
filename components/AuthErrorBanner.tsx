@@ -3,18 +3,33 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { translations } from "@/lib/i18n";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const t = translations.en;
 
 function Banner() {
   const searchParams = useSearchParams();
-  const [showAuthError] = useState(() => searchParams.get("authError") === "1");
+  const [showAuthError, setShowAuthError] = useState(() => searchParams.get("authError") === "1");
 
   useEffect(() => {
     if (searchParams.get("authError") === "1") {
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, [searchParams]);
+
+  // A retry can succeed without this page ever remounting (native sign-in
+  // doesn't reload) — without this, the banner from the earlier failed
+  // attempt would keep showing even after the user is signed in.
+  useEffect(() => {
+    if (!showAuthError) return;
+    const supabase = createSupabaseBrowserClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") setShowAuthError(false);
+    });
+    return () => subscription.unsubscribe();
+  }, [showAuthError]);
 
   if (!showAuthError) return null;
 
