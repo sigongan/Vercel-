@@ -78,7 +78,7 @@ export function SettingsFields() {
             <ThemeDot
               active={theme === "default"}
               label={t.themeDefault}
-              swatch="linear-gradient(135deg, #8BC926, #61A00E)"
+              swatch="linear-gradient(135deg, #C4E484, #8BC926)"
               onClick={() => { hapticTap(); setTheme("default"); }}
             />
             <ThemeDot
@@ -180,7 +180,7 @@ function ThemeDot({
       aria-pressed={active}
       style={{ background: swatch }}
       className={`h-7 w-7 rounded-full transition-all ${
-        active ? "ring-2 ring-offset-2 ring-[#61A00E] dark:ring-offset-stone-800" : "opacity-60 hover:opacity-90"
+        active ? "ring-2 ring-offset-2 ring-[#8BC926] dark:ring-offset-stone-800" : "opacity-60 hover:opacity-90"
       }`}
     />
   );
