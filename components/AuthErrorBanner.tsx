@@ -9,25 +9,29 @@ const t = translations.en;
 
 function Banner() {
   const searchParams = useSearchParams();
-  const [showAuthError, setShowAuthError] = useState(() => searchParams.get("authError") === "1");
+  const hadAuthError = searchParams.get("authError") === "1";
+  // Three states: not shown yet, confirmed-no-session (show it), or
+  // confirmed-signed-in (never show it). Starting at false and flipping to
+  // true after an async session check — the previous approach — flashed the
+  // red banner for a beat on every successful sign-in, since "signed in" and
+  // "sign-in failed" are mutually exclusive but the check to know which one
+  // is true takes a moment. Waiting for the check before rendering anything
+  // avoids the flash entirely.
+  const [showAuthError, setShowAuthError] = useState(false);
 
   useEffect(() => {
-    if (searchParams.get("authError") === "1") {
+    if (hadAuthError) {
       window.history.replaceState(null, "", window.location.pathname);
     }
-  }, [searchParams]);
+  }, [hadAuthError]);
 
-  // Being signed in and "sign-in failed" can't both be true — if a session
-  // already exists by the time this mounts (a retry succeeded without a
-  // reload, or the query param survived from a much earlier attempt via
-  // WKWebView's page-state restoration on cold launch), hide the banner
-  // rather than showing a contradictory error next to "Hi, {name}".
   useEffect(() => {
-    if (!showAuthError) return;
+    if (!hadAuthError) return;
     const supabase = createSupabaseBrowserClient();
+    let cancelled = false;
 
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setShowAuthError(false);
+      if (!cancelled && !data.session) setShowAuthError(true);
     });
 
     const {
@@ -35,8 +39,11 @@ function Banner() {
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") setShowAuthError(false);
     });
-    return () => subscription.unsubscribe();
-  }, [showAuthError]);
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, [hadAuthError]);
 
   if (!showAuthError) return null;
 
