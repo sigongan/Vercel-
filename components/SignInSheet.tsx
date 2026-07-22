@@ -7,7 +7,7 @@ import { signInWithProvider } from "@/lib/auth";
 import { AvocadoMark } from "@/lib/avocadoMark";
 import { SITE_NAME } from "@/lib/siteConfig";
 import type { Translation } from "@/lib/i18n";
-import { hapticTap } from "@/lib/nativeApp";
+import { hapticTap, isNativeApp, lastAppleSignInDebug } from "@/lib/nativeApp";
 
 /**
  * Onboarding-style sign-in sheet: wordmark, one-line pitch, a single
@@ -29,15 +29,21 @@ export function SignInSheet({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debug, setDebug] = useState<string | null>(null);
 
   if (!open) return null;
 
   async function handleApple() {
     hapticTap();
     setError(null);
+    setDebug(null);
     setBusy(true);
     const { error } = await signInWithProvider("apple");
     if (error) setError(error);
+    // Temporary — see lib/nativeApp.ts lastAppleSignInDebug. Lets us see
+    // exactly why the native plugin path did or didn't run, straight from
+    // the screen, no Xcode needed.
+    setDebug(lastAppleSignInDebug);
     // On success the page reloads (native) or navigates to Apple (web) —
     // no local success state either way.
     setBusy(false);
@@ -85,6 +91,11 @@ export function SignInSheet({
             {t.continueWithApple}
           </button>
           {error && <p className="text-center text-xs text-red-600">{error}</p>}
+          {debug && isNativeApp() && (
+            <p className="select-text rounded-lg bg-stone-100 px-3 py-2 text-center text-[11px] leading-relaxed text-stone-500 dark:bg-stone-900 dark:text-stone-400">
+              debug: {debug}
+            </p>
+          )}
         </div>
 
         <p className="text-center text-[11px] leading-relaxed text-[#9AA093]">
