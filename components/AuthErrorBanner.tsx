@@ -17,12 +17,19 @@ function Banner() {
     }
   }, [searchParams]);
 
-  // A retry can succeed without this page ever remounting (native sign-in
-  // doesn't reload) — without this, the banner from the earlier failed
-  // attempt would keep showing even after the user is signed in.
+  // Being signed in and "sign-in failed" can't both be true — if a session
+  // already exists by the time this mounts (a retry succeeded without a
+  // reload, or the query param survived from a much earlier attempt via
+  // WKWebView's page-state restoration on cold launch), hide the banner
+  // rather than showing a contradictory error next to "Hi, {name}".
   useEffect(() => {
     if (!showAuthError) return;
     const supabase = createSupabaseBrowserClient();
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setShowAuthError(false);
+    });
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
