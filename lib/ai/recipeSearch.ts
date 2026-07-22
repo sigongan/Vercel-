@@ -64,7 +64,14 @@ export async function searchRecipes(query: string, lang: Language): Promise<Reci
   ];
   // claude-haiku-4-5 predates the dynamic-filtering web_search_20260209
   // variant — it takes the basic 20250305 tool.
-  const tools = [{ type: "web_search_20250305" as const, name: "web_search" as const, max_uses: 4 }];
+  // The web_search tool's per-search fee is most of this call's cost (far
+  // more than the token cost of reading results or writing the answer) —
+  // see docs/cost-notes.md. Capping at 2 searches instead of 4 is the
+  // single biggest lever available without hurting result quality: one
+  // search already returns several candidate recipes, so a second search
+  // (a differently-worded query) is usually enough to round out a good
+  // 5-7 result list.
+  const tools = [{ type: "web_search_20250305" as const, name: "web_search" as const, max_uses: 2 }];
   let messages: Anthropic.MessageParam[] = [
     { role: "user", content: `Find great recipes for: ${query}` },
   ];
