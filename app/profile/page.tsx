@@ -7,6 +7,8 @@ import { translations } from "@/lib/i18n";
 import { FREE_MONTHLY_LIMIT } from "@/lib/billingConstants";
 import { isNativeApp, hapticTap } from "@/lib/nativeApp";
 import { SettingsFields, Chevron } from "@/components/SettingsFields";
+import { getCachedMe, fetchMe, clearCachedMe } from "@/lib/meCache";
+import type { MeResponse } from "@/lib/meCache";
 
 const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -25,29 +27,36 @@ export default function ProfilePage() {
   const tRoot = translations[language];
   const t = tRoot.auth;
 
-  const [profile, setProfile] = useState<ProfileData | null | undefined>(undefined);
+  function toProfileData(body: MeResponse): ProfileData {
+    return {
+      email: body.email ?? null,
+      name: body.name ?? null,
+      credits: body.credits ?? 0,
+      free_used_this_period: body.free_used_this_period ?? 0,
+      plan: body.plan ?? "free",
+    };
+  }
+
+  // Render the last known state immediately (set synchronously here, before
+  // paint) instead of a loading skeleton on every visit — the fresh fetch
+  // below still runs right away and corrects it if anything changed.
+  const [profile, setProfile] = useState<ProfileData | null | undefined>(() => {
+    if (typeof window === "undefined") return undefined;
+    const cached = getCachedMe();
+    if (!cached) return undefined;
+    return cached.signedIn ? toProfileData(cached) : null;
+  });
 
   useEffect(() => {
     if (!SUPABASE_CONFIGURED) return;
 
     async function loadProfile() {
-      try {
-        const res = await fetch("/api/me", { cache: "no-store" });
-        const body = await res.json();
-        if (!body.signedIn) {
-          setProfile(null);
-          return;
-        }
-        setProfile({
-          email: body.email ?? null,
-          name: body.name ?? null,
-          credits: body.credits ?? 0,
-          free_used_this_period: body.free_used_this_period ?? 0,
-          plan: body.plan ?? "free",
-        });
-      } catch {
+      const body = await fetchMe();
+      if (!body || !body.signedIn) {
         setProfile(null);
+        return;
       }
+      setProfile(toProfileData(body));
     }
 
     loadProfile();
@@ -66,6 +75,7 @@ export default function ProfilePage() {
     hapticTap();
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
+    clearCachedMe();
     setProfile(null);
   }
 

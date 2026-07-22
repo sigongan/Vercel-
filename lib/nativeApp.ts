@@ -479,38 +479,17 @@ function isUnimplemented(err: unknown): boolean {
   return code === "UNIMPLEMENTED" || /not implemented/i.test(message);
 }
 
-/** Temporary on-screen diagnostic (see SignInSheet) — every branch of
- *  nativeAppleSignIn writes a one-line summary here so it can be shown
- *  directly in the UI without needing Xcode's console open. Remove once
- *  the native sign-in rollout is confirmed working. */
-export let lastAppleSignInDebug: string = "(not attempted yet)";
-
 export async function nativeAppleSignIn(): Promise<NativeSignInResult> {
-  if (!isNativeApp()) {
-    lastAppleSignInDebug = "isNativeApp() was false";
-    return { status: "unavailable" };
-  }
+  if (!isNativeApp()) return { status: "unavailable" };
   try {
     const { registerPlugin } = await import("@capacitor/core");
     const plugin = registerPlugin<AppleSignInPluginApi>("AppleSignIn");
     const result = await plugin.signIn();
-    if (result.status === "cancelled") {
-      lastAppleSignInDebug = "user cancelled";
-      return { status: "cancelled" };
-    }
-    if (!result.identityToken) {
-      lastAppleSignInDebug = `plugin returned success but no identityToken: ${JSON.stringify(result)}`;
-      return { status: "error", message: "No identity token returned." };
-    }
-    lastAppleSignInDebug = "success — got identity token";
+    if (result.status === "cancelled") return { status: "cancelled" };
+    if (!result.identityToken) return { status: "error", message: "No identity token returned." };
     return { status: "success", token: result.identityToken, nonce: result.nonce, fullName: result.fullName };
   } catch (err) {
-    const raw = err instanceof Error ? `${err.name}: ${err.message}` : JSON.stringify(err);
-    if (isUnimplemented(err)) {
-      lastAppleSignInDebug = `plugin call threw UNIMPLEMENTED — plugin not registered in this build. Raw: ${raw}`;
-      return { status: "unavailable" };
-    }
-    lastAppleSignInDebug = `plugin call threw a real error. Raw: ${raw}`;
+    if (isUnimplemented(err)) return { status: "unavailable" };
     console.error("Native Apple sign-in failed", err);
     return { status: "error", message: err instanceof Error ? err.message : "Sign-in failed." };
   }

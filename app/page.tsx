@@ -7,6 +7,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { AvocadoMark } from "@/lib/avocadoMark";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { getCachedMe, fetchMe } from "@/lib/meCache";
 import { useRecentRecipes } from "@/lib/recentRecipes";
 import { useGroceryList } from "@/lib/groceryList";
 import { GroceryListSheet } from "@/components/GroceryList";
@@ -17,6 +18,15 @@ const SUPABASE_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 );
 
+// Only Google/Apple sign-in has a real name on file — email magic-link
+// users get the email's local part as a reasonable stand-in
+// ("jess@..." -> "Jess") rather than no name at all.
+function nameFrom(body: { name?: string | null; email?: string }): string | null {
+  const fallback = typeof body.email === "string" ? body.email.split("@")[0] : null;
+  const name = body.name || fallback;
+  return name ? name.charAt(0).toUpperCase() + name.slice(1) : null;
+}
+
 export default function Home() {
   const { language } = useLanguage();
   const t = translations[language];
@@ -24,7 +34,13 @@ export default function Home() {
   const recent = useRecentRecipes();
   const groceryItems = useGroceryList();
   const [groceryOpen, setGroceryOpen] = useState(false);
-  const [displayName, setDisplayName] = useState<string | null>(null);
+  // Render the last known greeting immediately instead of a nameless icon
+  // for a beat on every visit — the fresh fetch below still runs right away.
+  const [displayName, setDisplayName] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const cached = getCachedMe();
+    return cached?.signedIn ? nameFrom(cached) : null;
+  });
   const [homeQuery, setHomeQuery] = useState("");
 
   useEffect(() => {
@@ -41,22 +57,14 @@ export default function Home() {
   useEffect(() => {
     if (!SUPABASE_CONFIGURED) return;
 
-    function loadDisplayName() {
-      fetch("/api/me", { cache: "no-store" })
-        .then((res) => res.json())
-        .then((body) => {
-          if (!body.signedIn) {
-            setDisplayName(null);
-            return;
-          }
-          // Only Google/Apple sign-in has a real name on file — email
-          // magic-link users get the email's local part as a reasonable
-          // stand-in ("jess@..." -> "Jess") rather than no name at all.
-          const fallback = typeof body.email === "string" ? body.email.split("@")[0] : null;
-          const name: string | null = body.name || fallback;
-          if (name) setDisplayName(name.charAt(0).toUpperCase() + name.slice(1));
-        })
-        .catch(() => {});
+    async function loadDisplayName() {
+      const body = await fetchMe();
+      if (!body || !body.signedIn) {
+        setDisplayName(null);
+        return;
+      }
+      const name = nameFrom(body);
+      if (name) setDisplayName(name);
     }
 
     loadDisplayName();
