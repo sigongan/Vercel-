@@ -63,11 +63,16 @@ export function RecipeCard({
   recipe,
   onRecipeChange,
   saveable = true,
+  printStyle = "compact",
 }: {
   recipe: Recipe;
   onRecipeChange?: (recipe: Recipe) => void;
   /** Hide the Save button where the recipe is already saved (My Recipes). */
   saveable?: boolean;
+  /** "pretty" is the Pro magazine-style export: full theme color, generous
+   *  type, no single-page squeeze. Only passed by the saved-recipe detail
+   *  page, which already knows the viewer is Pro before rendering this. */
+  printStyle?: "compact" | "pretty";
 }) {
   const { language } = useLanguage();
   const t = translations[language];
@@ -145,13 +150,16 @@ export function RecipeCard({
   const steps = useMemo(() => [...recipe.steps].sort((a, b) => a.order - b.order), [recipe.steps]);
 
   useEffect(() => {
+    // Pretty mode skips the single-page squeeze entirely — a magazine
+    // export is allowed to run multiple pages.
+    if (printStyle === "pretty") return;
     window.addEventListener("beforeprint", fitPrintArea);
     window.addEventListener("afterprint", resetPrintArea);
     return () => {
       window.removeEventListener("beforeprint", fitPrintArea);
       window.removeEventListener("afterprint", resetPrintArea);
     };
-  }, []);
+  }, [printStyle]);
 
   const metas: Meta[] = [];
   if (displayRecipe.servings) metas.push({ label: t.serves, value: displayRecipe.servings });
@@ -194,7 +202,7 @@ export function RecipeCard({
   }
 
   return (
-    <div className="print-area flex flex-col gap-4">
+    <div className={`print-area flex flex-col gap-4 ${printStyle === "pretty" ? "print-pretty" : ""}`}>
       {!editing && (
         <div className="flex items-center gap-2.5 print:hidden">
           {steps.length > 0 && (
@@ -285,7 +293,8 @@ export function RecipeCard({
           copied={copied}
           onPrint={() => {
             hapticTap();
-            printRecipe(fitPrintArea, resetPrintArea);
+            if (printStyle === "pretty") printRecipe(() => {}, () => {});
+            else printRecipe(fitPrintArea, resetPrintArea);
             setMoreOpen(false);
           }}
         />

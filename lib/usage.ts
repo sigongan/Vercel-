@@ -40,6 +40,22 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   };
 }
 
+export interface SessionUserWithPlan extends SessionUser {
+  plan: "pro" | "free";
+}
+
+/** Same as getSessionUser, plus the profile's plan — used by the
+ *  extraction/search rate limiters to give Pro accounts a higher,
+ *  account-scoped ceiling instead of the shared per-IP daily cap (which a
+ *  Pro user could otherwise still hit on a busy shared network). */
+export async function getSessionUserWithPlan(): Promise<SessionUserWithPlan | null> {
+  const user = await getSessionUser();
+  if (!user) return null;
+  const admin = createSupabaseAdminClient();
+  const { data } = await admin.from("profiles").select("plan").eq("id", user.id).maybeSingle();
+  return { ...user, plan: data?.plan === "pro" ? "pro" : "free" };
+}
+
 export type QuotaResult =
   | { allowed: true; via: "free" | "credit"; freeUsed: number; credits: number }
   | { allowed: false; freeUsed: number; credits: number };

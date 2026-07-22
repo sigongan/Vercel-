@@ -28,5 +28,14 @@ export const PHOTO_DAILY_IP_LIMIT = 20;
  */
 export const SEARCH_DAILY_IP_LIMIT = 15;
 
+/**
+ * Pro accounts get a higher, account-scoped daily ceiling instead of the
+ * shared per-IP caps above — still a backstop against a compromised/shared
+ * paid account, just generous enough that a real subscriber never hits it
+ * from normal use (and never shares a cap with strangers on the same wifi).
+ */
+export const PRO_SEARCH_DAILY_LIMIT = 100;
+export const PRO_TEXT_DAILY_LIMIT = 150;
+
 /** "My Recipes" — save/organize extracted recipes. */
 export const SUBSCRIPTION_PRICE_USD = 4;

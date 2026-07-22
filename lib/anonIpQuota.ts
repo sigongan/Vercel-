@@ -1,7 +1,14 @@
 import { createHash } from "crypto";
 import type { NextRequest } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { ANON_FREE_LIMIT, TEXT_DAILY_IP_LIMIT, PHOTO_DAILY_IP_LIMIT, SEARCH_DAILY_IP_LIMIT } from "@/lib/billingConstants";
+import {
+  ANON_FREE_LIMIT,
+  TEXT_DAILY_IP_LIMIT,
+  PHOTO_DAILY_IP_LIMIT,
+  SEARCH_DAILY_IP_LIMIT,
+  PRO_SEARCH_DAILY_LIMIT,
+  PRO_TEXT_DAILY_LIMIT,
+} from "@/lib/billingConstants";
 
 /**
  * Second, harder-to-bypass gate on top of the cookie-based anon trial:
@@ -83,6 +90,39 @@ export async function consumeSearchIpQuota(ip: string): Promise<{ allowed: boole
 
   if (error || !data) {
     throw new Error(`consume_text_ip_quota RPC failed (search): ${error?.message ?? "no data"}`);
+  }
+
+  return { allowed: (data as { allowed: boolean }).allowed };
+}
+
+/**
+ * Pro accounts' higher, account-scoped versions of the two backstops above —
+ * same table/RPC, keyed by user id instead of IP so a Pro subscriber never
+ * shares a cap with strangers on the same network and gets a materially
+ * higher ceiling (PRO_SEARCH_DAILY_LIMIT / PRO_TEXT_DAILY_LIMIT) than the
+ * free/anonymous per-IP caps.
+ */
+export async function consumeSearchUserQuota(userId: string): Promise<{ allowed: boolean }> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .rpc("consume_text_ip_quota", { p_ip_hash: hashIp(`pro-search:${userId}`), p_limit: PRO_SEARCH_DAILY_LIMIT })
+    .single();
+
+  if (error || !data) {
+    throw new Error(`consume_text_ip_quota RPC failed (pro search): ${error?.message ?? "no data"}`);
+  }
+
+  return { allowed: (data as { allowed: boolean }).allowed };
+}
+
+export async function consumeTextUserQuota(userId: string): Promise<{ allowed: boolean }> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .rpc("consume_text_ip_quota", { p_ip_hash: hashIp(`pro-text:${userId}`), p_limit: PRO_TEXT_DAILY_LIMIT })
+    .single();
+
+  if (error || !data) {
+    throw new Error(`consume_text_ip_quota RPC failed (pro text): ${error?.message ?? "no data"}`);
   }
 
   return { allowed: (data as { allowed: boolean }).allowed };

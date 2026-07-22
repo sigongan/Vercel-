@@ -207,6 +207,55 @@ body {
   .print-area article li {
     break-inside: avoid;
   }
+
+  /* Pro "magazine" export (RecipeCard printStyle="pretty", saved-recipe
+     detail page only): skip the single-page squeeze above, use the brand
+     green for headings instead of flattening everything to plain black,
+     and close with a small branded footer rule. More specific than the
+     compact rules above, so this wins without touching them. */
+  .print-area.print-pretty article {
+    gap: 14pt !important;
+  }
+  .print-area.print-pretty article * {
+    color: #292524 !important;
+  }
+  .print-area.print-pretty article h2 {
+    font-size: 26pt !important;
+    line-height: 1.15 !important;
+    color: #3f6212 !important;
+    letter-spacing: -0.01em;
+    padding-bottom: 8pt;
+    border-bottom: 1.5pt solid #61A00E;
+    margin-bottom: 4pt;
+  }
+  .print-area.print-pretty article h3 {
+    font-size: 11pt !important;
+    color: #4D7C0F !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .print-area.print-pretty article p,
+  .print-area.print-pretty article li,
+  .print-area.print-pretty article span,
+  .print-area.print-pretty article dt,
+  .print-area.print-pretty article dd,
+  .print-area.print-pretty article a {
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+  }
+  .print-area.print-pretty article li {
+    break-inside: avoid;
+  }
+  .print-area.print-pretty::after {
+    content: "Avocato";
+    display: block;
+    margin-top: 24pt;
+    padding-top: 8pt;
+    border-top: 0.75pt solid #E2E6D9;
+    font-size: 8pt;
+    color: #9AA093;
+    letter-spacing: 0.08em;
+  }
 }
 
 /* Pink theme — accent-only override, applied via [data-theme="pink"] on

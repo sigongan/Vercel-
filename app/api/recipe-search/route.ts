@@ -3,8 +3,9 @@ import { searchRecipes, RecipeSearchError } from "@/lib/ai/recipeSearch";
 import type { RecipeSearchResult } from "@/lib/ai/recipeSearch";
 import type { Language } from "@/lib/i18n";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { consumeSearchIpQuota, getClientIp } from "@/lib/anonIpQuota";
+import { consumeSearchIpQuota, consumeSearchUserQuota, getClientIp } from "@/lib/anonIpQuota";
 import { getCachedSearch, setCachedSearch } from "@/lib/searchCache";
+import { getSessionUserWithPlan } from "@/lib/usage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -39,12 +40,14 @@ export async function POST(req: NextRequest) {
   }
 
   // Web search costs real money per query — per-IP daily backstop, same
-  // pattern as text/photo extraction.
+  // pattern as text/photo extraction. Pro accounts get a higher,
+  // account-scoped cap instead (lib/usage.ts, lib/anonIpQuota.ts) so they
+  // never share a limit with strangers on the same network.
   if (isSupabaseConfigured()) {
-    const ip = getClientIp(req);
-    if (ip) {
+    const sessionUser = await getSessionUserWithPlan().catch(() => null);
+    if (sessionUser?.plan === "pro") {
       try {
-        const cap = await consumeSearchIpQuota(ip);
+        const cap = await consumeSearchUserQuota(sessionUser.id);
         if (!cap.allowed) {
           return fail(
             "You've hit today's search limit — it resets tomorrow.",
@@ -53,7 +56,23 @@ export async function POST(req: NextRequest) {
           );
         }
       } catch (err) {
-        console.error("search IP cap check failed; allowing through", err);
+        console.error("pro search quota check failed; allowing through", err);
+      }
+    } else {
+      const ip = getClientIp(req);
+      if (ip) {
+        try {
+          const cap = await consumeSearchIpQuota(ip);
+          if (!cap.allowed) {
+            return fail(
+              "You've hit today's search limit — it resets tomorrow.",
+              "RATE_LIMITED",
+              429,
+            );
+          }
+        } catch (err) {
+          console.error("search IP cap check failed; allowing through", err);
+        }
       }
     }
   }

@@ -8,6 +8,7 @@ import { RecipeCard } from "@/components/RecipeCard";
 import { useRecentRecipes, removeRecentRecipe } from "@/lib/recentRecipes";
 import { useWantToCook, removeWantToCook, type WantToCookItem } from "@/lib/wantToCook";
 import { CalendarDateSheet } from "@/components/CalendarDateSheet";
+import { MealPlanStrip } from "@/components/MealPlanStrip";
 import { hapticTap } from "@/lib/nativeApp";
 import { startProSubscription } from "@/lib/subscribePro";
 import type { Recipe } from "@/lib/types/recipe";
@@ -360,6 +361,8 @@ function SavedRecipesSection({ t }: { t: Translation }) {
         </button>
         {billingError && <span className="text-xs text-red-600 dark:text-red-400">{billingError}</span>}
       </div>
+
+      <MealPlanStrip recipes={(recipes ?? []).map((r) => ({ id: r.id, title: r.title }))} t={t} />
 
       {recipes === null && <RecipesSkeleton />}
 

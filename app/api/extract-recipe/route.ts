@@ -5,8 +5,9 @@ import { parseRecipeFromContent, AiNotConfiguredError, RecipeParseError } from "
 import type { Language } from "@/lib/i18n";
 import type { ExtractRecipeResult } from "@/lib/types/recipe";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { consumeTextIpQuota, getClientIp } from "@/lib/anonIpQuota";
+import { consumeTextIpQuota, consumeTextUserQuota, getClientIp } from "@/lib/anonIpQuota";
 import { hashSource, getCachedRecipe, setCachedRecipe } from "@/lib/recipeCache";
+import { getSessionUserWithPlan } from "@/lib/usage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -74,21 +75,39 @@ export async function POST(req: NextRequest) {
       // monthly quota — while we figure out what a real limits/pricing
       // design should look like. Text keeps a generous per-IP daily cap as
       // an abuse/cost backstop; file/URL extraction has none yet, so revisit
-      // this if usage spikes before a real design is in place.
+      // this if usage spikes before a real design is in place. Pro accounts
+      // get a higher, account-scoped cap instead of the shared-IP one, same
+      // pattern as Recipe Scanner search.
       if (input.kind === "text" || input.kind === "pantry") {
-        const ip = getClientIp(req);
-        if (ip) {
+        const sessionUser = await getSessionUserWithPlan().catch(() => null);
+        if (sessionUser?.plan === "pro") {
           try {
-            const cap = await consumeTextIpQuota(ip);
+            const cap = await consumeTextUserQuota(sessionUser.id);
             if (!cap.allowed) {
               return fail(
-                "오늘 텍스트 추출 한도에 도달했어요. 텍스트 추출은 무료지만 악용 방지를 위해 하루 한도가 있어요. 내일 다시 이용해 주세요.",
+                "오늘 텍스트 추출 한도에 도달했어요. 내일 다시 이용해 주세요.",
                 "RATE_LIMITED",
                 429
               );
             }
           } catch (capErr) {
-            console.error("text IP cap check failed; allowing through", capErr);
+            console.error("pro text quota check failed; allowing through", capErr);
+          }
+        } else {
+          const ip = getClientIp(req);
+          if (ip) {
+            try {
+              const cap = await consumeTextIpQuota(ip);
+              if (!cap.allowed) {
+                return fail(
+                  "오늘 텍스트 추출 한도에 도달했어요. 텍스트 추출은 무료지만 악용 방지를 위해 하루 한도가 있어요. 내일 다시 이용해 주세요.",
+                  "RATE_LIMITED",
+                  429
+                );
+              }
+            } catch (capErr) {
+              console.error("text IP cap check failed; allowing through", capErr);
+            }
           }
         }
       }

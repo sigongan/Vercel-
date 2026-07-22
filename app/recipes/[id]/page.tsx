@@ -132,7 +132,12 @@ export default function RecipeDetailPage() {
 
         {status === "ready" && saved && (
           <>
-            <RecipeCard recipe={saved.recipe} saveable={false} onRecipeChange={handleRecipeChange} />
+            <RecipeCard
+              recipe={saved.recipe}
+              saveable={false}
+              onRecipeChange={handleRecipeChange}
+              printStyle={isPro ? "pretty" : "compact"}
+            />
 
             <section className="flex flex-col gap-4">
               <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-50">
