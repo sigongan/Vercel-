@@ -39,21 +39,22 @@ function setCachedMe(data: MeResponse) {
   }
 }
 
+/** Marks the cache signed-out (used right after sign-out) so the next
+ *  mount — even a fresh app launch — renders the sign-in row immediately
+ *  instead of a loading skeleton while /api/me confirms it. */
 export function clearCachedMe() {
-  try {
-    sessionStorage.removeItem(KEY);
-  } catch {
-    // Nothing to clear.
-  }
+  setCachedMe({ signedIn: false });
 }
 
-/** Fetches fresh /api/me and updates the cache. Never throws. */
+/** Fetches fresh /api/me and updates the cache. Never throws.
+ *  Caches signedIn:false too — not just the signed-in case — so a
+ *  signed-out visitor gets the sign-in row instantly on their next visit
+ *  instead of a loading skeleton every single time. */
 export async function fetchMe(): Promise<MeResponse | null> {
   try {
     const res = await fetch("/api/me", { cache: "no-store" });
     const body: MeResponse = await res.json();
-    if (body.signedIn) setCachedMe(body);
-    else clearCachedMe();
+    setCachedMe(body);
     return body;
   } catch {
     return null;
