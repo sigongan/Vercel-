@@ -10,6 +10,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getCachedMe, fetchMe } from "@/lib/meCache";
 import { useRecentRecipes } from "@/lib/recentRecipes";
 import { useGroceryList } from "@/lib/groceryList";
+import { useWantToCook } from "@/lib/wantToCook";
 import { GroceryListSheet } from "@/components/GroceryList";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
 import { hapticTap } from "@/lib/nativeApp";
@@ -33,6 +34,7 @@ export default function Home() {
   const router = useRouter();
   const recent = useRecentRecipes();
   const groceryItems = useGroceryList();
+  const wantToCook = useWantToCook();
   const [groceryOpen, setGroceryOpen] = useState(false);
   // Render the last known greeting immediately instead of a nameless icon
   // for a beat on every visit — the fresh fetch below still runs right away.
@@ -116,6 +118,9 @@ export default function Home() {
           className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
         />
       </form>
+      <p className="-mt-3 w-full max-w-2xl px-1 text-xs leading-relaxed text-[#9AA093]">
+        {t.searchScoutTagline}
+      </p>
 
       <Link
         href="/extract"
@@ -152,6 +157,25 @@ export default function Home() {
         )}
         <Chevron />
       </button>
+
+      {wantToCook.length > 0 && (
+        <Link
+          href="/library"
+          onClick={() => hapticTap()}
+          className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] bg-white px-5 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:border-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700/40"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[#4D7C0F] dark:text-stone-400">
+            <HeartIcon />
+          </span>
+          <span className="flex-1 text-[15px] font-medium text-[#232920] dark:text-stone-100">
+            {t.libraryWantToCookTab}
+          </span>
+          <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#61A00E] px-1.5 text-xs font-semibold text-white">
+            {wantToCook.length}
+          </span>
+          <Chevron />
+        </Link>
+      )}
 
       <section className="flex w-full max-w-2xl flex-col gap-2">
         <div className="flex items-baseline justify-between px-1">
@@ -190,10 +214,33 @@ export default function Home() {
         )}
       </section>
 
+      <section className="flex w-full max-w-2xl flex-col gap-3 rounded-2xl border border-[#E2E6D9] bg-white px-5 py-5 dark:border-stone-700 dark:bg-stone-800">
+        <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[#9AA093]">{t.howTitle}</h2>
+        <ol className="flex flex-col gap-4">
+          <HowStep n={1} title={t.how1Title} desc={t.how1Desc} />
+          <HowStep n={2} title={t.how2Title} desc={t.how2Desc} />
+          <HowStep n={3} title={t.how3Title} desc={t.how3Desc} />
+        </ol>
+      </section>
+
       {groceryOpen && (
         <GroceryListSheet open={groceryOpen} onClose={() => setGroceryOpen(false)} t={t} />
       )}
     </main>
+  );
+}
+
+function HowStep({ n, title, desc }: { n: number; title: string; desc: string }) {
+  return (
+    <li className="flex items-start gap-3.5">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-[13px] font-bold text-white">
+        {n}
+      </span>
+      <div className="flex flex-col gap-0.5 pt-0.5">
+        <p className="text-[14px] font-semibold text-[#232920] dark:text-stone-100">{title}</p>
+        <p className="text-[13px] leading-relaxed text-[#6B7261] dark:text-stone-400">{desc}</p>
+      </div>
+    </li>
   );
 }
 
@@ -210,6 +257,14 @@ function SearchGlyph() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+
+function HeartIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
     </svg>
   );
 }
