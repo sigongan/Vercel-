@@ -388,7 +388,7 @@ export function RecipeExtractor() {
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="w-full rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white dark:bg-stone-100 dark:text-stone-900 py-3.5 text-[15px] font-semibold shadow-[0_8px_20px_rgba(97,160,14,0.35)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
+                className="w-full rounded-full bg-gradient-to-br from-[#8BC926] to-[#5E7A33] text-white dark:bg-stone-100 dark:text-stone-900 py-3.5 text-[15px] font-semibold shadow-[0_8px_20px_rgba(97,160,14,0.25)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
               >
                 {t.extract}
               </button>

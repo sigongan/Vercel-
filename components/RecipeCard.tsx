@@ -136,6 +136,9 @@ export function RecipeCard({
     baseServings !== null && baseServings > 0
       ? String(Math.round(baseServings * scaleFactor))
       : `×${scaleFactor}`;
+  const scalable = recipe.ingredients.some((i) => i.amount);
+  const canScaleDown = Math.abs(scaleFactor - FACTOR_STEPS[0]) >= 1e-6;
+  const canScaleUp = Math.abs(scaleFactor - FACTOR_STEPS[FACTOR_STEPS.length - 1]) >= 1e-6;
 
   // What every view (themes, cook mode, copy/share text) renders. Editing
   // and saving keep operating on the untouched source recipe. Scale first,
@@ -204,29 +207,77 @@ export function RecipeCard({
   return (
     <div className={`print-area flex flex-col gap-4 ${printStyle === "pretty" ? "print-pretty" : ""}`}>
       {!editing && (
-        <div className="flex items-center gap-2.5 print:hidden">
-          {steps.length > 0 && (
+        <div className="flex flex-col gap-2.5 print:hidden">
+          <div className="flex items-center gap-2.5">
+            {steps.length > 0 && (
+              <button
+                onClick={() => {
+                  hapticTap();
+                  setCookModeOpen(true);
+                }}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-gradient-to-br from-[#8BC926] to-[#5E7A33] py-3 text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              >
+                <CookIcon />
+                {t.cookMode}
+              </button>
+            )}
+            {saveable && SUPABASE_CONFIGURED && <SaveButton recipe={recipe} t={t} />}
             <button
               onClick={() => {
                 hapticTap();
-                setCookModeOpen(true);
+                setMoreOpen(true);
               }}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] py-3 text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              aria-label={t.moreActions}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
             >
-              <CookIcon />
-              {t.cookMode}
+              <MoreIcon />
             </button>
+          </div>
+
+          {(convertible || scalable) && (
+            <div className="flex items-center gap-2">
+              {convertible && (
+                <button
+                  onClick={toggleUnits}
+                  title={t.unitsToggleTitle}
+                  className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${
+                    units === "metric"
+                      ? "bg-gradient-to-br from-[#8BC926] to-[#5E7A33] text-white"
+                      : "border border-[#E2E6D9] dark:border-stone-600 text-[#6B7261] dark:text-stone-400"
+                  }`}
+                >
+                  {t.unitsToggle}
+                </button>
+              )}
+              {scalable && (
+                <div className="flex items-center rounded-full border border-[#E2E6D9] dark:border-stone-600">
+                  <span className="pl-3 text-xs text-[#6B7261] dark:text-stone-400">{t.serves}</span>
+                  <button
+                    onClick={() => stepScale(-1)}
+                    aria-label={t.scaleDown}
+                    className="px-2.5 py-2 text-sm font-semibold text-[#6B7261] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
+                    disabled={!canScaleDown}
+                  >
+                    −
+                  </button>
+                  <span
+                    title={t.scaleTitle}
+                    className="min-w-6 text-center text-xs font-semibold tabular-nums text-[#232920] dark:text-stone-100"
+                  >
+                    {scaleLabel}
+                  </span>
+                  <button
+                    onClick={() => stepScale(1)}
+                    aria-label={t.scaleUp}
+                    className="px-2.5 py-2 text-sm font-semibold text-[#6B7261] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
+                    disabled={!canScaleUp}
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+            </div>
           )}
-          <button
-            onClick={() => {
-              hapticTap();
-              setMoreOpen(true);
-            }}
-            aria-label={t.moreActions}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
-          >
-            <MoreIcon />
-          </button>
         </div>
       )}
 
@@ -256,16 +307,6 @@ export function RecipeCard({
         <RecipeActionsSheet
           onClose={() => setMoreOpen(false)}
           t={t}
-          convertible={convertible}
-          units={units}
-          onToggleUnits={toggleUnits}
-          scalable={recipe.ingredients.some((i) => i.amount)}
-          scaleLabel={scaleLabel}
-          canScaleDown={Math.abs(scaleFactor - FACTOR_STEPS[0]) >= 1e-6}
-          canScaleUp={Math.abs(scaleFactor - FACTOR_STEPS[FACTOR_STEPS.length - 1]) >= 1e-6}
-          onStepScale={stepScale}
-          saveable={saveable && SUPABASE_CONFIGURED}
-          recipe={recipe}
           wanted={wanted}
           onToggleWantToCook={() => {
             hapticTap();
@@ -309,16 +350,6 @@ export function RecipeCard({
 function RecipeActionsSheet({
   onClose,
   t,
-  convertible,
-  units,
-  onToggleUnits,
-  scalable,
-  scaleLabel,
-  canScaleDown,
-  canScaleUp,
-  onStepScale,
-  saveable,
-  recipe,
   wanted,
   onToggleWantToCook,
   onOpenCalendar,
@@ -332,16 +363,6 @@ function RecipeActionsSheet({
 }: {
   onClose: () => void;
   t: Translation;
-  convertible: boolean;
-  units: UnitSystem;
-  onToggleUnits: () => void;
-  scalable: boolean;
-  scaleLabel: string;
-  canScaleDown: boolean;
-  canScaleUp: boolean;
-  onStepScale: (direction: 1 | -1) => void;
-  saveable: boolean;
-  recipe: Recipe;
   wanted: boolean;
   onToggleWantToCook: () => void;
   onOpenCalendar: () => void;
@@ -370,56 +391,6 @@ function RecipeActionsSheet({
           </button>
         </div>
 
-        {(convertible || scalable) && (
-          <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-700 dark:bg-stone-800 dark:divide-stone-700">
-            {convertible && (
-              <div className="flex items-center justify-between gap-3 px-4 py-3">
-                <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.unitsRowLabel}</span>
-                <button
-                  onClick={onToggleUnits}
-                  title={t.unitsToggleTitle}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-                    units === "metric"
-                      ? "bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white"
-                      : "border border-[#E2E6D9] dark:border-stone-600 text-[#6B7261] dark:text-stone-400"
-                  }`}
-                >
-                  {t.unitsToggle}
-                </button>
-              </div>
-            )}
-            {scalable && (
-              <div className="flex items-center justify-between gap-3 px-4 py-3">
-                <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.serves}</span>
-                <div className="flex items-center rounded-full border border-[#E2E6D9] dark:border-stone-600">
-                  <button
-                    onClick={() => onStepScale(-1)}
-                    aria-label={t.scaleDown}
-                    className="px-3 py-1.5 text-sm font-semibold text-[#6B7261] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
-                    disabled={!canScaleDown}
-                  >
-                    −
-                  </button>
-                  <span
-                    title={t.scaleTitle}
-                    className="min-w-8 text-center text-xs font-semibold tabular-nums text-[#232920] dark:text-stone-100"
-                  >
-                    {scaleLabel}
-                  </span>
-                  <button
-                    onClick={() => onStepScale(1)}
-                    aria-label={t.scaleUp}
-                    className="px-3 py-1.5 text-sm font-semibold text-[#6B7261] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-200 disabled:opacity-30"
-                    disabled={!canScaleUp}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-700 dark:bg-stone-800 dark:divide-stone-700">
           <MenuRow
             icon={<HeartIcon filled={wanted} />}
@@ -428,11 +399,6 @@ function RecipeActionsSheet({
             trailing={wanted ? t.wantToCookAdded : undefined}
           />
           <MenuRow icon={<CalendarIcon />} label={t.calendarAdd} onClick={onOpenCalendar} />
-          {saveable && (
-            <div className="px-4 py-2.5">
-              <SaveButton recipe={recipe} t={t} />
-            </div>
-          )}
           <MenuRow icon={<EditIcon />} label={t.edit} onClick={onEdit} />
           {groceryable && <MenuRow icon={<CartIcon />} label={t.groceryAdd} onClick={onAddGroceries} />}
           <MenuRow icon={<ShareIcon />} label={t.share} onClick={onShare} />
@@ -590,7 +556,7 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
     return (
       <button
         onClick={() => window.dispatchEvent(new Event("avocato:open-signin"))}
-        className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-3.5 py-1.5 text-xs font-medium text-stone-600 dark:text-stone-300 transition-colors hover:border-stone-400 dark:hover:border-stone-600"
+        className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 py-3 text-[15px] font-semibold text-[#5E7A33] dark:text-stone-300 transition-colors hover:border-[#C4E484] dark:hover:border-stone-600"
       >
         <BookmarkIcon />
         {t.signInToSave}
@@ -601,14 +567,14 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
   if (plan !== "pro") {
     if (!isNativeApp()) {
       return (
-        <span className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-3.5 py-1.5 text-xs font-medium text-stone-500 dark:text-stone-400">
+        <span className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 py-3 text-[15px] font-semibold text-[#9AA093] dark:text-stone-400">
           <BookmarkIcon />
           {t.getProInApp}
         </span>
       );
     }
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex flex-1 flex-col gap-1.5">
         <button
           onClick={async () => {
             setSubscribeError(null);
@@ -621,12 +587,12 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
               setSubscribeError(t.subscribeUnavailable);
             }
           }}
-          className="flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 shadow-sm transition-colors hover:border-amber-500"
+          className="flex items-center justify-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 py-3 text-[15px] font-semibold text-amber-700 dark:text-amber-400 shadow-sm transition-colors hover:border-amber-500"
         >
           <BookmarkIcon />
           {t.saveRequiresPro}
         </button>
-        {subscribeError && <span className="text-xs text-red-600 dark:text-red-400">{subscribeError}</span>}
+        {subscribeError && <span className="text-center text-xs text-red-600 dark:text-red-400">{subscribeError}</span>}
       </div>
     );
   }
@@ -651,10 +617,10 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
     <button
       onClick={handleSave}
       disabled={state === "saving" || state === "saved"}
-      className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold shadow-sm transition-colors disabled:cursor-default ${
+      className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-3 text-[15px] font-semibold shadow-sm transition-colors disabled:cursor-default ${
         state === "saved"
           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
-          : "bg-stone-900 text-stone-50 hover:bg-stone-700 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-300 disabled:opacity-70"
+          : "border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 text-[#232920] dark:text-stone-100 hover:border-[#C4E484] dark:hover:border-stone-600 disabled:opacity-70"
       }`}
     >
       {state === "saved" ? <CheckIcon /> : <BookmarkIcon />}

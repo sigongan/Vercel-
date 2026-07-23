@@ -193,7 +193,7 @@ export default function SearchPage() {
         {q && scan.status !== "loading" && (
           <button
             type="submit"
-            className="w-full rounded-full bg-gradient-to-br from-[#9ED13A] to-[#6FAE15] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            className="w-full rounded-full bg-gradient-to-br from-[#8BC926] to-[#5E7A33] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
           >
             {t.searchScanButton}
           </button>
@@ -322,7 +322,7 @@ function ScanResultCard({
     <div
       className={`flex flex-col gap-2 rounded-2xl border px-4 py-3.5 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none ${
         result.recommended
-          ? "border-[#9ED13A] bg-[#F7FBEE] dark:border-lime-700 dark:bg-stone-800"
+          ? "border-[#C4E484] bg-[#F7FBEE] dark:border-lime-700 dark:bg-stone-800"
           : "border-transparent bg-white dark:border-stone-700 dark:bg-stone-800"
       }`}
     >
@@ -331,7 +331,7 @@ function ScanResultCard({
           {result.title}
         </span>
         {result.recommended && (
-          <span className="shrink-0 rounded-full bg-[#6FAE15] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+          <span className="shrink-0 rounded-full bg-[#E6F3C5] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#4D7C0F]">
             {badgeLabel}
           </span>
         )}
