@@ -17,7 +17,7 @@ function normalizeQuery(query: string): string {
 // category/listing pages through as "recommended" results) — folding it
 // into the hash makes old entries simply miss instead of serving stale,
 // now-incorrect results for up to the full TTL.
-const PROMPT_VERSION = "v2";
+const PROMPT_VERSION = "v4";
 
 function hashQuery(query: string, lang: Language): string {
   return createHash("sha256").update(`${PROMPT_VERSION}|${lang}|${normalizeQuery(query)}`).digest("hex");

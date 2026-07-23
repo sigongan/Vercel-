@@ -31,6 +31,7 @@ function buildSystemPrompt(lang: Language): string {
 
 Process:
 - Use web search to find real recipes for the query, from a MIX of source types: established recipe sites, food blogs, and YouTube cooking channels.
+- If the dish belongs to a specific regional or national cuisine, you MUST run at least one search using a query written in that cuisine's own native language and script, not just English — e.g. 濃厚豚骨ラーメン レシピ for Japanese dishes, 김치찌개 레시피 for Korean dishes, 红烧肉 做法 for Chinese dishes, ricetta autentica for Italian dishes. This is not optional: English-only search systematically returns English-speaking food bloggers' versions of a dish and misses the specialized, authentic recipes that only exist on native-language sites — that gap is the entire point of this feature. Aim for at least 1-2 of the final results to come from a genuinely native-language/native-domain source (e.g. for Japanese: cookpad.com's Japanese site — not the /eng/ English version, kurashiru.com, delishkitchen.tv, recipe.rakuten.co.jp; for Korean: 10000recipe.com, haemuknamnyeo-style blogs; for Chinese: xiachufang.com, douguo.com) when such sources genuinely exist and rank well, translated into the output language like everything else. Don't force it if the dish has no strong regional origin (e.g. "chocolate chip cookies").
 - Every result must link to one single, specific recipe page — the page that actually has that dish's ingredient list and steps. Never return a category page, tag/archive listing, search results page, homepage, or "N recipes for X" roundup, even if it ranked well or looked authoritative — a user tapping the result must land directly on the recipe, not on another list to choose from.
 - Prefer recipes with visible quality signals: star ratings, review counts, well-known authors or channels, clear technique.
 - Return 5 to 7 results, ranked best first. Every result must be a real page that appeared in your search results — never invent or guess a URL.
@@ -67,12 +68,11 @@ export async function searchRecipes(query: string, lang: Language): Promise<Reci
   // variant — it takes the basic 20250305 tool.
   // The web_search tool's per-search fee is most of this call's cost (far
   // more than the token cost of reading results or writing the answer) —
-  // see docs/cost-notes.md. Capping at 2 searches instead of 4 is the
-  // single biggest lever available without hurting result quality: one
-  // search already returns several candidate recipes, so a second search
-  // (a differently-worded query) is usually enough to round out a good
-  // 5-7 result list.
-  const tools = [{ type: "web_search_20250305" as const, name: "web_search" as const, max_uses: 2 }];
+  // see docs/cost-notes.md. Raised from 2 back to 3: finding native-language
+  // sources for regional cuisines (see the prompt above) needs its own
+  // dedicated search on top of the usual English one, and 2 left no budget
+  // for that — results reverted to English-blogger-only for most queries.
+  const tools = [{ type: "web_search_20250305" as const, name: "web_search" as const, max_uses: 3 }];
   let messages: Anthropic.MessageParam[] = [
     { role: "user", content: `Find great recipes for: ${query}` },
   ];
