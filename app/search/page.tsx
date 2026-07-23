@@ -26,13 +26,50 @@ type ScanState =
   | { status: "done"; results: RecipeSearchResult[] }
   | { status: "error"; message: string };
 
+// Tapping a result navigates to /extract (a real route change), which
+// unmounts this page — without this, coming back to Search always landed on
+// a blank slate and re-running the same search. Only "done"/"error" are
+// worth restoring; "loading" would just hang forever on return.
+const SEARCH_STATE_KEY = "avocato:search-state";
+
+interface StoredSearchState {
+  query: string;
+  scan: Extract<ScanState, { status: "done" | "error" }>;
+}
+
+function readStoredSearchState(): StoredSearchState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(SEARCH_STATE_KEY);
+    return raw ? (JSON.parse(raw) as StoredSearchState) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredSearchState(state: StoredSearchState) {
+  try {
+    sessionStorage.setItem(SEARCH_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // Storage unavailable — the search just won't survive navigation.
+  }
+}
+
+function clearStoredSearchState() {
+  try {
+    sessionStorage.removeItem(SEARCH_STATE_KEY);
+  } catch {
+    // Nothing to clear.
+  }
+}
+
 export default function SearchPage() {
   const { language } = useLanguage();
   const t = translations[language];
   const recent = useRecentRecipes();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(() => readStoredSearchState()?.query ?? "");
   const [saved, setSaved] = useState<SavedRecipe[] | null>(null);
-  const [scan, setScan] = useState<ScanState>({ status: "idle" });
+  const [scan, setScan] = useState<ScanState>(() => readStoredSearchState()?.scan ?? { status: "idle" });
   const [stepIndex, setStepIndex] = useState(0);
 
   // Cycles through "searching sites / comparing reviews / picking the
@@ -100,12 +137,18 @@ export default function SearchPage() {
       });
       const body = await res.json();
       if (body.ok) {
-        setScan({ status: "done", results: body.results });
+        const next: ScanState = { status: "done", results: body.results };
+        setScan(next);
+        writeStoredSearchState({ query: trimmed, scan: next });
       } else {
-        setScan({ status: "error", message: body.error || t.searchScanError });
+        const next: ScanState = { status: "error", message: body.error || t.searchScanError };
+        setScan(next);
+        writeStoredSearchState({ query: trimmed, scan: next });
       }
     } catch {
-      setScan({ status: "error", message: t.searchScanError });
+      const next: ScanState = { status: "error", message: t.searchScanError };
+      setScan(next);
+      writeStoredSearchState({ query: trimmed, scan: next });
     }
   }
 
@@ -137,7 +180,10 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              if (scan.status !== "idle") setScan({ status: "idle" });
+              if (scan.status !== "idle") {
+                setScan({ status: "idle" });
+                clearStoredSearchState();
+              }
             }}
             placeholder={t.searchPlaceholder}
             className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
