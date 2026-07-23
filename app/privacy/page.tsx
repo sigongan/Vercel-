@@ -25,15 +25,17 @@ export default function PrivacyPage() {
                 hash of it may be cached so identical requests don&apos;t re-run the AI.
               </li>
               <li>
-                <strong>Account info</strong> — if you sign in (with Google, Apple, or email), your
-                email address, via Supabase, to manage your free usage, credits, subscription, and
-                saved recipes. Signing in with Google or Apple shares only your email address and
-                name with us, as authorized by you at their sign-in screen — never your password.
+                <strong>Account info</strong> — if you sign in with Apple, your email address (or
+                Apple&rsquo;s private relay address if you choose to hide it) and name, via Supabase, to
+                manage your free usage, credits, subscription, and saved recipes. Sign in with Apple
+                shares only what you authorize at Apple&rsquo;s sign-in screen — never your password.
               </li>
               <li>
-                <strong>Payment info</strong> — if you buy credits or subscribe, Stripe processes your
-                payment directly. We never see or store your card details — only that a payment
-                succeeded, and your Stripe customer/subscription ID.
+                <strong>Payment info</strong> — in the iOS app, subscriptions are purchased through
+                Apple&rsquo;s In-App Purchase and billed by Apple; we never see your payment details, only
+                that a purchase succeeded. On the website, Stripe processes payments directly — we never
+                see or store your card details, only that a payment succeeded and your Stripe
+                customer/subscription ID.
               </li>
               <li>
                 <strong>Basic usage data</strong> — request counts for enforcing free limits, and
@@ -80,14 +82,16 @@ export default function PrivacyPage() {
 
           <Section title="Data retention">
             Saved recipes and account data are kept while your account is active. Cached extraction
-            results may be kept to speed up repeat requests. You can request deletion of your account and
-            data at any time by emailing us.
+            results may be kept to speed up repeat requests. You can delete your account and all
+            associated data at any time from Profile → Delete Account in the app — no need to contact us.
           </Section>
 
           <Section title="Your choices">
             You can use {SITE_NAME} anonymously for a limited free trial without creating an account. You
-            can delete saved recipes yourself from the My Recipes page, cancel a subscription anytime from
-            the billing portal, or request full account deletion by contacting us.
+            can delete saved recipes yourself from the My Recipes page, manage or cancel a subscription
+            from the App Store (iOS) or billing portal (web), and delete your account and all its data
+            at any time from Profile → Delete Account — this happens immediately, in the app, with no
+            support request needed.
           </Section>
 
           <Section title="Contact">

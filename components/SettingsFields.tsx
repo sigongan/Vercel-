@@ -6,6 +6,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useTheme } from "@/hooks/useTheme";
 import { translations, LANGUAGE_NAMES } from "@/lib/i18n";
 import { hapticTap, isNativeApp, restorePurchases } from "@/lib/nativeApp";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { clearCachedMe } from "@/lib/meCache";
 
 const CLEAR_KEYS = ["avocato:recent-recipes", "avocato:grocery-list", "avocato:recipe-notes"];
 
@@ -14,7 +16,7 @@ const CLEAR_KEYS = ["avocato:recent-recipes", "avocato:grocery-list", "avocato:r
  * lists (rows in white cards, hairline separators, controls right-aligned)
  * — embedded directly on the Profile page below the account card.
  */
-export function SettingsFields() {
+export function SettingsFields({ signedIn = false }: { signedIn?: boolean }) {
   const { language } = useLanguage();
   const { theme, setTheme } = useTheme();
   const t = translations[language].settings;
@@ -22,6 +24,34 @@ export function SettingsFields() {
   const [cleared, setCleared] = useState(false);
   const [restoreMsg, setRestoreMsg] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function handleDeleteAccount() {
+    hapticTap();
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/account/delete", { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Failed");
+      }
+      clearCachedMe();
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+      window.location.href = "/";
+    } catch {
+      setDeleteError(t.deleteAccountError);
+      setConfirmDelete(false);
+      setDeleting(false);
+    }
+  }
 
   async function handleRestore() {
     hapticTap();
@@ -117,6 +147,22 @@ export function SettingsFields() {
           >
             {restoreMsg ?? t.restorePurchases}
           </button>
+        </Group>
+      )}
+
+      {signedIn && (
+        <Group>
+          <button
+            type="button"
+            onClick={handleDeleteAccount}
+            disabled={deleting}
+            className="w-full px-5 py-3.5 text-left text-[15px] text-red-500 transition-colors hover:bg-red-50/60 disabled:opacity-60 dark:hover:bg-red-950/20"
+          >
+            {deleting ? t.deleteAccountWorking : confirmDelete ? t.deleteAccountConfirm : t.deleteAccount}
+          </button>
+          {deleteError && (
+            <p className="px-5 pb-3.5 text-xs text-red-600 dark:text-red-400">{deleteError}</p>
+          )}
         </Group>
       )}
 

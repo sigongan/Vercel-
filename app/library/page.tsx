@@ -9,7 +9,7 @@ import { useRecentRecipes, removeRecentRecipe } from "@/lib/recentRecipes";
 import { useWantToCook, removeWantToCook, type WantToCookItem } from "@/lib/wantToCook";
 import { CalendarDateSheet } from "@/components/CalendarDateSheet";
 import { MealPlanStrip } from "@/components/MealPlanStrip";
-import { hapticTap } from "@/lib/nativeApp";
+import { hapticTap, isNativeApp } from "@/lib/nativeApp";
 import { startProSubscription } from "@/lib/subscribePro";
 import type { Recipe } from "@/lib/types/recipe";
 
@@ -288,6 +288,16 @@ function SavedRecipesSection({ t }: { t: Translation }) {
 
   async function handleManage() {
     setBillingError(null);
+    // Apple IAP subscriptions are managed through iOS itself, never Stripe —
+    // App Store review guideline 3.1.1 doesn't allow surfacing a path to an
+    // external payment site from inside the app. A pro plan reached via
+    // native purchase has no Stripe customer record anyway, so this would
+    // just error for them; deep-link to the OS's own subscription screen
+    // instead of ever calling the Stripe portal API on native.
+    if (isNativeApp()) {
+      window.location.href = "itms-apps://apps.apple.com/account/subscriptions";
+      return;
+    }
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" });
       const data = await res.json();

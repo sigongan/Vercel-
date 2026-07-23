@@ -21,7 +21,8 @@ App Store Connect(appstoreconnect.apple.com)에 앱을 등록할 때 그대로
 | Primary Category | Food & Drink |
 | Secondary Category | Utilities |
 | Age Rating | 4+ (설문에서 전부 "None" 선택하면 됨) |
-| Price | Free (무료 출시 — 결제는 추후 IAP로) |
+| Price | Free (앱 자체는 무료, Pro는 IAP 구독) |
+| In-App Purchases | Yes — Avocato Pro 월 구독 ($4/월). App Store Connect의 "In-App Purchases" 섹션에서 구독 상품을 만들고 **바이너리와 함께 "Ready to Submit" 상태**여야 심사가 진행됨 |
 
 > 앱 이름이 이미 선점되어 있으면: "Avocato: Recipe Saver",
 > "Avocato — Video to Recipe" 순으로 시도.
@@ -106,7 +107,8 @@ recipe,extract,tiktok,youtube,video,cooking,ingredients,save,import,scan,ai,chef
 
 ## 5. 심사 관련 (App Review Information)
 
-- **Sign-in required?** → No (로그인 없이 전 기능 사용 가능 — 심사에 유리. 하단 탭의 Profile에서 선택적 로그인 제공)
+- **Sign-in required?** → No for extraction/search (로그인 없이 핵심 기능 사용 가능). **저장 기능(Library의 Saved 탭)과 Pro 기능은 로그인 + 구독 필요** — 로그인은 Sign in with Apple만 제공 (Google/이메일 로그인은 제거됨).
+- **Demo account** — Sign in with Apple만 쓰므로 심사관이 본인 Apple ID로 직접 로그인 테스트 가능. 별도 데모 계정 불필요. Sandbox 결제 테스트는 App Store Connect에 등록된 Sandbox Tester 계정으로 진행됨(자동).
 - **Notes 칸에 넣을 문구**:
 
 ```
@@ -119,41 +121,68 @@ recipe automatically. You can also paste a video URL directly on the
 home screen. Example URL that works well:
 https://www.youtube.com/watch?v=<아무 요리 영상이나 하나 넣기>
 
-No account is required. There are no purchases in this version.
+Extraction and recipe search work without an account. Signing in (Sign
+in with Apple only) unlocks saving recipes and an optional Pro
+subscription (via In-App Purchase) that adds unlimited saves,
+collections, a weekly meal plan, higher daily limits, and a
+magazine-style print/PDF export.
+
+Account deletion: Profile → Delete Account (tap twice to confirm) —
+immediately and permanently deletes the account and all associated
+data from within the app, no support contact required.
 ```
 
 ## 6. 개인정보 보호 라벨 (App Privacy 설문 답변)
 
-App Store Connect의 App Privacy 설문에서:
+App Store Connect의 App Privacy 설문에서 (로그인 + IAP가 이미 켜진 현재 기준으로 업데이트됨):
 
 **Data Used to Track You**: 없음 (No)
 
-**Data Linked to You**: 없음 (계정 기능이 숨겨져 있는 현재 기준)
+**Data Linked to You** (계정에 연결되는 데이터):
+- **Contact Info → Email Address**: 예 (Apple 로그인 시 받는 이메일 — 계정 식별용)
+- **Identifiers → User ID**: 예 (Supabase user id)
+- **User Content → Other User Content**: 예 (저장한 레시피)
+- **Purchases → Purchase History**: 예 (Pro 구독 상태 — Apple IAP)
 
 **Data Not Linked to You**:
-- **User Content → Other User Content**: 예 (추출용으로 제출한 링크/사진/문서 — 앱 기능 제공 목적, Analytics 아님, 추적 아님)
+- **User Content → Other User Content**: 예 (추출용으로 제출한 링크/사진/문서 — 로그인 없이도 쓰는 기능이라 계정에 연결 안 됨, 앱 기능 제공 목적, Analytics/추적 아님)
 - **Usage Data → Product Interaction**: 예 (Vercel Analytics 익명 사용 통계 — Analytics 목적)
 
-> 나중에 로그인/IAP를 켜면 이 설문을 업데이트해야 함 (이메일 →
-> Data Linked to You에 추가).
+> App Store Connect 설문에서 "Do you or your third-party partners collect
+> data from this app?" → Yes로 답하고 위 항목들을 정확히 매핑해야 함.
+> 실제 앱 동작과 라벨이 안 맞으면 그 자체로 심사 거절/이후 삭제 사유가 됨.
 
 ## 7. 제출 전 체크리스트
 
-- [ ] Xcode에서 **Version 1.0 / Build 1** 확인 (App 타겟 General 탭)
+**App Store Connect (포털 작업)**
+- [ ] **In-App Purchase 상품 등록** — Avocato Pro 구독($4/월) 만들고 상태를 "Ready to Submit"으로. 바이너리 제출과 별개로 이것도 준비돼 있어야 심사가 진행됨
+- [ ] **Paid Apps Agreement 서명 + 은행/세금 정보 입력** (App Store Connect → Agreements, Tax, and Banking) — IAP 매출을 받으려면 필수, 안 해두면 IAP 자체가 심사 통과해도 활성화 안 됨
+- [ ] App Privacy 설문 — 위 6번 항목대로 입력
+- [ ] 위 2, 3, 5번 문구/스크린샷 업로드
+
+**Xcode / 코드 쪽**
+- [ ] `git pull`로 최신 코드 받기 (계정 삭제 기능, 로그인/결제 문구 수정 등 이번에 추가됨)
+- [ ] **Version 1.0 / Build 1** 확인 (App 타겟 General 탭)
 - [ ] 앱 아이콘 1024×1024가 Assets에 있는지 확인 (있음 — resources/icon.png에서 생성됨)
+- [ ] 스킴이 **App**으로 되어있는지 확인 (다른 스킴 선택된 채로 빌드했던 적 있었으니 한 번 더 확인)
+- [ ] TestFlight로 본인 폰에 먼저 설치해서 최종 확인 (심사 없이 바로 가능) — 특히:
+  - [ ] Sign in with Apple로 로그인 → 로그아웃 → 재로그인 잘 되는지
+  - [ ] Profile → **Delete Account** 두 번 탭 → 실제로 계정이 사라지고 로그아웃되는지
+  - [ ] Sandbox 계정으로 Pro 구독 테스트 (App Store Connect에 Sandbox Tester 등록 후 로그인해서 테스트)
+  - [ ] Library → Saved 탭에서 **Manage subscription**을 눌렀을 때 Stripe가 아니라 iOS 자체 구독 관리 화면으로 가는지
 - [ ] `Product → Archive`로 아카이브 생성 (기기 선택을 "Any iOS Device (arm64)"로)
 - [ ] Organizer 창에서 **Distribute App → App Store Connect → Upload**
-- [ ] App Store Connect에서 위 문구들 입력 + 스크린샷 업로드
-- [ ] TestFlight로 본인 폰에 먼저 설치해서 최종 확인 (심사 없이 바로 가능)
 - [ ] **Submit for Review** — 첫 심사는 보통 24~48시간
 
-## 8. 예상 거절 사유와 선제 대응 (이미 처리된 것들)
+## 8. 예상 거절 사유와 선제 대응
 
 | 가이드라인 | 상태 |
 | --- | --- |
-| 3.1.1 외부 결제 링크 금지 | ✅ Stripe 버튼 전부 네이티브에서 숨김 처리됨 |
-| 5.1.1 개인정보처리방침 | ✅ /privacy 페이지 (클립보드·분석도구 공개 포함) |
-| 4.2 최소 기능성 ("웹사이트 래퍼") | ✅ 공유 익스텐션·햅틱·클립보드 감지·화면 꺼짐 방지 등 네이티브 기능 다수 |
-| 2.1 크래시/미완성 | 제출 전 TestFlight에서 공유 플로우 한 번 더 확인 |
+| 3.1.1 외부 결제 링크 금지 | ✅ Stripe 버튼/구독 관리 링크 전부 네이티브에서 숨겨지거나 iOS 자체 화면으로 대체됨 (Manage Subscription도 최근 수정) |
+| 5.1.1(v) 앱 내 계정 삭제 필수 | ✅ Profile → Delete Account, 이메일 문의 없이 앱 안에서 즉시 삭제 (이번에 새로 추가) — **IAP 등록 전 이 항목이 제일 흔한 거절 사유라 특히 확인 필요** |
+| 5.1.1 개인정보처리방침 | ✅ /privacy 페이지 — Apple 로그인 전용, IAP, 인앱 계정 삭제로 최신화됨 |
+| App Privacy 설문 ↔ 실제 동작 일치 | ✅ 6번 항목대로 입력하면 일치 (이메일/유저ID/구매내역이 Data Linked to You로 반영됨) |
+| 4.2 최소 기능성 ("웹사이트 래퍼") | ✅ 공유 익스텐션·햅틱·클립보드 감지·화면 꺼짐 방지·네이티브 Apple 로그인·StoreKit IAP 등 다수 |
+| 2.1 크래시/미완성 | 제출 전 TestFlight에서 공유 플로우 + 로그인 + 삭제 + 구독 흐름 한 번씩 확인 |
 | 카메라/사진 권한 문구 | ✅ Info.plist에 설명 문자열 추가됨 |
-| 4.8 로그인 서비스 (제3자 로그인 쓰면 Apple 로그인도 필수) | ✅ Google/Apple/이메일 세 가지 모두 제공 (docs/oauth-setup.md 설정 후 활성화) |
+| 4.8 로그인 서비스 | ✅ Sign in with Apple만 제공(제3자 로그인 없음) — 이 가이드라인 자체가 적용 안 되는 가장 안전한 구성 |

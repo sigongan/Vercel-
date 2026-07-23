@@ -170,7 +170,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <SettingsFields />
+      <SettingsFields signedIn={Boolean(profile)} />
     </main>
   );
 }
