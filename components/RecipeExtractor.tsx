@@ -255,17 +255,17 @@ export function RecipeExtractor() {
         </ul>
       </header>
 
-      <div className="w-full max-w-2xl rounded-[32px] border border-transparent dark:border-stone-700 bg-white dark:bg-stone-800 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
+      <div className="w-full max-w-2xl rounded-[32px] border border-[#EDF1E4] dark:border-stone-700 bg-white dark:bg-stone-800 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
         {status === "loading" ? (
           <div className="flex flex-col items-center gap-4 py-14 animate-fade-in-up">
-            <div className="animate-avocado-spin">
+            <div className="animate-avocado-bounce">
               <AvocadoMark size={56} />
             </div>
             <LoadingMessages messages={t.extractingSteps} />
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-1 rounded-full bg-[#F1F4EA] dark:bg-stone-700 p-1">
+            <div className="grid grid-cols-3 gap-1 rounded-full border border-[#EDF1E4] dark:border-stone-600 bg-[#F8FAF4] dark:bg-stone-700 p-1">
               <TabButton
                 active={tab === "file"}
                 onClick={() => setTab("file")}
@@ -304,10 +304,10 @@ export function RecipeExtractor() {
                     const dropped = e.dataTransfer.files?.[0];
                     if (dropped) handleFileSelected(dropped);
                   }}
-                  className="rounded-[24px] border-2 border-dashed border-[#E2E6D9] dark:border-stone-600 bg-[#FCFCF9] dark:bg-stone-900/40 py-12 px-6 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors hover:border-[#61A00E80] hover:bg-[#F1F4EA] dark:hover:bg-stone-700/50"
+                  className="rounded-[24px] border-2 border-dashed border-[#D7E2C2] dark:border-stone-600 bg-gradient-to-b from-[#F8FAF4] to-white dark:from-stone-900/40 dark:to-stone-900/40 py-12 px-6 flex flex-col items-center gap-3.5 text-center cursor-pointer transition-all hover:border-[#61A00E] hover:shadow-[0_8px_24px_rgba(97,160,14,0.12)] dark:hover:bg-stone-700/50"
                 >
-                  <span className="flex items-center justify-center w-13 h-13 rounded-full bg-[#F2F7E8] dark:bg-stone-700 text-[#4D7C0F] dark:text-stone-400">
-                    <UploadIcon size={22} />
+                  <span className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] dark:from-stone-700 dark:to-stone-700 shadow-[0_4px_14px_rgba(120,160,60,0.25)] text-[#3f6212] dark:text-stone-300">
+                    <UploadIcon size={24} />
                   </span>
                   {preparingFile ? (
                     <span className="text-sm text-[#5D6551] dark:text-stone-400">
@@ -345,33 +345,44 @@ export function RecipeExtractor() {
               )}
 
               {tab === "url" && (
-                <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-[#232920] dark:text-stone-300">
-                    {t.urlLabel}
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#61A00E] dark:text-lime-500">
+                    <LinkIcon />
                   </span>
                   <input
                     type="url"
+                    autoFocus
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder={t.urlPlaceholder}
-                    className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-3 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-500 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
+                    className="w-full rounded-full border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 py-3.5 pl-11 pr-11 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-500 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
                   />
-                </label>
+                  {url && (
+                    <button
+                      type="button"
+                      aria-label={t.clearFile}
+                      onClick={() => setUrl("")}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9AA093] hover:text-[#232920] dark:hover:text-stone-200 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               )}
 
               {tab === "text" && (
-                <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-[#232920] dark:text-stone-300">
-                    {t.textLabel}
-                  </span>
+                <div className="flex flex-col gap-2">
                   <textarea
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     placeholder={t.textPlaceholder}
                     rows={8}
-                    className="w-full resize-y rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-3 text-sm leading-relaxed text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-500 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
+                    className="w-full resize-y rounded-[20px] border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-3.5 text-sm leading-relaxed text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] dark:placeholder-stone-500 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10 dark:focus:ring-stone-100/5"
                   />
-                </label>
+                  <span className="flex w-fit items-center gap-1.5 self-end rounded-full bg-[#F2F7E8] dark:bg-stone-700 px-3 py-1 text-[11px] font-medium text-[#4D7C0F] dark:text-lime-500">
+                    {t.textLabel}
+                  </span>
+                </div>
               )}
 
               <button

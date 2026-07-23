@@ -107,7 +107,7 @@ export default function Home() {
         }}
         className="relative w-full max-w-2xl"
       >
-        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#61A00E] dark:text-lime-500">
           <SearchGlyph />
         </span>
         <input
@@ -115,7 +115,7 @@ export default function Home() {
           value={homeQuery}
           onChange={(e) => setHomeQuery(e.target.value)}
           placeholder={t.homeSearchPlaceholder}
-          className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
+          className="w-full rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none shadow-[0_4px_14px_rgba(105,150,55,0.10)] transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/15"
         />
       </form>
       <p className="-mt-3 w-full max-w-2xl px-1 text-xs leading-relaxed text-[#9AA093]">
