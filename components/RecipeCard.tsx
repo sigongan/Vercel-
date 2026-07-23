@@ -461,7 +461,7 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
             </span>
           )}
         </div>
-        <h2 className="font-display italic text-2xl sm:text-4xl font-semibold tracking-tight text-[#30362B] dark:text-stone-50">
+        <h2 className="font-display text-2xl sm:text-4xl font-bold tracking-tight text-[#30362B] dark:text-stone-50">
           {recipe.title}
         </h2>
         {recipe.description && (

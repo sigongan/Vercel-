@@ -65,7 +65,7 @@ export function SignInSheet({
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] shadow-[0_4px_12px_rgba(120,160,60,0.25)] dark:from-stone-700 dark:to-stone-700 dark:shadow-none">
               <AvocadoMark size={26} />
             </span>
-            <span className="font-display italic text-2xl text-[#232920] dark:text-stone-50">{SITE_NAME}</span>
+            <span className="font-display font-bold text-2xl text-[#232920] dark:text-stone-50">{SITE_NAME}</span>
           </div>
           <button
             onClick={handleClose}
