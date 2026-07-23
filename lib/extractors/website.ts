@@ -133,23 +133,36 @@ export async function extractFromWebsite(rawUrl: string): Promise<ExtractedConte
   assertFetchableUrl(url);
 
   let html: string;
+  let blocked = false;
   try {
     const res = await fetch(url.toString(), {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
+        // A handful of recipe blogs sit behind bot-detection (Cloudflare etc.)
+        // that keys off missing browser-only headers as much as the UA
+        // string — these cost nothing to send and occasionally make the
+        // difference between a real page and a challenge/block response.
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Upgrade-Insecure-Requests": "1",
       },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      redirect: "follow",
     });
+    if (res.status === 403 || res.status === 429) blocked = true;
     if (!res.ok) {
       throw new Error(`status ${res.status}`);
     }
     html = (await res.text()).slice(0, MAX_HTML_BYTES);
   } catch {
     throw new ExtractionError(
-      "Could not load that page. Check the link, or copy the recipe text and paste it in the Text tab.",
+      blocked
+        ? "That site is blocking automated requests. Copy the recipe text and paste it in the Text tab instead."
+        : "Could not load that page. Check the link, or copy the recipe text and paste it in the Text tab.",
       "EXTRACTION_FAILED"
     );
   }

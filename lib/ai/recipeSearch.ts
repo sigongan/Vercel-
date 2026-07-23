@@ -31,6 +31,7 @@ function buildSystemPrompt(lang: Language): string {
 
 Process:
 - Use web search to find real recipes for the query, from a MIX of source types: established recipe sites, food blogs, and YouTube cooking channels.
+- Every result must link to one single, specific recipe page — the page that actually has that dish's ingredient list and steps. Never return a category page, tag/archive listing, search results page, homepage, or "N recipes for X" roundup, even if it ranked well or looked authoritative — a user tapping the result must land directly on the recipe, not on another list to choose from.
 - Prefer recipes with visible quality signals: star ratings, review counts, well-known authors or channels, clear technique.
 - Return 5 to 7 results, ranked best first. Every result must be a real page that appeared in your search results — never invent or guess a URL.
 - Mark "recommended": true on the 1 or 2 results with the strongest real popularity signal you actually saw (highest review count, most views/likes for a video, or clearly the most widely-cooked/viral version) — these should be the ones a user in a hurry can pick without reading the rest. If nothing has a standout signal, leave every result unrecommended rather than guessing.

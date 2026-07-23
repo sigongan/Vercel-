@@ -12,8 +12,15 @@ function normalizeQuery(query: string): string {
   return query.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+// Bump this whenever lib/ai/recipeSearch.ts's prompt changes in a way that
+// could make previously-cached results wrong (e.g. the v1 prompt let
+// category/listing pages through as "recommended" results) — folding it
+// into the hash makes old entries simply miss instead of serving stale,
+// now-incorrect results for up to the full TTL.
+const PROMPT_VERSION = "v2";
+
 function hashQuery(query: string, lang: Language): string {
-  return createHash("sha256").update(`${lang}|${normalizeQuery(query)}`).digest("hex");
+  return createHash("sha256").update(`${PROMPT_VERSION}|${lang}|${normalizeQuery(query)}`).digest("hex");
 }
 
 // Recipes on the web don't change day to day, but links can go stale or a
