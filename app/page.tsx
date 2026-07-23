@@ -86,30 +86,35 @@ export default function Home() {
 
   return (
     <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-[36px] bg-gradient-to-br from-[#9ED13A] via-[#6FAE15] to-[#3f6212] px-6 pt-7 pb-6 shadow-[0_16px_40px_rgba(77,124,15,0.35)]">
-        <div className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
-        <div className="pointer-events-none absolute -left-12 -bottom-10 h-36 w-36 rounded-full bg-black/10 blur-2xl" />
-
-        <div className="relative flex items-center gap-3">
-          <span className="animate-avocado-bounce shrink-0">
-            <AvocadoMark size={34} />
-          </span>
-          <span className="text-[19px] font-bold text-white">
+      <div className="flex w-full max-w-2xl items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <AvocadoMark size={26} />
+          <span className="text-[21px] font-bold text-[#232920] dark:text-stone-50">
             {displayName ? t.homeHiUser(displayName) : t.title}
           </span>
         </div>
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const q = homeQuery.trim();
-            if (!q) return;
-            hapticTap();
-            router.push(`/search?q=${encodeURIComponent(q)}&auto=1`);
-          }}
-          className="relative mt-5"
+        <Link
+          href="/profile"
+          onClick={() => hapticTap()}
+          aria-label={t.profileTitle}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 text-[#5D6551] dark:text-stone-300 transition-colors hover:border-[#C4E484] dark:hover:border-stone-600"
         >
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#4D7C0F]">
+          <ProfileGlyph />
+        </Link>
+      </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const q = homeQuery.trim();
+          if (!q) return;
+          hapticTap();
+          router.push(`/search?q=${encodeURIComponent(q)}&auto=1`);
+        }}
+        className="w-full max-w-2xl"
+      >
+        <div className="relative">
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
             <SearchGlyph />
           </span>
           <input
@@ -117,24 +122,23 @@ export default function Home() {
             value={homeQuery}
             onChange={(e) => setHomeQuery(e.target.value)}
             placeholder={t.homeSearchPlaceholder}
-            className="w-full rounded-full border-none bg-white/95 dark:bg-stone-100 py-3.5 pl-11 pr-4 text-[15px] text-[#232920] placeholder-[#9AA093] outline-none shadow-[0_4px_14px_rgba(0,0,0,0.15)] transition-shadow focus:ring-4 focus:ring-white/40"
+            className="w-full rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-900 py-3.5 pl-11 pr-4 text-[15px] text-[#232920] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
           />
-        </form>
-        <p className="relative mt-2 px-1 text-xs leading-relaxed text-white/75">
-          {t.searchScoutTagline}
-        </p>
+        </div>
+        <p className="mt-2 px-1 text-xs leading-relaxed text-[#9AA093]">{t.searchScoutTagline}</p>
+      </form>
 
-        <Link
-          href="/extract"
-          onClick={() => hapticTap()}
-          className="relative mt-4 flex items-center gap-3 rounded-full bg-white dark:bg-stone-100 px-5 py-3.5 shadow-[0_8px_20px_rgba(0,0,0,0.18)] transition-transform active:scale-[0.98]"
-        >
-          <span className="flex-1 text-[15px] font-bold text-[#3f6212]">{t.homeStartExtract}</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#61A00E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-            <path d="m9 5 7 7-7 7" />
-          </svg>
-        </Link>
-      </div>
+      <Link
+        href="/extract"
+        onClick={() => hapticTap()}
+        className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[#4D7C0F] dark:text-stone-400">
+          <ExtractGlyph />
+        </span>
+        <span className="flex-1 text-[15px] font-semibold text-[#232920] dark:text-stone-100">{t.homeStartExtract}</span>
+        <Chevron />
+      </Link>
 
       <AuthErrorBanner />
 
@@ -259,6 +263,25 @@ function SearchGlyph() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+
+function ProfileGlyph() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" />
+    </svg>
+  );
+}
+
+function ExtractGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v14" />
+      <path d="m6 11 6 6 6-6" />
+      <path d="M5 21h14" />
     </svg>
   );
 }

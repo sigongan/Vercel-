@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation, type Language } from "@/lib/i18n";
@@ -237,6 +238,14 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [creatingCollection, setCreatingCollection] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState("");
+  // Collections are just distinct `collection` strings on saved_recipes — so
+  // a brand-new folder can't exist until at least one recipe carries its
+  // name. This holds that assignment step right after naming it: pick which
+  // saved recipes belong in it, confirm once, and the pill appears for real.
+  const [assigningCollection, setAssigningCollection] = useState<string | null>(null);
+  const [selectedForAssign, setSelectedForAssign] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch("/api/recipes", { cache: "no-store" })
@@ -272,6 +281,48 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ collection: value }),
     });
+  }
+
+  function handleCreateCollection() {
+    const name = newCollectionName.trim();
+    if (!name) return;
+    hapticTap();
+    setCreatingCollection(false);
+    setNewCollectionName("");
+    setActiveFilter(null);
+    setSelectedForAssign(new Set());
+    setAssigningCollection(name);
+  }
+
+  function toggleSelectForAssign(id: string) {
+    hapticTap();
+    setSelectedForAssign((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleConfirmAssign() {
+    if (!assigningCollection || selectedForAssign.size === 0) {
+      setAssigningCollection(null);
+      return;
+    }
+    const name = assigningCollection;
+    const ids = [...selectedForAssign];
+    setRecipes((prev) => prev?.map((r) => (ids.includes(r.id) ? { ...r, collection: name } : r)) ?? null);
+    setAssigningCollection(null);
+    setActiveFilter(name);
+    await Promise.all(
+      ids.map((id) =>
+        fetch(`/api/recipes/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ collection: name }),
+        }),
+      ),
+    );
   }
 
   async function handleSubscribe() {
@@ -386,7 +437,29 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
       )}
 
       {recipes !== null && recipes.length > 0 && (
-        <CollectionFilterPills recipes={recipes} activeFilter={activeFilter} onSelect={setActiveFilter} />
+        <CollectionFilterPills
+          recipes={recipes}
+          activeFilter={activeFilter}
+          onSelect={setActiveFilter}
+          onCreateNew={() => {
+            hapticTap();
+            setCreatingCollection(true);
+          }}
+          t={t}
+        />
+      )}
+
+      {creatingCollection && (
+        <NewCollectionSheet
+          t={t}
+          name={newCollectionName}
+          onNameChange={setNewCollectionName}
+          onCancel={() => {
+            setCreatingCollection(false);
+            setNewCollectionName("");
+          }}
+          onCreate={handleCreateCollection}
+        />
       )}
 
       {recipes !== null && recipes.length === 0 && (
@@ -409,27 +482,47 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
           {recipes
             .filter((r) => activeFilter === null || (r.collection || UNCATEGORIZED) === activeFilter)
             .filter((r) => !query.trim() || r.title.toLowerCase().includes(query.trim().toLowerCase()))
-            .map((r) => (
+            .map((r) => {
+              const selected = selectedForAssign.has(r.id);
+              return (
               <li
                 key={r.id}
-                className={`group flex flex-col gap-3 rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 p-5 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)] ${
-                  openId === r.id ? "sm:col-span-2" : ""
-                }`}
+                className={`group flex flex-col gap-3 rounded-2xl border p-5 shadow-[0_4px_14px_rgba(105,150,55,0.08)] dark:shadow-none transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)] ${
+                  assigningCollection && selected
+                    ? "border-[#8BC926] bg-[#F7FBEE] dark:border-lime-700 dark:bg-stone-800"
+                    : "border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800"
+                } ${openId === r.id ? "sm:col-span-2" : ""}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <button
-                    onClick={() => setOpenId(openId === r.id ? null : r.id)}
+                    onClick={() =>
+                      assigningCollection ? toggleSelectForAssign(r.id) : setOpenId(openId === r.id ? null : r.id)
+                    }
                     className="flex-1 text-left text-sm font-semibold text-[#232920] dark:text-stone-200 leading-snug hover:text-[#4D7C0F] dark:hover:text-white"
                   >
                     {r.title}
                   </button>
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    aria-label={t.delete}
-                    className="shrink-0 text-[#CDD4C2] hover:text-red-500 transition-colors"
-                  >
-                    <TrashIcon />
-                  </button>
+                  {assigningCollection ? (
+                    <button
+                      onClick={() => toggleSelectForAssign(r.id)}
+                      aria-label={r.title}
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                        selected
+                          ? "border-[#61A00E] bg-[#61A00E] text-white"
+                          : "border-[#CDD4C2] dark:border-stone-600"
+                      }`}
+                    >
+                      {selected && <CheckIcon />}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleDelete(r.id)}
+                      aria-label={t.delete}
+                      className="shrink-0 text-[#CDD4C2] hover:text-red-500 transition-colors"
+                    >
+                      <TrashIcon />
+                    </button>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#9AA093]">
@@ -499,8 +592,32 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
                   </div>
                 )}
               </li>
-            ))}
+              );
+            })}
         </ul>
+      )}
+
+      {assigningCollection && (
+        <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-40 flex justify-center px-5">
+          <div className="flex w-full max-w-2xl items-center gap-3 rounded-2xl bg-[#232920] dark:bg-stone-100 px-5 py-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+            <span className="flex-1 text-sm font-medium text-white dark:text-stone-900">
+              {t.collectionsSelected(selectedForAssign.size)}
+            </span>
+            <button
+              onClick={() => setAssigningCollection(null)}
+              className="text-sm font-medium text-stone-300 dark:text-stone-500 hover:text-white dark:hover:text-stone-900"
+            >
+              {t.editCancel}
+            </button>
+            <button
+              onClick={handleConfirmAssign}
+              disabled={selectedForAssign.size === 0}
+              className="rounded-full bg-gradient-to-br from-[#8BC926] to-[#5E7A33] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40"
+            >
+              {t.collectionsAddTo(assigningCollection)}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -524,10 +641,14 @@ function CollectionFilterPills({
   recipes,
   activeFilter,
   onSelect,
+  onCreateNew,
+  t,
 }: {
   recipes: SavedRecipe[];
   activeFilter: string | null;
   onSelect: (filter: string | null) => void;
+  onCreateNew: () => void;
+  t: Translation;
 }) {
   const counts = new Map<string, number>();
   for (const r of recipes) {
@@ -536,34 +657,99 @@ function CollectionFilterPills({
   }
   const collections = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b));
 
-  if (collections.length <= 1) return null;
-
   return (
-    <div className="flex flex-wrap gap-2">
-      <button
-        onClick={() => onSelect(null)}
-        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-          activeFilter === null
-            ? "bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white"
-            : "bg-[#F1F4EA] dark:bg-stone-700 text-[#6B7261] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
-        }`}
-      >
-        All ({recipes.length})
-      </button>
+    <div className="flex flex-wrap items-center gap-2">
+      {collections.length > 1 && (
+        <button
+          onClick={() => onSelect(null)}
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            activeFilter === null
+              ? "bg-gradient-to-br from-[#8BC926] to-[#5E7A33] text-white"
+              : "bg-[#F1F4EA] dark:bg-stone-700 text-[#6B7261] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
+          }`}
+        >
+          All ({recipes.length})
+        </button>
+      )}
       {collections.map((c) => (
         <button
           key={c}
           onClick={() => onSelect(c)}
           className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
             activeFilter === c
-              ? "bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white"
+              ? "bg-gradient-to-br from-[#8BC926] to-[#5E7A33] text-white"
               : "bg-[#F1F4EA] dark:bg-stone-700 text-[#6B7261] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
           }`}
         >
           {c} ({counts.get(c)})
         </button>
       ))}
+      <button
+        onClick={onCreateNew}
+        aria-label={t.collectionsNewAria}
+        className="flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-[#CDD4C2] dark:border-stone-600 text-[#6B7261] dark:text-stone-400 transition-colors hover:border-[#61A00E] hover:text-[#4D7C0F] dark:hover:text-lime-500"
+      >
+        <PlusIcon />
+      </button>
     </div>
+  );
+}
+
+function NewCollectionSheet({
+  t,
+  name,
+  onNameChange,
+  onCancel,
+  onCreate,
+}: {
+  t: Translation;
+  name: string;
+  onNameChange: (name: string) => void;
+  onCancel: () => void;
+  onCreate: () => void;
+}) {
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40" onClick={onCancel}>
+      <div
+        className="flex flex-col gap-5 rounded-t-3xl bg-[#FAFAF7] dark:bg-stone-800 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.25)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-[#232920] dark:text-stone-50">{t.collectionsModalTitle}</h2>
+          <button
+            onClick={onCancel}
+            aria-label={t.editCancel}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EDF1E4] dark:bg-stone-700 text-[#5E7A33] dark:text-stone-300 transition-colors hover:opacity-80"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-[#5D6551] dark:text-stone-400">{t.collectionsNameLabel}</label>
+          <input
+            type="text"
+            autoFocus
+            value={name}
+            onChange={(e) => onNameChange(e.target.value)}
+            placeholder={t.collectionsNamePlaceholder}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && name.trim()) onCreate();
+            }}
+            className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-3 text-sm text-[#30362B] dark:text-stone-100 outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
+          />
+        </div>
+
+        <button
+          onClick={onCreate}
+          disabled={!name.trim()}
+          className="w-full rounded-full bg-gradient-to-br from-[#8BC926] to-[#5E7A33] py-3.5 text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40"
+        >
+          {t.collectionsCreate}
+        </button>
+      </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -571,6 +757,23 @@ function FolderIcon() {
   return (
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
     </svg>
   );
 }
