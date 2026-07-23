@@ -48,19 +48,20 @@ export function NativeAppInit() {
       }
     });
 
-    // Let the bouncing avocado play a few hops so the handoff from the
-    // native launch image doesn't feel like an abrupt cut, then hand off
-    // to the real page. Kept in sync with the native minimum in
-    // AvocatoViewController.swift's webReady().
-    const timer = setTimeout(() => {
-      hideNativeSplashScreen();
-      dismissBootSplash();
+    // Hand off to the real page as soon as it's actually ready — no
+    // artificial hold. The splash itself is a static image now (no bounce
+    // to let play out), so the fastest handoff is also the smoothest one.
+    hideNativeSplashScreen();
+    dismissBootSplash();
 
-      // Once per install: offer sign-in right after the splash, the way
-      // Deglaze's onboarding does. SignInGate already listens for this
-      // event and no-ops harmlessly if the user is already signed in;
-      // it's always dismissible (the sheet's X / backdrop tap), so this
-      // never blocks using the app without an account.
+    // Once per install: offer sign-in right after the splash, the way
+    // Deglaze's onboarding does. SignInGate already listens for this event
+    // and no-ops harmlessly if the user is already signed in; it's always
+    // dismissible (the sheet's X / backdrop tap), so this never blocks
+    // using the app without an account. Delayed slightly so the sign-in
+    // sheet's own entrance animation doesn't collide with the splash's
+    // fade-out.
+    const timer = setTimeout(() => {
       if (isNativeApp()) {
         try {
           if (!localStorage.getItem(ONBOARDING_SIGNIN_KEY)) {
@@ -72,7 +73,7 @@ export function NativeAppInit() {
           // showing it on every launch.
         }
       }
-    }, 1800);
+    }, 400);
     return () => {
       clearTimeout(timer);
       unsubscribe();

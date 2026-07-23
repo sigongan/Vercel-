@@ -1,24 +1,23 @@
 import UIKit
 
-/// The bouncing-avocado launch screen, drawn natively so it animates from
-/// the very first frame after launch (the OS LaunchScreen itself must stay
-/// static — this view takes over the instant the app process is running,
-/// which is how apps like Tiimo get their "opens with an animation" feel).
+/// The launch screen, drawn natively so it's on screen from the very first
+/// frame after launch (the OS LaunchScreen itself must stay static — this
+/// view takes over the instant the app process is running). Static by
+/// design: an animation running while the webview is also busy loading and
+/// hydrating in the background tends to stutter rather than feel smooth, so
+/// this is just the still avocado mark instead.
 /// Shown by AvocatoViewController on top of the webview while the remote
 /// web app loads; dismissed when the web signals ready (SplashReadyPlugin).
 final class AnimatedSplashView: UIView {
 
     private let avocado = CALayer()
-    private let shadow = CAShapeLayer()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = UIColor(red: 0.980, green: 0.980, blue: 0.969, alpha: 1) // #FAFAF7
 
         buildAvocado()
-        buildShadow()
         buildLabel()
-        startAnimations()
     }
 
     required init?(coder: NSCoder) {
@@ -37,7 +36,6 @@ final class AnimatedSplashView: UIView {
         // view replaces it the instant the app process starts.
         let cy = bounds.midY
         avocado.position = CGPoint(x: cx, y: cy)
-        shadow.position = CGPoint(x: cx, y: cy + avocadoSize / 2 + 22)
         label.frame = CGRect(x: 0, y: cy + avocadoSize / 2 + 44, width: bounds.width, height: 24)
     }
 
@@ -97,14 +95,7 @@ final class AnimatedSplashView: UIView {
         return p
     }
 
-    // MARK: shadow + label
-
-    private func buildShadow() {
-        shadow.bounds = CGRect(x: 0, y: 0, width: 44, height: 10)
-        shadow.path = UIBezierPath(ovalIn: shadow.bounds).cgPath
-        shadow.fillColor = UIColor(red: 0.302, green: 0.486, blue: 0.059, alpha: 1).cgColor // #4D7C0F
-        layer.addSublayer(shadow)
-    }
+    // MARK: label
 
     private let label = UILabel()
 
@@ -114,36 +105,5 @@ final class AnimatedSplashView: UIView {
         label.font = .systemFont(ofSize: 15, weight: .medium)
         label.textColor = UIColor(red: 0.365, green: 0.396, blue: 0.318, alpha: 1) // #5D6551
         addSubview(label)
-    }
-
-    // MARK: animation (mirrors the web overlay's 0.6s bounce)
-
-    private func startAnimations() {
-        let bounce = CABasicAnimation(keyPath: "transform.translation.y")
-        bounce.fromValue = 0
-        bounce.toValue = -16
-        bounce.duration = 0.3
-        bounce.autoreverses = true
-        bounce.repeatCount = .infinity
-        bounce.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        avocado.add(bounce, forKey: "bounce")
-
-        let squash = CABasicAnimation(keyPath: "transform.scale.x")
-        squash.fromValue = 1
-        squash.toValue = 0.72
-        squash.duration = 0.3
-        squash.autoreverses = true
-        squash.repeatCount = .infinity
-        squash.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        shadow.add(squash, forKey: "squash")
-
-        let fade = CABasicAnimation(keyPath: "opacity")
-        fade.fromValue = 1
-        fade.toValue = 0.45
-        fade.duration = 0.9
-        fade.autoreverses = true
-        fade.repeatCount = .infinity
-        fade.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        label.layer.add(fade, forKey: "pulse")
     }
 }

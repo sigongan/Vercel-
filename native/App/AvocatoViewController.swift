@@ -9,19 +9,17 @@ import UIKit
 class AvocatoViewController: CAPBridgeViewController {
 
     private var splash: AnimatedSplashView?
-    private var splashShownAt = Date()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Animated splash from the first frame, covering the webview while
+        // Static splash from the first frame, covering the webview while
         // the remote web app loads. The OS launch screen has to be static
         // (Apple requirement) — this takes over the moment the app runs.
         let splash = AnimatedSplashView(frame: view.bounds)
         splash.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(splash)
         self.splash = splash
-        splashShownAt = Date()
 
         NotificationCenter.default.addObserver(
             self,
@@ -39,14 +37,9 @@ class AvocatoViewController: CAPBridgeViewController {
     }
 
     @objc private func webReady() {
-        // Let a few full bounces play so fast loads don't feel like a
-        // glitchy flash of avocado.
-        let minimum: TimeInterval = 1.8
-        let elapsed = Date().timeIntervalSince(splashShownAt)
-        let delay = max(0, minimum - elapsed)
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-            self?.dismissSplash()
-        }
+        // No artificial minimum hold — dismiss the moment the web app is
+        // actually ready, for the snappiest handoff.
+        dismissSplash()
     }
 
     private func dismissSplash() {

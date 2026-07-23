@@ -220,33 +220,10 @@ export default function Home() {
         )}
       </section>
 
-      <section className="flex w-full max-w-2xl flex-col gap-3 rounded-2xl border border-[#E2E6D9] bg-white px-5 py-5 dark:border-stone-700 dark:bg-stone-800">
-        <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[#9AA093]">{t.howTitle}</h2>
-        <ol className="flex flex-col gap-4">
-          <HowStep n={1} title={t.how1Title} desc={t.how1Desc} />
-          <HowStep n={2} title={t.how2Title} desc={t.how2Desc} />
-          <HowStep n={3} title={t.how3Title} desc={t.how3Desc} />
-        </ol>
-      </section>
-
       {groceryOpen && (
         <GroceryListSheet open={groceryOpen} onClose={() => setGroceryOpen(false)} t={t} />
       )}
     </main>
-  );
-}
-
-function HowStep({ n, title, desc }: { n: number; title: string; desc: string }) {
-  return (
-    <li className="flex items-start gap-3.5">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-[13px] font-bold text-white">
-        {n}
-      </span>
-      <div className="flex flex-col gap-0.5 pt-0.5">
-        <p className="text-[14px] font-semibold text-[#232920] dark:text-stone-100">{title}</p>
-        <p className="text-[13px] leading-relaxed text-[#6B7261] dark:text-stone-400">{desc}</p>
-      </div>
-    </li>
   );
 }
 
