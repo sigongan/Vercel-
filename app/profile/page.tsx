@@ -5,7 +5,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { FREE_MONTHLY_LIMIT } from "@/lib/billingConstants";
-import { isNativeApp, hapticTap } from "@/lib/nativeApp";
+import { hapticTap } from "@/lib/nativeApp";
 import { SettingsFields, Chevron } from "@/components/SettingsFields";
 import { getCachedMe, fetchMe, clearCachedMe } from "@/lib/meCache";
 import type { MeResponse } from "@/lib/meCache";
@@ -79,13 +79,6 @@ export default function ProfilePage() {
     setProfile(null);
   }
 
-  async function handleBuyCredits() {
-    hapticTap();
-    const res = await fetch("/api/stripe/checkout", { method: "POST" });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-  }
-
   const freeRemaining = profile
     ? Math.max(0, FREE_MONTHLY_LIMIT - profile.free_used_this_period)
     : 0;
@@ -149,15 +142,6 @@ export default function ProfilePage() {
                   </span>
                 </span>
               </div>
-              {freeRemaining === 0 && !isNativeApp() && (
-                <button
-                  type="button"
-                  onClick={handleBuyCredits}
-                  className="w-full px-5 py-3.5 text-left text-[15px] text-[#4D7C0F] dark:text-lime-500 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
-                >
-                  {t.buyCredits}
-                </button>
-              )}
               <button
                 type="button"
                 onClick={handleSignOut}

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { SUBSCRIPTION_PRICE_USD } from "@/lib/billingConstants";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { startProSubscription } from "@/lib/subscribePro";
+import { isNativeApp } from "@/lib/nativeApp";
+import { SubscribeDisclosure } from "@/components/SubscribeDisclosure";
 
 /**
  * Blurs its children and overlays a subscribe CTA when locked.
@@ -16,6 +17,7 @@ export function PaywallGate({ locked, children }: { locked: boolean; children: R
   const t = translations[language];
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const native = isNativeApp();
 
   if (!locked) return <>{children}</>;
 
@@ -51,13 +53,20 @@ export function PaywallGate({ locked, children }: { locked: boolean; children: R
             recipes to your library.
           </p>
         </div>
-        <button
-          onClick={handleSubscribe}
-          disabled={redirecting}
-          className="rounded-full bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
-        >
-          {redirecting ? "Redirecting…" : `Subscribe Now — $${SUBSCRIPTION_PRICE_USD}/month`}
-        </button>
+        {native ? (
+          <>
+            <button
+              onClick={handleSubscribe}
+              disabled={redirecting}
+              className="rounded-full bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
+            >
+              {redirecting ? "…" : t.subscribeButton}
+            </button>
+            <SubscribeDisclosure t={t} language={language} />
+          </>
+        ) : (
+          <p className="text-sm font-medium text-stone-500 dark:text-stone-400">{t.getProInApp}</p>
+        )}
         {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
     </div>

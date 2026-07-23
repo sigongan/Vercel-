@@ -8,7 +8,7 @@ import { translations, type Translation } from "@/lib/i18n";
 import { RecipeEditForm } from "./RecipeEditForm";
 import { CookMode } from "./CookMode";
 import { fitPrintArea, resetPrintArea } from "@/lib/printFit";
-import { hapticTap, hapticSuccess, shareText, printRecipe } from "@/lib/nativeApp";
+import { hapticTap, hapticSuccess, shareText, printRecipe, isNativeApp } from "@/lib/nativeApp";
 import { GroceryListSheet } from "./GroceryList";
 import { addRecipeToGroceryList } from "@/lib/groceryList";
 import { useRecipeNote } from "@/lib/recipeNotes";
@@ -599,6 +599,14 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
   }
 
   if (plan !== "pro") {
+    if (!isNativeApp()) {
+      return (
+        <span className="flex items-center gap-1.5 rounded-full border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-3.5 py-1.5 text-xs font-medium text-stone-500 dark:text-stone-400">
+          <BookmarkIcon />
+          {t.getProInApp}
+        </span>
+      );
+    }
     return (
       <div className="flex items-center gap-2">
         <button

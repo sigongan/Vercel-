@@ -46,26 +46,20 @@ npm run dev
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | 예 | 레시피 파싱에 사용하는 Claude API 키. 없으면 API가 `AI_NOT_CONFIGURED` 오류를 반환합니다 (UI는 정상 동작). |
 | `INSTAGRAM_OEMBED_TOKEN` | 아니오 | 인스타그램 게시물 캡션을 가져오기 위한 Meta Graph API 토큰. 없으면 인스타그램 링크는 스크린샷 업로드를 안내합니다. |
-| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` | 아니오 | 로그인, 무료 사용량 제한(월 5회), 결과 캐싱을 켜려면 셋 다 설정. 하나라도 비어 있으면 이 기능들은 전부 꺼지고 지금처럼 로그인 없이 무제한 사용됩니다. |
-| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | 아니오 | 크레딧 구매(결제)를 켜려면 설정. Supabase는 켰지만 Stripe가 없으면 로그인/무료 한도는 동작하되 크레딧 구매만 안 됩니다. |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` | 아니오 | 로그인(Sign in with Apple), 저장 레시피, 결과 캐싱을 켜려면 셋 다 설정. 하나라도 비어 있으면 이 기능들은 전부 꺼지고 로그인 없이 추출/검색만 됩니다. |
+| `APPLE_*` / `NEXT_PUBLIC_APPLE_PRO_PRODUCT_ID` | 아니오 | Pro 구독(애플 IAP)을 켜려면 설정 — 자세한 절차는 `docs/ios-storekit-setup.md`. Avocato는 결제를 애플 IAP로만 처리합니다(웹 결제 없음). |
 
-### Supabase + Stripe 설정 순서 (선택 사항)
+### Supabase 설정 순서 (선택 사항)
 
-로그인 없이 계속 무제한으로 쓰셔도 됩니다. 사용량 제한과 결제를 켜고 싶을 때만 아래를 따라주세요.
+로그인 없이 계속 무제한으로 쓰셔도 됩니다. 저장 기능과 Pro 구독을 켜고 싶을 때만 아래를 따라주세요.
 
 1. [supabase.com](https://supabase.com) 가입 → New Project 생성
 2. Project Settings → API 에서 Project URL, `anon` `public` 키, `service_role` 키 복사 →
    `.env.local`(로컬) 또는 Vercel 환경변수(배포)에 붙여넣기
-3. Supabase 대시보드 → SQL Editor → New query → 이 저장소의 `supabase/schema.sql` 내용을
-   전부 붙여넣고 실행 (테이블 2개 + 함수 2개 생성)
-4. Authentication → Providers 에서 Email 로그인(매직링크)이 기본 활성화되어 있는지 확인
-5. (결제까지 켜려면) [Stripe 대시보드](https://dashboard.stripe.com)에서 API 키 발급 →
-   `STRIPE_SECRET_KEY`에 설정
-6. Stripe 대시보드 → Developers → Webhooks → Add endpoint → URL은
-   `https://<배포된 도메인>/api/stripe/webhook`, 이벤트는 `checkout.session.completed` 선택
-   → 생성된 Signing secret을 `STRIPE_WEBHOOK_SECRET`에 설정
-
-무료 한도(월 5회)와 크레딧팩 가격(20크레딧에 $3)은 `lib/billingConstants.ts`에서 바꿀 수 있습니다.
+3. Supabase 대시보드 → SQL Editor → New query → 이 저장소의 `supabase/schema.sql`과
+   `supabase/schema_*.sql` 파일들 내용을 순서대로 붙여넣고 실행
+4. Authentication → Providers 에서 Apple 로그인이 활성화되어 있는지 확인 (`docs/oauth-setup.md`)
+5. Pro 구독(애플 IAP)까지 켜려면 `docs/ios-storekit-setup.md` 참고
 
 ## 알려진 제약
 

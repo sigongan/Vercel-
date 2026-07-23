@@ -31,16 +31,18 @@ export default function TermsPage() {
           </Section>
 
           <Section title="2. Accounts and usage limits">
-            You may use the service without an account up to a limited free trial. Creating an account
-            unlocks additional free monthly extractions and the option to purchase credits or subscribe
-            to paid features (such as saving recipes). We may change free limits or pricing at any time;
-            changes won&apos;t retroactively affect credits or subscriptions you&apos;ve already paid for.
+            You may use the service without an account for extraction and recipe search. Creating an
+            account (Sign in with Apple) unlocks saving recipes and the option to subscribe to Avocato
+            Pro. We may change free limits or pricing at any time; changes won&apos;t retroactively
+            affect a subscription you&apos;ve already paid for.
           </Section>
 
           <Section title="3. Payments">
-            Paid credits and subscriptions are processed by Stripe. Credit packs are one-time, non-refundable
-            purchases once used. Subscriptions renew automatically each month until cancelled; you can
-            cancel anytime from the billing portal, and access continues until the end of the paid period.
+            Avocato Pro is a monthly auto-renewing subscription, purchased and billed entirely through
+            Apple&apos;s In-App Purchase in the iOS app — we never process or see your payment details.
+            The subscription renews automatically each month until cancelled; you can cancel anytime
+            from your iPhone&apos;s Settings → your name → Subscriptions, and access continues until the
+            end of the paid period. Refunds are handled by Apple under their standard policies.
           </Section>
 
           <Section title="4. Your content">

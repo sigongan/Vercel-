@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/hooks/useLanguage";
-import { translations, type Translation } from "@/lib/i18n";
+import { translations, type Translation, type Language } from "@/lib/i18n";
+import { SubscribeDisclosure } from "@/components/SubscribeDisclosure";
 import { RecipeCard } from "@/components/RecipeCard";
 import { useRecentRecipes, removeRecentRecipe } from "@/lib/recentRecipes";
 import { useWantToCook, removeWantToCook, type WantToCookItem } from "@/lib/wantToCook";
@@ -145,7 +146,7 @@ export default function LibraryPage() {
 
       {libTab === "wantToCook" && <WantToCookSection t={t} />}
 
-      {libTab === "saved" && SUPABASE_CONFIGURED && <SavedRecipesSection t={t} />}
+      {libTab === "saved" && SUPABASE_CONFIGURED && <SavedRecipesSection t={t} language={language} />}
     </main>
   );
 }
@@ -228,7 +229,7 @@ function CalendarIcon() {
   );
 }
 
-function SavedRecipesSection({ t }: { t: Translation }) {
+function SavedRecipesSection({ t, language }: { t: Translation; language: Language }) {
   const [plan, setPlan] = useState<Plan>("loading");
   const [recipes, setRecipes] = useState<SavedRecipe[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -286,26 +287,12 @@ function SavedRecipesSection({ t }: { t: Translation }) {
     // "redirecting" (Stripe) and "cancelled" (user backed out) need no action.
   }
 
-  async function handleManage() {
-    setBillingError(null);
-    // Apple IAP subscriptions are managed through iOS itself, never Stripe —
-    // App Store review guideline 3.1.1 doesn't allow surfacing a path to an
-    // external payment site from inside the app. A pro plan reached via
-    // native purchase has no Stripe customer record anyway, so this would
-    // just error for them; deep-link to the OS's own subscription screen
-    // instead of ever calling the Stripe portal API on native.
-    if (isNativeApp()) {
-      window.location.href = "itms-apps://apps.apple.com/account/subscriptions";
-      return;
-    }
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setBillingError(data.error || t.subscribeUnavailable);
-    } catch {
-      setBillingError(t.subscribeUnavailable);
-    }
+  // Avocato is Apple-IAP-only — subscriptions are managed through iOS
+  // itself, so this just deep-links to the OS's own subscription screen.
+  // No-op on web (nothing to manage there; plan state still reads fine
+  // read-only since it's the same Supabase account either way).
+  function handleManage() {
+    if (isNativeApp()) window.location.href = "itms-apps://apps.apple.com/account/subscriptions";
   }
 
   if (plan === "loading") return <RecipesSkeleton />;
@@ -350,12 +337,19 @@ function SavedRecipesSection({ t }: { t: Translation }) {
           <p className="text-lg font-semibold text-[#232920] dark:text-stone-50">{t.savedRecipesTitle}</p>
           <p className="text-sm text-amber-800 dark:text-amber-300 max-w-sm">{t.subscribeCta}</p>
         </div>
-        <button
-          onClick={handleSubscribe}
-          className="rounded-full bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors"
-        >
-          {t.subscribeButton}
-        </button>
+        {isNativeApp() ? (
+          <>
+            <button
+              onClick={handleSubscribe}
+              className="rounded-full bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors"
+            >
+              {t.subscribeButton}
+            </button>
+            <SubscribeDisclosure t={t} language={language} />
+          </>
+        ) : (
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t.getProInApp}</p>
+        )}
         {billingError && <p className="text-xs text-red-600 dark:text-red-400">{billingError}</p>}
       </div>
     );
@@ -364,12 +358,16 @@ function SavedRecipesSection({ t }: { t: Translation }) {
   return (
     <div className="flex w-full max-w-2xl flex-col gap-6">
       <div className="flex items-center gap-3">
-        <button
-          onClick={handleManage}
-          className="self-start text-xs text-[#9AA093] hover:text-[#232920] dark:hover:text-stone-200 underline underline-offset-2"
-        >
-          {t.manageSubscription}
-        </button>
+        {isNativeApp() ? (
+          <button
+            onClick={handleManage}
+            className="self-start text-xs text-[#9AA093] hover:text-[#232920] dark:hover:text-stone-200 underline underline-offset-2"
+          >
+            {t.manageSubscription}
+          </button>
+        ) : (
+          <span className="self-start text-xs text-[#9AA093]">{t.getProInApp}</span>
+        )}
         {billingError && <span className="text-xs text-red-600 dark:text-red-400">{billingError}</span>}
       </div>
 

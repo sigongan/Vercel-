@@ -9,7 +9,3 @@ export function isSupabaseConfigured(): boolean {
       process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 }
-
-export function isStripeConfigured(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET);
-}

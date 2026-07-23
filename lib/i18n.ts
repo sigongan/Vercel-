@@ -152,6 +152,9 @@ export const translations = {
     editMoveDown: "Move down",
     subscribeUnavailable: "Subscriptions aren't available yet. Please try again later.",
     subscribePending: "Waiting for approval — you'll get Pro once it's confirmed.",
+    subscribeDisclosure: (price: string) =>
+      `Avocato Pro — Monthly, ${price}/month, auto-renews until cancelled.`,
+    getProInApp: "Get Avocato Pro in the iPhone app.",
     backToStart: "New recipe",
     print: "Print",
     signInToSave: "Sign in to save",
@@ -457,6 +460,9 @@ export const translations = {
     editMoveDown: "Nach unten",
     subscribeUnavailable: "Abos sind noch nicht verfügbar. Bitte versuche es später erneut.",
     subscribePending: "Warten auf Genehmigung — du bekommst Pro, sobald sie bestätigt ist.",
+    subscribeDisclosure: (price: string) =>
+      `Avocato Pro — Monatlich, ${price}/Monat, verlängert sich automatisch bis zur Kündigung.`,
+    getProInApp: "Hol dir Avocato Pro in der iPhone-App.",
     backToStart: "Neues Rezept",
     print: "Drucken",
     signInToSave: "Zum Speichern anmelden",
@@ -762,6 +768,9 @@ export const translations = {
     editMoveDown: "Sposta giù",
     subscribeUnavailable: "Gli abbonamenti non sono ancora disponibili. Riprova più tardi.",
     subscribePending: "In attesa di approvazione — riceverai Pro non appena sarà confermata.",
+    subscribeDisclosure: (price: string) =>
+      `Avocato Pro — Mensile, ${price}/mese, si rinnova automaticamente fino alla disdetta.`,
+    getProInApp: "Ottieni Avocato Pro nell'app per iPhone.",
     backToStart: "Nuova ricetta",
     print: "Stampa",
     signInToSave: "Accedi per salvare",
@@ -1067,6 +1076,9 @@ export const translations = {
     editMoveDown: "Bajar",
     subscribeUnavailable: "Las suscripciones aún no están disponibles. Inténtalo de nuevo más tarde.",
     subscribePending: "Esperando aprobación — tendrás Pro en cuanto se confirme.",
+    subscribeDisclosure: (price: string) =>
+      `Avocato Pro — Mensual, ${price}/mes, se renueva automáticamente hasta que canceles.`,
+    getProInApp: "Consigue Avocato Pro en la app de iPhone.",
     backToStart: "Nueva receta",
     print: "Imprimir",
     signInToSave: "Inicia sesión para guardar",
@@ -1372,6 +1384,9 @@ export const translations = {
     editMoveDown: "Descendre",
     subscribeUnavailable: "Les abonnements ne sont pas encore disponibles. Veuillez réessayer plus tard.",
     subscribePending: "En attente d'approbation — vous aurez Pro une fois confirmée.",
+    subscribeDisclosure: (price: string) =>
+      `Avocato Pro — Mensuel, ${price}/mois, se renouvelle automatiquement jusqu'à annulation.`,
+    getProInApp: "Obtenez Avocato Pro dans l'app iPhone.",
     backToStart: "Nouvelle recette",
     print: "Imprimer",
     signInToSave: "Se connecter pour enregistrer",
@@ -1677,6 +1692,9 @@ export const translations = {
     editMoveDown: "Mover para baixo",
     subscribeUnavailable: "As assinaturas ainda não estão disponíveis. Tente novamente mais tarde.",
     subscribePending: "Aguardando aprovação — você terá o Pro assim que for confirmado.",
+    subscribeDisclosure: (price: string) =>
+      `Avocato Pro — Mensal, ${price}/mês, renova automaticamente até o cancelamento.`,
+    getProInApp: "Obtenha o Avocato Pro no app do iPhone.",
     backToStart: "Nova receita",
     print: "Imprimir",
     signInToSave: "Entrar para salvar",
