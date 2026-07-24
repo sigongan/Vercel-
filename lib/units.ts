@@ -1,4 +1,4 @@
-import type { Recipe } from "@/lib/types/recipe";
+import type { Ingredient, Recipe } from "@/lib/types/recipe";
 
 /**
  * Smart US→metric conversion for ingredient amounts: "1 cup flour" → "120g",
@@ -218,6 +218,14 @@ export function scaleAmount(amount: string, factor: number): string | null {
  * scaled by factor. Unscalable amounts stay as-is. Never mutates the
  * original — edit/save flows keep the source amounts, like toMetricRecipe.
  */
+function scaleIngredients(ingredients: Ingredient[], factor: number): Ingredient[] {
+  return ingredients.map((ing) => {
+    if (!ing.amount) return ing;
+    const scaled = scaleAmount(ing.amount, factor);
+    return scaled ? { ...ing, amount: scaled } : ing;
+  });
+}
+
 export function scaleRecipe(recipe: Recipe, factor: number): Recipe {
   const base = parseServings(recipe.servings);
   return {
@@ -226,18 +234,24 @@ export function scaleRecipe(recipe: Recipe, factor: number): Recipe {
       base !== null && recipe.servings
         ? recipe.servings.replace(/\d+(?:\.\d+)?/, formatQty(base * factor))
         : recipe.servings,
-    ingredients: recipe.ingredients.map((ing) => {
-      if (!ing.amount) return ing;
-      const scaled = scaleAmount(ing.amount, factor);
-      return scaled ? { ...ing, amount: scaled } : ing;
-    }),
+    ingredients: scaleIngredients(recipe.ingredients, factor),
+    // A component is made in proportion to the dish it goes into, so halving
+    // the recipe has to halve its filling too — otherwise the amounts stop
+    // agreeing with the main list's line for that component.
+    subRecipes: recipe.subRecipes?.map((sub) => ({
+      ...sub,
+      ingredients: scaleIngredients(sub.ingredients, factor),
+    })),
   };
 }
 
 /** True if toggling to metric would change anything on this recipe. */
 export function hasConvertibleAmounts(recipe: Recipe): boolean {
-  return recipe.ingredients.some(
-    (ing) => ing.amount && convertAmount(ing.amount, ing.name) !== null
+  const convertible = (ing: Ingredient) =>
+    Boolean(ing.amount && convertAmount(ing.amount, ing.name) !== null);
+  return (
+    recipe.ingredients.some(convertible) ||
+    (recipe.subRecipes ?? []).some((sub) => sub.ingredients.some(convertible))
   );
 }
 
@@ -250,10 +264,18 @@ export function hasConvertibleAmounts(recipe: Recipe): boolean {
 export function toMetricRecipe(recipe: Recipe): Recipe {
   return {
     ...recipe,
-    ingredients: recipe.ingredients.map((ing) => {
-      if (!ing.amount) return ing;
-      const converted = convertAmount(ing.amount, ing.name);
-      return converted ? { ...ing, amount: converted } : ing;
-    }),
+    ingredients: toMetricIngredients(recipe.ingredients),
+    subRecipes: recipe.subRecipes?.map((sub) => ({
+      ...sub,
+      ingredients: toMetricIngredients(sub.ingredients),
+    })),
   };
+}
+
+function toMetricIngredients(ingredients: Ingredient[]): Ingredient[] {
+  return ingredients.map((ing) => {
+    if (!ing.amount) return ing;
+    const converted = convertAmount(ing.amount, ing.name);
+    return converted ? { ...ing, amount: converted } : ing;
+  });
 }

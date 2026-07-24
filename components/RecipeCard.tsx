@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import type { Recipe, RecipeStep } from "@/lib/types/recipe";
+import type { Recipe, RecipeStep, SubRecipe } from "@/lib/types/recipe";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations, type Translation } from "@/lib/i18n";
 import { RecipeEditForm } from "./RecipeEditForm";
@@ -170,7 +170,7 @@ export function RecipeCard({
   if (recipe.cookTime) metas.push({ label: t.cook, value: recipe.cookTime });
 
   function recipeAsText(): string {
-    return [
+    const lines = [
       displayRecipe.title,
       displayRecipe.description ?? "",
       "",
@@ -179,7 +179,19 @@ export function RecipeCard({
       "",
       `${t.steps}:`,
       ...steps.map((s) => `${s.order}. ${s.instruction}`),
-    ].join("\n");
+    ];
+
+    // A shared recipe that names a component without saying how to make it
+    // is the exact gap sub-recipes exist to close — carry them along.
+    for (const sub of displayRecipe.subRecipes ?? []) {
+      lines.push("", `${t.subRecipesTitle} — ${sub.name}:`);
+      lines.push(
+        ...sub.ingredients.map((i) => `- ${i.name}${i.amount ? ` — ${formatAmount(i)}` : ""}`),
+        ...[...sub.steps].sort((a, b) => a.order - b.order).map((s) => `${s.order}. ${s.instruction}`),
+      );
+    }
+
+    return lines.join("\n");
   }
 
   async function handleCopy() {
@@ -533,8 +545,96 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
         )}
       </div>
 
+      {recipe.subRecipes && recipe.subRecipes.length > 0 && (
+        <section className="flex flex-col gap-4 border-t border-[#EDF1E4] dark:border-stone-700 pt-6 sm:pt-8">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#4D7C0F]">
+            {t.subRecipesTitle}
+          </h3>
+          <div className="flex flex-col gap-4">
+            {recipe.subRecipes.map((sub) => (
+              <SubRecipeBlock key={sub.name} sub={sub} t={t} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <CardFooter recipe={recipe} t={t} />
     </article>
+  );
+}
+
+/** One component the cook has to make before the main recipe works — the
+ *  frangipane in an almond croissant, a curry paste, a sauce. Rendered as a
+ *  self-contained mini recipe so the main list's single line ("Frangipane")
+ *  is actually cookable. */
+function SubRecipeBlock({ sub, t }: { sub: SubRecipe; t: Translation }) {
+  const steps = [...sub.steps].sort((a, b) => a.order - b.order);
+
+  return (
+    <div className="rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-[#FBFCF8] dark:bg-stone-900/40 p-4 sm:p-5 flex flex-col gap-3.5">
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        {/* Names mirror the main ingredient line, which the model often
+            writes lowercase ("frangipane") — fine mid-list, scrappy as a
+            heading. first-letter, not `capitalize`, so multi-word names
+            don't become "Simple Syrup". */}
+        <h4 className="text-[15px] font-semibold text-[#232920] dark:text-stone-100 first-letter:uppercase">
+          {sub.name}
+        </h4>
+        {sub.yield && (
+          <span className="text-xs text-[#9AA093]">
+            {t.subRecipeMakes} {sub.yield}
+          </span>
+        )}
+        {sub.estimated && (
+          <span
+            title={t.subRecipeEstimatedHint}
+            className="rounded-full bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400"
+          >
+            {t.subRecipeEstimated}
+          </span>
+        )}
+      </div>
+
+      {sub.ingredients.length > 0 && (
+        <ul className="flex flex-col gap-2">
+          {sub.ingredients.map((ing, i) => (
+            <li key={i} className="flex items-baseline gap-1.5 text-sm">
+              <span className="text-[#30362B] dark:text-stone-300">{ing.name}</span>
+              {ing.amount && (
+                <>
+                  <span className="flex-1 border-b border-dotted border-[#E2E6D9] dark:border-stone-600" />
+                  <span
+                    title={ing.estimated ? t.estimatedShort : undefined}
+                    className={`shrink-0 whitespace-nowrap text-[13px] tabular-nums ${
+                      ing.estimated
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-[#6B7261] dark:text-stone-400"
+                    }`}
+                  >
+                    {formatAmount(ing)}
+                  </span>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {steps.length > 0 && (
+        <ol className="flex flex-col gap-2.5">
+          {steps.map((step) => (
+            <li key={step.order} className="flex gap-3">
+              <span className="mt-px text-[11px] font-semibold tabular-nums text-[#9AA093]">
+                {step.order}.
+              </span>
+              <p className="text-sm leading-relaxed text-[#30362B] dark:text-stone-300">
+                {step.instruction}
+              </p>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }
 

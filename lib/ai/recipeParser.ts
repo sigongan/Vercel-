@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ExtractedContent } from "@/lib/extractors";
 import type { Language } from "@/lib/i18n";
-import type { Recipe } from "@/lib/types/recipe";
+import type { Recipe, SubRecipe } from "@/lib/types/recipe";
 
 export class AiNotConfiguredError extends Error {
   constructor() {
@@ -20,6 +20,7 @@ const JSON_SCHEMA = `JSON schema:
   "cookTime": string (optional),
   "ingredients": [{ "name": string, "amount": string, "estimated": boolean }],
   "steps": [{ "order": number, "instruction": string }],
+  "subRecipes": [{ "name": string, "yield": string (optional), "ingredients": [{ "name": string, "amount": string, "estimated": boolean }], "steps": [{ "order": number, "instruction": string }], "estimated": boolean }] (optional),
   "tags": string[],
   "confidence": "high" | "medium" | "low",
   "notes": string (optional, anything worth flagging from extraction — briefly mention any ingredients whose amounts were estimated),
@@ -59,6 +60,14 @@ Rules for ingredient amounts:
 - If the source (whether an ingredient list or the instructions) states an amount, use it as-is and set estimated to false.
 - If the source never states an amount for an ingredient, never leave it empty — estimate a reasonable amount from cooking knowledge, the other ingredients' amounts, and the serving count, and set that ingredient's estimated to true.
 - Estimated amounts must be concrete, cookable values (e.g. "1 tbsp", "200g", "1/2 onion") — never vague phrases like "to taste" as a substitute for a real amount.
+
+Component sub-recipes:
+- Some ingredients aren't things you buy — they're components you have to make first: a frangipane or pastry cream filling, a curry paste, a marinade, a tare, a spice blend, a sauce, a dough, a simple syrup, a stock, a compound butter. When one of those appears in the main ingredient list as a single line, the recipe isn't actually cookable from that list alone.
+- Give every such ingredient its own entry in "subRecipes": a full ingredient list with concrete amounts, plus the steps to make it, sized to produce roughly what the main recipe calls for.
+- Its "name" must repeat the main ingredient's name exactly, so a reader can match the two.
+- If the source spells that component's recipe out, use the source's version and set that sub-recipe's "estimated" to false. If the source only names it, reconstruct the standard version from culinary knowledge and set "estimated" to true.
+- Only components that genuinely need making. Ordinary shop-bought ingredients — butter, soy sauce, canned tomatoes, or store-bought pastry the recipe means for you to buy — never get a sub-recipe. If nothing qualifies, omit "subRecipes" entirely.
+- Keep each one tight: what's needed to make that single component, nothing more. Never restate the main recipe's own steps there.
 
 confidence:
 - "high": the source itself contained the recipe (estimating a few amounts doesn't lower this).
@@ -212,6 +221,32 @@ async function callClaude(
   }
 }
 
+/** Drops malformed sub-recipes rather than rendering half-empty component
+ *  cards — one with neither ingredients nor steps tells a cook nothing. */
+function normalizeSubRecipes(raw: unknown): SubRecipe[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+
+  const cleaned: SubRecipe[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const sub = item as Partial<SubRecipe>;
+    if (typeof sub.name !== "string" || !sub.name.trim()) continue;
+
+    const ingredients = Array.isArray(sub.ingredients) ? sub.ingredients : [];
+    const steps = Array.isArray(sub.steps) ? sub.steps : [];
+    if (ingredients.length === 0 && steps.length === 0) continue;
+
+    cleaned.push({
+      name: sub.name.trim(),
+      yield: typeof sub.yield === "string" && sub.yield.trim() ? sub.yield.trim() : undefined,
+      ingredients,
+      steps,
+      estimated: sub.estimated === true,
+    });
+  }
+  return cleaned.length > 0 ? cleaned : undefined;
+}
+
 /** Fills in the required Recipe fields the model sometimes omits instead of
  *  emitting the documented empty-array/empty-string shape (seen with
  *  non-recipe source text), and reports whether there was anything usable
@@ -232,6 +267,7 @@ function normalizeRecipe(
     cookTime: parsed.cookTime,
     ingredients,
     steps,
+    subRecipes: normalizeSubRecipes(parsed.subRecipes),
     tags: parsed.tags ?? [],
     confidence: parsed.confidence,
     notes: parsed.notes,

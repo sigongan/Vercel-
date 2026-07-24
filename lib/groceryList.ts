@@ -69,7 +69,18 @@ export function useGroceryList(): GroceryItem[] {
  */
 export function addRecipeToGroceryList(recipe: Recipe) {
   const rest = readSnapshot().filter((item) => item.recipeTitle !== recipe.title);
-  const added: GroceryItem[] = recipe.ingredients.map((ing, i) => ({
+  // A component you have to make — frangipane, curry paste — isn't something
+  // you can put in a shopping basket, so anything with a sub-recipe is
+  // replaced by what that sub-recipe is made of.
+  const subByName = new Map(
+    (recipe.subRecipes ?? [])
+      .filter((sub) => sub.ingredients.length > 0)
+      .map((sub) => [sub.name.trim().toLowerCase(), sub]),
+  );
+  const shopFor = recipe.ingredients.flatMap(
+    (ing) => subByName.get(ing.name.trim().toLowerCase())?.ingredients ?? [ing],
+  );
+  const added: GroceryItem[] = shopFor.map((ing, i) => ({
     id: `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`,
     name: ing.name,
     amount: ing.amount,
