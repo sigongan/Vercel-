@@ -1,40 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ExtractRecipeResult, Recipe } from "@/lib/types/recipe";
 import { RecipeCard } from "./RecipeCard";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useExtraction } from "@/hooks/useExtraction";
 import { translations } from "@/lib/i18n";
 import { compressImageFile } from "@/lib/compressImage";
-import { prefetchSocialCaption } from "@/lib/socialPrefetch";
-import { AvocadoMark } from "@/lib/avocadoMark";
 import { SOURCE_ICONS } from "@/components/SourceIcons";
-import {
-  onSharedUrl,
-  hapticTap,
-  hapticSuccess,
-  hapticError,
-} from "@/lib/nativeApp";
-import {
-  useRecentRecipes,
-  addRecentRecipe,
-  removeRecentRecipe,
-} from "@/lib/recentRecipes";
+import { ExtractionProgress } from "./ExtractionProgress";
+import { onSharedUrl, hapticTap } from "@/lib/nativeApp";
+import { useRecentRecipes, removeRecentRecipe } from "@/lib/recentRecipes";
 import { UploadSourceSheet } from "./UploadSourceSheet";
+import { DOCUMENT_ACCEPT_TYPES, PHOTO_ACCEPT_TYPES } from "@/lib/uploadAccept";
 
 type Tab = "file" | "url" | "text";
-
-interface SubmitError {
-  message: string;
-  code?: string;
-}
-
-// A plain <input accept> spanning image+video+pdf is what makes iOS show its
-// 3-way "Photo Library / Take Photo / Choose File" chooser — UploadSourceSheet
-// gives each of its own buttons one of these narrower lists instead, so
-// tapping one goes straight to a single native picker.
-const PHOTO_ACCEPT_TYPES = "image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm";
-const DOCUMENT_ACCEPT_TYPES = "application/pdf";
 
 export function RecipeExtractor() {
   const { language } = useLanguage();
@@ -46,9 +25,16 @@ export function RecipeExtractor() {
   const [uploadSheetOpen, setUploadSheetOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [error, setError] = useState<SubmitError | null>(null);
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const {
+    status,
+    errorMessage,
+    recipe,
+    setRecipe,
+    setError,
+    setStatus,
+    startExtraction,
+    reset: backToStart,
+  } = useExtraction();
   const recent = useRecentRecipes();
   const [recentQuery, setRecentQuery] = useState("");
   const filteredRecent = recentQuery.trim()
@@ -60,12 +46,6 @@ export function RecipeExtractor() {
   useEffect(() => {
     if (recipe) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [recipe]);
-
-  function backToStart() {
-    setRecipe(null);
-    setError(null);
-    setStatus("idle");
-  }
 
   async function handleFileSelected(selected: File | null) {
     if (!selected) {
@@ -89,80 +69,6 @@ export function RecipeExtractor() {
       : tab === "url"
         ? url.trim().length > 0
         : text.trim().length > 0;
-
-  const errorMessage = error
-    ? error.code && error.code in t.errors
-      ? t.errors[error.code as keyof typeof t.errors]
-      : error.message
-    : null;
-
-  async function startExtraction(
-    input:
-      | { kind: "file"; file: File }
-      | { kind: "url"; url: string }
-      | { kind: "text"; text: string },
-  ) {
-    setStatus("loading");
-    setError(null);
-    setRecipe(null);
-    hapticTap();
-
-    try {
-      let response: Response;
-      if (input.kind === "file") {
-        response = await submitFile(input.file, language);
-      } else if (input.kind === "url") {
-        // Inside the iOS app, fetch social captions from the device first —
-        // Instagram blocks the server's requests but not a real phone's
-        // (lib/socialPrefetch.ts). Null on the website / non-social links.
-        const prefetched = await prefetchSocialCaption(input.url);
-        response = await submitJson({
-          url: input.url,
-          lang: language,
-          ...(prefetched ? { prefetched } : {}),
-        });
-      } else {
-        response = await submitJson({ text: input.text, lang: language });
-      }
-
-      const rawBody = await response.text();
-      let data: ExtractRecipeResult;
-      try {
-        data = JSON.parse(rawBody);
-      } catch {
-        console.error(
-          "extract-recipe: non-JSON response",
-          response.status,
-          rawBody.slice(0, 500),
-        );
-        throw new Error(
-          response.status === 504 || response.status === 408
-            ? "TIMEOUT"
-            : `HTTP_${response.status}`,
-        );
-      }
-
-      if (data.ok) {
-        setRecipe(data.recipe);
-        setStatus("idle");
-        hapticSuccess();
-        addRecentRecipe(data.recipe);
-      } else {
-        setError({ message: data.error.error, code: data.error.code });
-        setStatus("error");
-        hapticError();
-      }
-    } catch (err) {
-      console.error("extract-recipe: request failed", err);
-      const reason = err instanceof Error ? err.message : undefined;
-      setError({
-        message: reason === "TIMEOUT" ? t.errors.TIMEOUT : t.errors.NETWORK,
-        code: reason === "TIMEOUT" ? "TIMEOUT" : "NETWORK",
-      });
-      setStatus("error");
-      hapticError();
-    }
-  }
 
   // Deep-link entry: /?url=<shared link> switches to the Link tab, fills it
   // in, and starts extraction immediately. This is what the iOS share sheet
@@ -257,12 +163,7 @@ export function RecipeExtractor() {
 
       <div className="w-full max-w-2xl rounded-[32px] border border-[#EDF1E4] dark:border-stone-700 bg-white dark:bg-stone-800 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
         {status === "loading" ? (
-          <div className="flex flex-col items-center gap-4 py-14 animate-fade-in-up">
-            <div className="animate-avocado-bounce">
-              <AvocadoMark size={56} />
-            </div>
-            <LoadingMessages messages={t.extractingSteps} />
-          </div>
+          <ExtractionProgress messages={t.extractingSteps} />
         ) : (
           <>
             <div className="grid grid-cols-3 gap-1 rounded-full border border-[#EDF1E4] dark:border-stone-600 bg-[#F8FAF4] dark:bg-stone-700 p-1">
@@ -467,28 +368,6 @@ export function RecipeExtractor() {
   );
 }
 
-/** Cycles through the playful extraction-progress lines while loading. */
-function LoadingMessages({ messages }: { messages: readonly string[] }) {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(
-      () => setIndex((i) => (i + 1) % messages.length),
-      2200,
-    );
-    return () => clearInterval(id);
-  }, [messages.length]);
-
-  return (
-    <p
-      key={index}
-      className="animate-fade-in-up text-sm font-medium text-[#5D6551] dark:text-stone-400"
-    >
-      {messages[index]}
-    </p>
-  );
-}
-
 function timeAgo(timestamp: number, language: string): string {
   const rtf = new Intl.RelativeTimeFormat(language, { numeric: "auto" });
   const minutes = Math.round((timestamp - Date.now()) / 60_000);
@@ -599,17 +478,3 @@ function BackIcon() {
   );
 }
 
-function submitFile(file: File, lang: string) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("lang", lang);
-  return fetch("/api/extract-recipe", { method: "POST", body: formData });
-}
-
-function submitJson(body: Record<string, string | boolean>) {
-  return fetch("/api/extract-recipe", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-}

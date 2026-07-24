@@ -13,6 +13,12 @@ import { useGroceryList } from "@/lib/groceryList";
 import { useWantToCook } from "@/lib/wantToCook";
 import { GroceryListSheet } from "@/components/GroceryList";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
+import { UploadSourceSheet } from "@/components/UploadSourceSheet";
+import { ExtractionProgress } from "@/components/ExtractionProgress";
+import { RecipeCard } from "@/components/RecipeCard";
+import { useExtraction } from "@/hooks/useExtraction";
+import { compressImageFile } from "@/lib/compressImage";
+import { DOCUMENT_ACCEPT_TYPES, PHOTO_ACCEPT_TYPES } from "@/lib/uploadAccept";
 import { hapticTap } from "@/lib/nativeApp";
 
 const SUPABASE_CONFIGURED = Boolean(
@@ -36,6 +42,16 @@ export default function Home() {
   const groceryItems = useGroceryList();
   const wantToCook = useWantToCook();
   const [groceryOpen, setGroceryOpen] = useState(false);
+  const [uploadSheetOpen, setUploadSheetOpen] = useState(false);
+  const [preparingFile, setPreparingFile] = useState(false);
+  const {
+    status: extractStatus,
+    errorMessage: extractError,
+    recipe: extractedRecipe,
+    setRecipe: setExtractedRecipe,
+    startExtraction,
+    reset: resetExtraction,
+  } = useExtraction();
   // Render the last known greeting immediately instead of a nameless icon
   // for a beat on every visit — the fresh fetch below still runs right away.
   const [displayName, setDisplayName] = useState<string | null>(() => {
@@ -84,6 +100,48 @@ export default function Home() {
 
   const unchecked = groceryItems.filter((i) => !i.checked).length;
 
+  // Picking a photo/file here runs the extraction on Home itself rather than
+  // handing off to the Extract tab — one tap from opening the app to the
+  // picker, instead of tap → new page → tap the dropzone → pick.
+  async function handleHomeFile(selected: File | null) {
+    if (!selected) return;
+    setPreparingFile(true);
+    try {
+      const prepared = selected.type.startsWith("image/")
+        ? await compressImageFile(selected)
+        : selected;
+      await startExtraction({ kind: "file", file: prepared });
+    } finally {
+      setPreparingFile(false);
+    }
+  }
+
+  if (extractedRecipe) {
+    return (
+      <main className="relative flex-1 flex flex-col items-center gap-4 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
+        <div className="w-full max-w-3xl flex flex-col gap-4 animate-fade-in-up">
+          <button
+            type="button"
+            onClick={resetExtraction}
+            className="self-start flex items-center gap-1.5 text-sm font-medium text-[#4D7C0F] transition-colors hover:text-[#232920] dark:hover:text-stone-200"
+          >
+            <BackGlyph />
+            {t.backToStart}
+          </button>
+          <RecipeCard recipe={extractedRecipe} onRecipeChange={setExtractedRecipe} />
+        </div>
+      </main>
+    );
+  }
+
+  if (extractStatus === "loading" || preparingFile) {
+    return (
+      <main className="relative flex-1 flex flex-col items-center justify-center px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
+        <ExtractionProgress messages={t.extractingSteps} />
+      </main>
+    );
+  }
+
   return (
     <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="flex w-full max-w-2xl items-center justify-between">
@@ -128,17 +186,26 @@ export default function Home() {
         <p className="mt-2 px-1 text-xs leading-relaxed text-[#9AA093]">{t.searchScoutTagline}</p>
       </form>
 
-      <Link
-        href="/extract"
-        onClick={() => hapticTap()}
-        className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
+      <button
+        type="button"
+        onClick={() => {
+          hapticTap();
+          setUploadSheetOpen(true);
+        }}
+        className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 px-5 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
       >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[#4D7C0F] dark:text-stone-400">
           <ExtractGlyph />
         </span>
         <span className="flex-1 text-[15px] font-semibold text-[#232920] dark:text-stone-100">{t.homeStartExtract}</span>
         <Chevron />
-      </Link>
+      </button>
+
+      {extractError && (
+        <div className="w-full max-w-2xl rounded-2xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 px-5 py-4">
+          <p className="text-sm leading-relaxed text-red-700 dark:text-red-300">{extractError}</p>
+        </div>
+      )}
 
       <AuthErrorBanner />
 
@@ -223,6 +290,15 @@ export default function Home() {
       {groceryOpen && (
         <GroceryListSheet open={groceryOpen} onClose={() => setGroceryOpen(false)} t={t} />
       )}
+
+      <UploadSourceSheet
+        open={uploadSheetOpen}
+        onClose={() => setUploadSheetOpen(false)}
+        onFile={handleHomeFile}
+        photoAccept={PHOTO_ACCEPT_TYPES}
+        fileAccept={DOCUMENT_ACCEPT_TYPES}
+        t={t}
+      />
     </main>
   );
 }
@@ -240,6 +316,14 @@ function SearchGlyph() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+
+function BackGlyph() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m15 19-7-7 7-7" />
     </svg>
   );
 }
