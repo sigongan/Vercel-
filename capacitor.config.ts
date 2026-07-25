@@ -29,14 +29,26 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      // The plugin's static splash is skipped entirely: the native
-      // AnimatedSplashView (native/App/) covers the load with a bouncing
-      // avocado from the first frame instead, Tiimo-style. Worst case
-      // (native files not installed yet) the webview shows a plain
-      // brand-colored background while loading.
-      launchShowDuration: 0,
+      // This splash — the static avocado from resources/splash.png — is what
+      // covers the gap between the app process starting and the remote web
+      // app finishing its load. It used to be switched off entirely
+      // (launchShowDuration 0) on the assumption that AnimatedSplashView
+      // covered that window, but that view only exists in builds where the
+      // native/App Swift files were added by hand; without them the webview
+      // sat blank and white for about a second on every launch.
+      //
+      // autoHide stays on as a safety net: NativeAppInit calls
+      // SplashScreen.hide() the moment the app is ready (usually well under
+      // a second, which is what actually dismisses this), and the duration
+      // below is only the ceiling for when that call never comes — a failed
+      // load, no network — so a broken launch can't strand anyone on a
+      // frozen splash.
+      launchShowDuration: 3000,
       launchAutoHide: true,
+      // Cross-fade into the app instead of cutting to it.
+      launchFadeOutDuration: 250,
       backgroundColor: "#FAFAF7",
+      showSpinner: false,
     },
   },
 };

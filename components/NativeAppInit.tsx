@@ -18,11 +18,11 @@ const ONBOARDING_SIGNIN_KEY = "avocato:onboarding-signin-seen";
 function dismissBootSplash() {
   const el = document.getElementById("native-boot-splash");
   if (!el) return;
-  el.style.transition = "opacity 300ms ease-out";
+  el.style.transition = "opacity 180ms ease-out";
   el.style.opacity = "0";
   setTimeout(() => {
     el.style.display = "none";
-  }, 300);
+  }, 180);
 }
 
 /** No-ops entirely on the regular website — only does anything inside the Capacitor iOS shell. */

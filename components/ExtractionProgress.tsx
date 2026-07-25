@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import { AvocadoMark } from "@/lib/avocadoMark";
 
 /** The while-you-wait state for an extraction — shown by the Extract tab and
- *  by Home's one-tap shortcut, so both waits look like the same app. */
+ *  by Home's one-tap shortcut, so both waits look like the same app. The
+ *  avocado is deliberately still: the cycling messages below already show
+ *  the app is working, and a bouncing mark competing with them read as
+ *  restless rather than alive. */
 export function ExtractionProgress({ messages }: { messages: readonly string[] }) {
   return (
     <div className="flex flex-col items-center gap-4 py-14 animate-fade-in-up">
-      <div className="animate-avocado-bounce">
-        <AvocadoMark size={56} />
-      </div>
+      <AvocadoMark size={56} />
       <LoadingMessages messages={messages} />
     </div>
   );
