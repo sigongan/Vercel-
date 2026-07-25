@@ -1,5 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Language } from "@/lib/i18n";
+import { isBraveConfigured } from "@/lib/search/brave";
+import { isGeminiConfigured } from "@/lib/ai/gemini";
+import { searchRecipesViaBrave } from "@/lib/ai/recipeSearchBrave";
 
 export class RecipeSearchError extends Error {}
 
@@ -53,11 +56,43 @@ If the query is clearly not about food or cooking, output exactly [].`;
 }
 
 /**
+ * Recipe Scanner. Two implementations behind one entry point:
+ *
+ * - Brave + Gemini Flash-Lite when both keys are set. ~$0.006/query, because
+ *   the search fee (~70% of the cost on the Anthropic path) drops to Brave's
+ *   rate and the language work runs on a model a tenth of Haiku's price.
+ * - Anthropic web_search otherwise — the original, and still the fallback if
+ *   the cheap path errors, so a Brave/Gemini outage degrades to an expensive
+ *   search rather than a broken feature.
+ *
+ * Unsetting either key reverts to Anthropic instantly, which is the intended
+ * escape hatch if result quality disappoints. See docs/cost-notes.md.
+ */
+export async function searchRecipes(query: string, lang: Language): Promise<RecipeSearchResult[]> {
+  if (isBraveConfigured() && isGeminiConfigured()) {
+    try {
+      const results = await searchRecipesViaBrave(query, lang);
+      // Empty is a legitimate answer for a non-food query, but it is also
+      // what a quietly-broken pipeline returns, and the second case is the
+      // one that would make Recipe Scout look dead. So empty retries on
+      // Anthropic: a non-food query pays twice once, then the route caches
+      // the empty result and stops paying at all.
+      if (results.length > 0) return results;
+      console.warn("[recipeSearch] brave/gemini path returned no results; retrying on Anthropic");
+    } catch (err) {
+      // Loud on purpose: every one of these is a query paying twice.
+      console.error("[recipeSearch] brave/gemini path failed; falling back to Anthropic (this costs more)", err);
+    }
+  }
+  return searchRecipesViaAnthropic(query, lang);
+}
+
+/**
  * Recipe Scanner: real web search via the Anthropic web_search server tool.
  * The whole search loop runs on Anthropic's side — we send one request and
  * (rarely) resume on pause_turn when the server-side loop pauses itself.
  */
-export async function searchRecipes(query: string, lang: Language): Promise<RecipeSearchResult[]> {
+async function searchRecipesViaAnthropic(query: string, lang: Language): Promise<RecipeSearchResult[]> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const system: Anthropic.TextBlockParam[] = [
