@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/hooks/useLanguage";
-import { translations } from "@/lib/i18n";
+import { translations, type Translation, type Language } from "@/lib/i18n";
+import { isNativeApp } from "@/lib/nativeApp";
+import { startProSubscription } from "@/lib/subscribePro";
+import { SubscribeDisclosure } from "@/components/SubscribeDisclosure";
 import { useRecentRecipes } from "@/lib/recentRecipes";
 import { hapticTap } from "@/lib/nativeApp";
 import { RecipeScoutRadar } from "@/components/RecipeScoutRadar";
@@ -24,7 +27,9 @@ type ScanState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "done"; results: RecipeSearchResult[] }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string }
+  // Out of free searches for today — offer Pro rather than a dead end.
+  | { status: "proRequired" };
 
 // Tapping a result navigates to /extract (a real route change), which
 // unmounts this page — without this, coming back to Search always landed on
@@ -140,6 +145,11 @@ export default function SearchPage() {
         const next: ScanState = { status: "done", results: body.results };
         setScan(next);
         writeStoredSearchState({ query: trimmed, scan: next });
+      } else if (body.code === "PRO_REQUIRED") {
+        // Not persisted: the allowance resets, and a stale paywall greeting
+        // someone on their next visit would be wrong.
+        setScan({ status: "proRequired" });
+        clearStoredSearchState();
       } else {
         const next: ScanState = { status: "error", message: body.error || t.searchScanError };
         setScan(next);
@@ -212,6 +222,8 @@ export default function SearchPage() {
           {scan.message}
         </p>
       )}
+
+      {scan.status === "proRequired" && <SearchPaywall t={t} language={language} />}
 
       {scan.status === "done" && (
         <section className="flex w-full max-w-2xl flex-col gap-2">
@@ -304,6 +316,55 @@ export default function SearchPage() {
         </section>
       )}
     </main>
+  );
+}
+
+/** Shown when a free user has spent the day's search allowance. Recipe Scout
+ *  is the most expensive thing the app runs per tap, so this is the point
+ *  where it asks to be paid for — with the offer, not just a refusal. */
+function SearchPaywall({ t, language }: { t: Translation; language: Language }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const native = isNativeApp();
+
+  async function handleSubscribe() {
+    setError(null);
+    setBusy(true);
+    const outcome = await startProSubscription();
+    if (outcome === "success") {
+      window.location.reload();
+      return;
+    }
+    if (outcome === "pending") setError(t.subscribePending);
+    else if (outcome === "error" || outcome === "unavailable") setError(t.subscribeUnavailable);
+    setBusy(false);
+  }
+
+  return (
+    <div className="flex w-full max-w-2xl flex-col items-center gap-4 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 px-6 py-8 text-center dark:border-amber-900 dark:from-amber-950/40 dark:to-orange-950/20">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-300 bg-white text-amber-600 dark:border-amber-700 dark:bg-stone-800 dark:text-amber-400">
+        <ScoutIcon />
+      </span>
+      <div className="flex flex-col gap-1">
+        <p className="text-base font-semibold text-[#232920] dark:text-stone-50">{t.searchProTitle}</p>
+        <p className="max-w-sm text-sm text-amber-800 dark:text-amber-300">{t.searchProBody}</p>
+      </div>
+      {native ? (
+        <>
+          <button
+            onClick={handleSubscribe}
+            disabled={busy}
+            className="rounded-full bg-amber-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-600 disabled:opacity-60"
+          >
+            {busy ? "…" : t.subscribeButton}
+          </button>
+          <SubscribeDisclosure t={t} language={language} />
+        </>
+      ) : (
+        <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t.getProInApp}</p>
+      )}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+    </div>
   );
 }
 

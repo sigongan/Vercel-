@@ -3,7 +3,7 @@ import { searchRecipes, RecipeSearchError } from "@/lib/ai/recipeSearch";
 import type { RecipeSearchResult } from "@/lib/ai/recipeSearch";
 import type { Language } from "@/lib/i18n";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { consumeSearchIpQuota, consumeSearchUserQuota, getClientIp } from "@/lib/anonIpQuota";
+import { consumeFreeSearchQuota, consumeSearchUserQuota, getClientIp } from "@/lib/anonIpQuota";
 import { getCachedSearch, setCachedSearch } from "@/lib/searchCache";
 import { getSessionUserWithPlan } from "@/lib/usage";
 
@@ -12,11 +12,13 @@ export const maxDuration = 60;
 
 const VALID_LANGUAGES: readonly Language[] = ["en", "de", "it", "es", "fr", "pt"];
 
+type SearchErrorCode = "INVALID_INPUT" | "RATE_LIMITED" | "SEARCH_FAILED" | "PRO_REQUIRED";
+
 export type RecipeSearchResponse =
   | { ok: true; results: RecipeSearchResult[] }
-  | { ok: false; error: string; code: "INVALID_INPUT" | "RATE_LIMITED" | "SEARCH_FAILED" };
+  | { ok: false; error: string; code: SearchErrorCode };
 
-function fail(error: string, code: "INVALID_INPUT" | "RATE_LIMITED" | "SEARCH_FAILED", status: number) {
+function fail(error: string, code: SearchErrorCode, status: number) {
   const body: RecipeSearchResponse = { ok: false, error, code };
   return NextResponse.json(body, { status });
 }
@@ -39,39 +41,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(response);
   }
 
-  // Web search costs real money per query — per-IP daily backstop, same
-  // pattern as text/photo extraction. Pro accounts get a higher,
-  // account-scoped cap instead (lib/usage.ts, lib/anonIpQuota.ts) so they
-  // never share a limit with strangers on the same network.
+  // Every uncached query pays a real per-search fee to the AI's web-search
+  // tool, so Recipe Scout is a Pro feature with a free daily taste rather
+  // than a free unlimited one. Pro gets a high account-scoped ceiling (a
+  // backstop against a shared/compromised account, not a product limit);
+  // everyone else gets FREE_SEARCH_DAILY_LIMIT, scoped to the account when
+  // signed in and to the IP when not.
   if (isSupabaseConfigured()) {
     const sessionUser = await getSessionUserWithPlan().catch(() => null);
     if (sessionUser?.plan === "pro") {
       try {
         const cap = await consumeSearchUserQuota(sessionUser.id);
         if (!cap.allowed) {
-          return fail(
-            "You've hit today's search limit — it resets tomorrow.",
-            "RATE_LIMITED",
-            429,
-          );
+          return fail("You've hit today's search limit — it resets tomorrow.", "RATE_LIMITED", 429);
         }
       } catch (err) {
         console.error("pro search quota check failed; allowing through", err);
       }
     } else {
       const ip = getClientIp(req);
-      if (ip) {
+      const scope = sessionUser ? { userId: sessionUser.id } : ip ? { ip } : null;
+      if (scope) {
         try {
-          const cap = await consumeSearchIpQuota(ip);
+          const cap = await consumeFreeSearchQuota(scope);
           if (!cap.allowed) {
+            // Distinct from RATE_LIMITED: this one has a way out today
+            // (subscribe), so the app offers Pro instead of "come back
+            // tomorrow".
             return fail(
-              "You've hit today's search limit — it resets tomorrow.",
-              "RATE_LIMITED",
-              429,
+              "You've used today's free searches. Avocato Pro searches as much as you like.",
+              "PRO_REQUIRED",
+              402,
             );
           }
         } catch (err) {
-          console.error("search IP cap check failed; allowing through", err);
+          console.error("free search quota check failed; allowing through", err);
         }
       }
     }

@@ -5,7 +5,7 @@ import {
   ANON_FREE_LIMIT,
   TEXT_DAILY_IP_LIMIT,
   PHOTO_DAILY_IP_LIMIT,
-  SEARCH_DAILY_IP_LIMIT,
+  FREE_SEARCH_DAILY_LIMIT,
   PRO_SEARCH_DAILY_LIMIT,
   PRO_TEXT_DAILY_LIMIT,
 } from "@/lib/billingConstants";
@@ -81,15 +81,20 @@ export async function consumePhotoIpQuota(ip: string): Promise<{ allowed: boolea
   return { allowed: (data as { allowed: boolean }).allowed };
 }
 
-/** Same backstop again for Recipe Scanner web searches ("search:<ip>" namespace). */
-export async function consumeSearchIpQuota(ip: string): Promise<{ allowed: boolean }> {
+/**
+ * The free Recipe Scanner allowance. Scoped per account when we know who's
+ * asking and per IP otherwise, so someone signed in on cafe wifi doesn't
+ * lose their three searches to a stranger on the same network.
+ */
+export async function consumeFreeSearchQuota(scope: { userId: string } | { ip: string }): Promise<{ allowed: boolean }> {
+  const key = "userId" in scope ? `free-search-user:${scope.userId}` : `search:${scope.ip}`;
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
-    .rpc("consume_text_ip_quota", { p_ip_hash: hashIp(`search:${ip}`), p_limit: SEARCH_DAILY_IP_LIMIT })
+    .rpc("consume_text_ip_quota", { p_ip_hash: hashIp(key), p_limit: FREE_SEARCH_DAILY_LIMIT })
     .single();
 
   if (error || !data) {
-    throw new Error(`consume_text_ip_quota RPC failed (search): ${error?.message ?? "no data"}`);
+    throw new Error(`consume_text_ip_quota RPC failed (free search): ${error?.message ?? "no data"}`);
   }
 
   return { allowed: (data as { allowed: boolean }).allowed };
