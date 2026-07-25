@@ -598,7 +598,7 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
       )}
 
       {assigningCollection && (
-        <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-40 flex justify-center px-5">
+        <div className="fixed inset-x-0 bottom-[calc(var(--tab-bar-height)+env(safe-area-inset-bottom)+0.5rem)] z-40 flex justify-center px-5">
           <div className="flex w-full max-w-2xl items-center gap-3 rounded-2xl bg-[#232920] dark:bg-stone-100 px-5 py-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
             <span className="flex-1 text-sm font-medium text-white dark:text-stone-900">
               {t.collectionsSelected(selectedForAssign.size)}

@@ -43,9 +43,13 @@ export function BottomTabBar() {
                   : "text-[#9AA093] hover:text-[#5D6551] dark:hover:text-stone-400"
               }`}
             >
+              {/* Active state is colour + the pill behind the icon only.
+                  Nothing here may change size: this bar is the one fixed
+                  thing on screen, and an icon that grew/shrank on every tab
+                  change made the whole bottom of the app look unsettled. */}
               <span
-                className={`flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ease-out ${
-                  active ? "scale-100 bg-[#F2F7E8] dark:bg-stone-700" : "scale-90 bg-transparent"
+                className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-300 ease-out ${
+                  active ? "bg-[#F2F7E8] dark:bg-stone-700" : "bg-transparent"
                 }`}
               >
                 <Icon active={active} />
@@ -61,18 +65,24 @@ export function BottomTabBar() {
 
 type IconProps = { active: boolean };
 
+// One size for every tab icon, active or not. Stroke weight is fixed too —
+// a heavier stroke on the selected tab reads as a size change even though
+// the box stays put.
+const ICON_SIZE = 22;
+const STROKE = 1.8;
+
 function HomeIcon({ active }: IconProps) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 11.5 12 4l9 7.5" />
       <path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9" />
     </svg>
   );
 }
 
-function SearchIcon({ active }: IconProps) {
+function SearchIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.5-3.5" />
     </svg>
@@ -81,15 +91,15 @@ function SearchIcon({ active }: IconProps) {
 
 function LibraryIcon({ active }: IconProps) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
       <path d="M19 21 12 16.5 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
     </svg>
   );
 }
 
-function ExtractIcon({ active }: IconProps) {
+function ExtractIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.4 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9.25" />
       <path d="M12 8v8M8 12h8" />
     </svg>
@@ -98,7 +108,7 @@ function ExtractIcon({ active }: IconProps) {
 
 function ProfileIcon({ active }: IconProps) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" />
     </svg>

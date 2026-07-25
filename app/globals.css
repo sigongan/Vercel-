@@ -11,6 +11,11 @@
 :root {
   --background: #FAFAF7;
   --foreground: #30362B;
+  /* Height of the fixed bottom tab bar (components/BottomTabBar.tsx),
+     excluding the safe-area padding it adds below itself. Anything else
+     anchored to the bottom of the screen offsets by this instead of
+     hardcoding a guess that silently drifts when the bar changes. */
+  --tab-bar-height: 70px;
   color-scheme: light;
 }
 
