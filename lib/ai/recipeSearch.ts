@@ -66,13 +66,17 @@ export async function searchRecipes(query: string, lang: Language): Promise<Reci
   ];
   // claude-haiku-4-5 predates the dynamic-filtering web_search_20260209
   // variant — it takes the basic 20250305 tool.
-  // The web_search tool's per-search fee is most of this call's cost (far
-  // more than the token cost of reading results or writing the answer) —
-  // see docs/cost-notes.md. Raised from 2 back to 3: finding native-language
-  // sources for regional cuisines (see the prompt above) needs its own
-  // dedicated search on top of the usual English one, and 2 left no budget
-  // for that — results reverted to English-blogger-only for most queries.
-  const tools = [{ type: "web_search_20250305" as const, name: "web_search" as const, max_uses: 3 }];
+  // The web_search tool's per-search fee (~$0.01 each) is ~70% of this
+  // call's cost — far more than the tokens — so this cap is the main cost
+  // dial in the whole app. See docs/cost-notes.md for the measurements.
+  //
+  // 2, not 3: measured across regional-cuisine queries, dropping the third
+  // search still left the model budget for one English + one native-language
+  // search, which is what the native-sourcing rule above actually needs.
+  // Native results held up on most queries (Cookpad Japan for ramen,
+  // 10000recipe for kimchi jjigae) while cutting the queries that used to
+  // spend three searches down to two.
+  const tools = [{ type: "web_search_20250305" as const, name: "web_search" as const, max_uses: 2 }];
   let messages: Anthropic.MessageParam[] = [
     { role: "user", content: `Find great recipes for: ${query}` },
   ];
