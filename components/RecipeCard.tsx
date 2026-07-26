@@ -288,6 +288,17 @@ export function RecipeCard({
                   </button>
                 </div>
               )}
+              <button
+                onClick={() => {
+                  hapticTap();
+                  setEditing(true);
+                }}
+                aria-label={t.edit}
+                title={t.edit}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#E2E6D9] dark:border-stone-600 text-[#6B7261] dark:text-stone-400 transition-colors hover:border-[#61A00E] hover:text-[#232920] dark:hover:text-stone-200"
+              >
+                <EditIcon />
+              </button>
             </div>
           )}
         </div>
