@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "cap:sync": "cap sync ios && node scripts/fix-cap-spm.mjs",
-    "cap:open": "cap open ios"
+    "cap:open": "cap open ios",
+    "compare:extraction": "tsx scripts/compare-extraction.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
@@ -40,6 +41,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
+    "tsx": "^4.19.0",
     "typescript": "^5"
   }
 }

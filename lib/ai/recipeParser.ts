@@ -44,7 +44,7 @@ Rules:
 
 ${JSON_SCHEMA}`;
 
-const SYSTEM_PROMPT = `You are an assistant that turns source material from YouTube, Instagram, TikTok, PDFs, screenshots, and similar sources into a structured cooking recipe.
+export const SYSTEM_PROMPT = `You are an assistant that turns source material from YouTube, Instagram, TikTok, PDFs, screenshots, and similar sources into a structured cooking recipe.
 Analyze the provided text and images and produce a recipe matching the JSON schema below.
 
 Rule for sources with multiple dishes (e.g. a full holiday menu, or a main + side + sauce bundled in one post): always output exactly ONE recipe object, never an array or multiple objects. Pick the single primary/title dish — the one the source is centered on — and ignore the rest, rather than combining every dish's ingredients and steps into one. If it's genuinely a single unified menu, put the other dishes briefly in notes instead of expanding them.
@@ -121,7 +121,7 @@ Output a JSON array of exactly ${count} object${count === 1 ? "" : "s"}, each ma
 Output only the JSON array, with no other explanatory text.`;
 }
 
-const OUTPUT_LANGUAGE_INSTRUCTION: Record<Language, string> = {
+export const OUTPUT_LANGUAGE_INSTRUCTION: Record<Language, string> = {
   en: "Write every output value (title, description, ingredients, steps, tags, notes) in English. Translate the source content if it is in another language.",
   de: "Schreibe jeden Ausgabewert (title, description, ingredients, steps, tags, notes) auf Deutsch. Übersetze den Quellinhalt, falls er in einer anderen Sprache vorliegt.",
   it: "Scrivi ogni valore di output (title, description, ingredients, steps, tags, notes) in italiano. Traduci il contenuto originale se è in un'altra lingua.",
@@ -251,7 +251,7 @@ function normalizeSubRecipes(raw: unknown): SubRecipe[] | undefined {
  *  emitting the documented empty-array/empty-string shape (seen with
  *  non-recipe source text), and reports whether there was anything usable
  *  at all — callers decide what "nothing found" means for their case. */
-function normalizeRecipe(
+export function normalizeRecipe(
   parsed: Partial<Omit<Recipe, "sourceType" | "sourceUrl">>,
   content: Pick<ExtractedContent, "sourceType" | "sourceUrl">,
 ): Recipe | null {

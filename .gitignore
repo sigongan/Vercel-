@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# extraction comparison output (real recipe content from test files)
+/scripts/compare-output/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

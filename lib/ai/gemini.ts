@@ -49,6 +49,12 @@ interface GeminiUsage {
   candidatesTokenCount?: number;
 }
 
+/** One piece of multimodal input — plain text, or an inline image/PDF (base64). */
+export interface GeminiPart {
+  text?: string;
+  inlineData?: { mimeType: string; data: string };
+}
+
 /**
  * One JSON-mode call. `responseMimeType: application/json` makes Gemini emit
  * parseable JSON rather than a fenced code block, which removes the usual
@@ -76,7 +82,7 @@ function parseJson<T>(text: string): T {
 async function callGemini(args: {
   model: string;
   system: string;
-  user: string;
+  user: string | GeminiPart[];
   maxOutputTokens?: number;
   /** Turns on Grounding with Google Search — billed per search performed. */
   grounded?: boolean;
@@ -85,6 +91,8 @@ async function callGemini(args: {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new GeminiError("GEMINI_API_KEY is not configured.");
 
+  const parts: GeminiPart[] = typeof args.user === "string" ? [{ text: args.user }] : args.user;
+
   let res: Response;
   try {
     res = await fetch(endpointFor(args.model), {
@@ -92,7 +100,7 @@ async function callGemini(args: {
       headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: args.system }] },
-        contents: [{ role: "user", parts: [{ text: args.user }] }],
+        contents: [{ role: "user", parts }],
         ...(args.grounded ? { tools: [{ google_search: {} }] } : {}),
         generationConfig: {
           // responseMimeType can't be combined with the search tool, so the
@@ -147,4 +155,18 @@ export async function geminiGroundedJson<T>(args: {
   label: string;
 }): Promise<T> {
   return parseJson<T>(await callGemini({ ...args, model: groundedModel(), grounded: true }));
+}
+
+/**
+ * One JSON-mode call on the lite model with multimodal input (images and/or
+ * PDFs as inline base64 parts alongside text) — used for recipe extraction,
+ * mirroring what recipeParser.ts sends to Claude for the same job.
+ */
+export async function geminiVisionJson<T>(args: {
+  system: string;
+  parts: GeminiPart[];
+  maxOutputTokens?: number;
+  label: string;
+}): Promise<T> {
+  return parseJson<T>(await callGemini({ ...args, user: args.parts, model: LITE_MODEL }));
 }
