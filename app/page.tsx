@@ -194,7 +194,7 @@ export default function Home() {
         }}
         className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 px-5 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[#4D7C0F] dark:text-stone-400">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] shadow-[0_4px_12px_rgba(120,160,60,0.25)] dark:from-stone-700 dark:to-stone-700 dark:shadow-none text-[#3f6212] dark:text-stone-400">
           <ExtractGlyph />
         </span>
         <span className="flex-1 text-[15px] font-semibold text-[#232920] dark:text-stone-100">{t.homeStartExtract}</span>
@@ -217,7 +217,7 @@ export default function Home() {
         }}
         className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] bg-white px-5 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:border-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700/40"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[#4D7C0F] dark:text-stone-400">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] shadow-[0_4px_12px_rgba(120,160,60,0.25)] dark:from-stone-700 dark:to-stone-700 dark:shadow-none text-[#3f6212] dark:text-stone-400">
           <CartIcon />
         </span>
         <span className="flex-1 text-[15px] font-medium text-[#232920] dark:text-stone-100">
@@ -237,7 +237,7 @@ export default function Home() {
           onClick={() => hapticTap()}
           className="flex w-full max-w-2xl items-center gap-3.5 rounded-2xl border border-[#E2E6D9] bg-white px-5 py-3.5 text-left transition-colors hover:bg-[#FCFCF9] dark:border-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700/40"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[#4D7C0F] dark:text-stone-400">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#E6F3C5] to-[#C4E484] shadow-[0_4px_12px_rgba(120,160,60,0.25)] dark:from-stone-700 dark:to-stone-700 dark:shadow-none text-[#3f6212] dark:text-stone-400">
             <HeartIcon />
           </span>
           <span className="flex-1 text-[15px] font-medium text-[#232920] dark:text-stone-100">
