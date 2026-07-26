@@ -8,17 +8,30 @@
  * keeps a second AI vendor from pulling a dependency tree into the bundle.
  */
 
+// Both model constants below use Google's "-latest" alias rather than a
+// dated snapshot (gemini-2.5-flash, gemini-2.5-flash-lite, ...). This is the
+// opposite of the rule for Anthropic models elsewhere in this codebase,
+// where a dated ID is required and "-latest"/undated tags are avoided — do
+// not "fix" these to match that convention. The two vendors' guidance is
+// opposite on purpose: Google hot-swaps what a "-latest" alias points to on
+// every release and explicitly recommends it for exactly this reason, while
+// a dated Gemini snapshot is what goes stale. This is not hypothetical —
+// gemini-2.5-flash (hardcoded here originally) was cut off for new API keys
+// within months of launch, which is what sent every grounded search to the
+// expensive Anthropic fallback until this comment was written.
+
 /** Cheap text shuffling (query planning, ranking snippets we already have). */
-const LITE_MODEL = "gemini-2.5-flash-lite";
+const LITE_MODEL = "gemini-flash-lite-latest";
 
 /**
  * The model used when Gemini does the web searching itself. Grounding with
  * Google Search is free for the first 1,500 searches/day on a paid key and
  * $35/1,000 after, so the free allowance — not the token price — is what
- * makes this model the right one. Overridable because that allowance and
- * rate differ by model family and Google moves them.
+ * makes this model the right one. Overridable via GEMINI_SEARCH_MODEL as a
+ * same-day fix (a Vercel env var + redeploy, no code change) if this alias
+ * ever moves to a model that drops grounding support or free quota.
  */
-const groundedModel = () => process.env.GEMINI_SEARCH_MODEL || "gemini-2.5-flash";
+const groundedModel = () => process.env.GEMINI_SEARCH_MODEL || "gemini-flash-latest";
 
 const endpointFor = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;

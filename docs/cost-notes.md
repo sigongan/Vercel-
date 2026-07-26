@@ -125,6 +125,20 @@ postgrest는 테이블이 없을 때 예외를 던지지 않고 응답에 error�
 1. **`responseMimeType: application/json`을 검색 도구와 같이 못 씀.** 그래서 이 경로만 JSON 모드를 끄고, 응답 텍스트에서 JSON을 추출함(모델이 프롬프트 앞뒤로 설명이나 ```json 펜스를 붙여도 처리됨).
 2. **구글 그라운딩은 출처를 리다이렉트 URL로 인용함**(`vertexaisearch.cloud.google.com/grounding-api-redirect/...`). 그대로 두면 사용자가 리다이렉트로 튕기고 추출기도 못 읽으므로, 그런 URL은 전부 걸러냄.
 
+### 실제로 겪은 장애: 모델명이 며칠 만에 막힘 (2026-07-26)
+
+키를 넣고 첫 배포에서 바로 이 로그가 찍힘:
+
+```
+[recipeSearch] gemini grounded path failed; falling back to Anthropic (this costs more)
+Error: Gemini returned 404: { "message": "This model models/gemini-2.5-flash is no longer
+available to new users. Please update your code to use a newer model...", "status": "NOT_FOUND" }
+```
+
+키 인증은 정상(401/403이 아니라 404)이었고, 문제는 코드에 박아둔 `gemini-2.5-flash`가 신규 키에 막힌 것. 폴백 덕분에 검색 자체는 계속 됐지만, 매번 조용히 더 비싼 Anthropic 경로로 넘어가고 있었음 — 로그를 안 봤으면 몰랐을 것.
+
+**교훈: Gemini 모델은 Anthropic보다 훨씬 빠르게 세대교체됨.** (2.0 Flash가 2026-06-01에 종료, 2.5 Flash가 그 직후 신규 키에 막힘, 3.5/3.6 Flash가 연달아 출시.) 그래서 이 코드베이스의 다른 곳(Anthropic 호출)과는 반대로, Gemini 쪽 모델 상수는 **날짜 박힌 버전 대신 구글이 유지하는 `-latest` 별칭**(`gemini-flash-latest`, `gemini-flash-lite-latest`)을 씀 — `lib/ai/gemini.ts` 상단 주석에 왜 두 벤더의 규칙이 반대인지 적어둠. alias 자체가 막히는 경우를 대비해 `GEMINI_SEARCH_MODEL` 환경변수로 코드 수정 없이 즉시 교체 가능하게 해둠.
+
 ### 알려진 트레이드오프 (반드시 확인 필요)
 
 **Brave 경로만 해당:** Anthropic web_search와 Gemini 그라운딩은 검색엔진이 페이지를 읽은 결과를 쓰지만, Brave 경로는 **검색 스니펫(제목/URL/설명)만** 봄. 따라서 `highlights`("4.8★ · 2,340 ratings")가 비어 있는 경우가 더 많음. "스니펫에 없는 수치는 지어내지 말고 필드를 생략하라"고 강제했으므로 **틀린 숫자가 나오지는 않지만, 정보량은 줄어듦**. Gemini 그라운딩 경로는 이 문제가 훨씬 덜함.
