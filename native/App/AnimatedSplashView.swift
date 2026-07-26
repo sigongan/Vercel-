@@ -2,10 +2,10 @@ import UIKit
 
 /// The launch screen, drawn natively so it's on screen from the very first
 /// frame after launch (the OS LaunchScreen itself must stay static — this
-/// view takes over the instant the app process is running). Static by
-/// design: an animation running while the webview is also busy loading and
-/// hydrating in the background tends to stutter rather than feel smooth, so
-/// this is just the still avocado mark instead.
+/// view takes over the instant the app process is running). The bounce below
+/// is a CALayer transform animation, which runs on the render server rather
+/// than the main thread — it doesn't compete with the webview's JS work, so
+/// it stays smooth while the remote web app loads in the background.
 /// Shown by AvocatoViewController on top of the webview while the remote
 /// web app loads; dismissed when the web signals ready (SplashReadyPlugin).
 final class AnimatedSplashView: UIView {
@@ -78,6 +78,26 @@ final class AnimatedSplashView: UIView {
         avocado.addSublayer(pit)
         avocado.addSublayer(glint)
         layer.addSublayer(avocado)
+
+        addBounceAnimation()
+    }
+
+    /// A gentle squash-and-stretch loop — "transform.scale" is a uniform
+    /// multiplier on top of the static sizing transform set above, so it
+    /// bounces around the same 96pt size rather than needing to know it.
+    private func addBounceAnimation() {
+        let bounce = CAKeyframeAnimation(keyPath: "transform.scale")
+        bounce.values = [1.0, 1.12, 0.95, 1.04, 1.0]
+        bounce.keyTimes = [0, 0.32, 0.58, 0.8, 1.0]
+        bounce.duration = 1.15
+        bounce.repeatCount = .infinity
+        bounce.timingFunctions = [
+            CAMediaTimingFunction(name: .easeOut),
+            CAMediaTimingFunction(name: .easeInEaseOut),
+            CAMediaTimingFunction(name: .easeInEaseOut),
+            CAMediaTimingFunction(name: .easeOut),
+        ]
+        avocado.add(bounce, forKey: "bounce")
     }
 
     private func skinPath() -> UIBezierPath {
