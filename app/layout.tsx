@@ -82,7 +82,7 @@ export default function RootLayout({
           id="native-boot-splash"
           aria-hidden
           style={{ display: "none" }}
-          className="fixed inset-0 z-[999] flex-col items-center justify-center gap-4 bg-[#FAFAF7]"
+          className="fixed inset-0 z-[999] flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#FAFAF7] to-[#C4E484]"
         >
           <svg width={64} height={64} viewBox="0 0 100 100">
             <path

@@ -11,10 +11,20 @@ import UIKit
 final class AnimatedSplashView: UIView {
 
     private let avocado = CALayer()
+    private let gradient = CAGradientLayer()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = UIColor(red: 0.980, green: 0.980, blue: 0.969, alpha: 1) // #FAFAF7
+
+        // Same diagonal cream-to-sage wash as resources/splash.png (the OS
+        // launch image this view replaces), so there's no color jump.
+        gradient.colors = [
+            UIColor(red: 0.980, green: 0.980, blue: 0.969, alpha: 1).cgColor, // #FAFAF7
+            UIColor(red: 0.769, green: 0.894, blue: 0.518, alpha: 1).cgColor, // #C4E484
+        ]
+        gradient.startPoint = CGPoint(x: 0, y: 0)
+        gradient.endPoint = CGPoint(x: 1, y: 1)
+        layer.addSublayer(gradient)
 
         buildAvocado()
         buildLabel()
@@ -30,6 +40,7 @@ final class AnimatedSplashView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        gradient.frame = bounds
         let cx = bounds.midX
         // Dead center, not offset — matches resources/splash.png's static
         // OS launch image exactly, so there's no visible jump when this
