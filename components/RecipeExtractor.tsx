@@ -142,6 +142,19 @@ export function RecipeExtractor() {
     );
   }
 
+  // Deep-link entry (share sheet, Home's one-tap shortcut) starts extraction
+  // before this page's own chrome would otherwise show — covering the whole
+  // screen with the same gradient the launch splash uses makes that landing
+  // feel immediate and continuous instead of "page loads, then a card starts
+  // spinning inside it".
+  if (status === "loading") {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#FAFAF7] to-[#C4E484] dark:from-stone-900 dark:to-stone-800">
+        <ExtractionProgress messages={t.extractingSteps} />
+      </div>
+    );
+  }
+
   return (
     <div className="relative z-[1] w-full flex flex-col items-center gap-10">
       <header className="flex flex-col items-center gap-3 text-center max-w-2xl">
@@ -162,10 +175,7 @@ export function RecipeExtractor() {
       </header>
 
       <div className="w-full max-w-2xl rounded-[32px] border border-[#EDF1E4] dark:border-stone-700 bg-white dark:bg-stone-800 shadow-[0_10px_34px_rgba(105,150,55,0.14)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col gap-5">
-        {status === "loading" ? (
-          <ExtractionProgress messages={t.extractingSteps} />
-        ) : (
-          <>
+        <>
             <div className="grid grid-cols-3 gap-1 rounded-full border border-[#EDF1E4] dark:border-stone-600 bg-[#F8FAF4] dark:bg-stone-700 p-1">
               <TabButton
                 active={tab === "file"}
@@ -295,7 +305,6 @@ export function RecipeExtractor() {
               </button>
             </form>
           </>
-        )}
       </div>
 
       {status === "error" && errorMessage && (
@@ -315,7 +324,7 @@ export function RecipeExtractor() {
         t={t}
       />
 
-      {status !== "loading" && recent.length > 0 && (
+      {recent.length > 0 && (
         <section className="w-full max-w-2xl flex flex-col gap-3">
           <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9AA093]">
             {t.recentTitle}

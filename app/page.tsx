@@ -136,7 +136,7 @@ export default function Home() {
 
   if (extractStatus === "loading" || preparingFile) {
     return (
-      <main className="relative flex-1 flex flex-col items-center justify-center px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
+      <main className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-[#FAFAF7] to-[#C4E484] dark:from-stone-900 dark:to-stone-800">
         <ExtractionProgress messages={t.extractingSteps} />
       </main>
     );
