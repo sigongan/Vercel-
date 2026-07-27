@@ -1,5 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseUser } from "@/lib/supabase/server";
 import { FREE_MONTHLY_LIMIT } from "@/lib/billingConstants";
 import { isAdminEmail } from "@/lib/admin";
 
@@ -14,10 +14,10 @@ export interface SessionUser {
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Cookies for the web app, `Authorization: Bearer` for the native app —
+  // resolved in one place so every route handler supports both without
+  // knowing which client it's talking to.
+  const user = await getSupabaseUser();
 
   if (!user) return null;
 
