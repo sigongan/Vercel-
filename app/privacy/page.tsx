@@ -21,8 +21,10 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-5 flex flex-col gap-1">
               <li>
                 <strong>Content you submit</strong> — files, links, or text you provide to extract a
-                recipe from. This is sent to our AI provider (Anthropic) to generate the result, and a
-                hash of it may be cached so identical requests don&apos;t re-run the AI.
+                recipe from. To generate the result this is sent to a third-party AI provider,
+                Anthropic, which processes it on our behalf and does not use it to train its models.
+                A hash of it may be cached so identical requests don&apos;t re-run the AI. Nothing else
+                about you — your name, email, or account — is sent along with it.
               </li>
               <li>
                 <strong>Account info</strong> — if you sign in with Apple, your email address (or
@@ -31,11 +33,9 @@ export default function PrivacyPage() {
                 shares only what you authorize at Apple&rsquo;s sign-in screen — never your password.
               </li>
               <li>
-                <strong>Payment info</strong> — in the iOS app, subscriptions are purchased through
-                Apple&rsquo;s In-App Purchase and billed by Apple; we never see your payment details, only
-                that a purchase succeeded. On the website, Stripe processes payments directly — we never
-                see or store your card details, only that a payment succeeded and your Stripe
-                customer/subscription ID.
+                <strong>Payment info</strong> — subscriptions are purchased through Apple&rsquo;s In-App
+                Purchase and billed by Apple. We never see your payment details, only that a purchase
+                succeeded. There is no other way to subscribe.
               </li>
               <li>
                 <strong>Basic usage data</strong> — request counts for enforcing free limits, and
@@ -75,9 +75,11 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="Who we share it with">
-            Only the service providers needed to run {SITE_NAME}: Anthropic (AI processing), Supabase
-            (authentication and database), Stripe (payments), and Vercel (hosting). Each only receives
-            what they need to do their part.
+            Only the service providers needed to run {SITE_NAME}: Anthropic (third-party AI
+            processing of the content you submit), Supabase (authentication and database), Apple
+            (In-App Purchase billing), and Vercel (hosting and anonymous analytics). Each only
+            receives what they need to do their part. We don&apos;t sell your data, share it with data
+            brokers, or use it for advertising or cross-app tracking.
           </Section>
 
           <Section title="Data retention">
