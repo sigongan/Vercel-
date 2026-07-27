@@ -71,7 +71,7 @@ export function UploadSourceSheet({
           <button
             onClick={onClose}
             aria-label={t.uploadSourceClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#9AA093] transition-colors hover:bg-[#EDF1E4] hover:text-[#232920] dark:hover:bg-stone-700 dark:hover:text-stone-100"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[#EDF1E4] hover:text-[#232920] dark:hover:bg-stone-700 dark:hover:text-stone-100"
           >
             ✕
           </button>

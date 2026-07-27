@@ -66,7 +66,7 @@ export function MealPlanStrip({ recipes, t }: { recipes: PlanRecipe[]; t: Transl
           const dayLabel = d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 2);
           return (
             <div key={date} className="flex flex-col items-center gap-1">
-              <span className="text-[10px] text-[#9AA093]">{dayLabel}</span>
+              <span className="text-[10px] text-[var(--muted)]">{dayLabel}</span>
               <span className="text-[11px] font-medium text-[#5D6551] dark:text-stone-400">{d.getDate()}</span>
               {entry ? (
                 <button
@@ -74,7 +74,7 @@ export function MealPlanStrip({ recipes, t }: { recipes: PlanRecipe[]; t: Transl
                   onClick={() => remove(date)}
                   aria-label={t.mealPlanRemove}
                   title={entry.title}
-                  className="line-clamp-2 flex h-11 w-full items-center justify-center rounded-lg bg-gradient-to-br from-[#8BC926] to-[#61A00E] px-1 text-center text-[9px] font-medium leading-tight text-white"
+                  className="line-clamp-2 flex h-11 w-full items-center justify-center rounded-lg bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] px-1 text-center text-[9px] font-medium leading-tight text-white"
                 >
                   {entry.title}
                 </button>
@@ -136,7 +136,7 @@ function RecipePickerSheet({
         </div>
 
         {recipes.length === 0 ? (
-          <p className="py-6 text-center text-sm text-[#9AA093]">{t.mealPlanNoRecipes}</p>
+          <p className="py-6 text-center text-sm text-[var(--muted)]">{t.mealPlanNoRecipes}</p>
         ) : (
           <ul className="flex flex-col gap-1 overflow-y-auto">
             {recipes.map((r) => (

@@ -170,7 +170,7 @@ export default function Home() {
           href="/profile"
           onClick={() => hapticTap()}
           aria-label={t.profileTitle}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 text-[#5D6551] dark:text-stone-300 transition-colors hover:border-[#C4E484] dark:hover:border-stone-600"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 text-[#5D6551] dark:text-stone-300 transition-colors hover:border-[#C4E484] dark:hover:border-stone-600"
         >
           <ProfileGlyph />
         </Link>
@@ -189,7 +189,7 @@ export default function Home() {
         className="w-full max-w-2xl"
       >
         <div className="relative">
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--muted)]">
             <SearchGlyph />
           </span>
           <input
@@ -197,10 +197,10 @@ export default function Home() {
             value={homeQuery}
             onChange={(e) => setHomeQuery(e.target.value)}
             placeholder={t.homeSearchPlaceholder}
-            className="w-full rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-900 py-3.5 pl-11 pr-4 text-[15px] text-[#232920] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
+            className="w-full rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-900 py-3.5 pl-11 pr-4 text-[15px] text-[#232920] dark:text-stone-100 placeholder-[var(--muted)] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
           />
         </div>
-        <p className="mt-2 px-1 text-xs leading-relaxed text-[#9AA093]">{t.searchScoutTagline}</p>
+        <p className="mt-2 px-1 text-xs leading-relaxed text-[var(--muted)]">{t.searchScoutTagline}</p>
       </form>
 
       <button
@@ -272,7 +272,7 @@ export default function Home() {
           screen) pile up as dead space below it. */}
       <section className="mt-6 flex w-full max-w-2xl flex-col gap-2">
         <div className="flex items-baseline justify-between px-1">
-          <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[#9AA093]">
+          <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[var(--muted)]">
             {t.homeRecentTitle}
           </h2>
           {recent.length > 0 && (
@@ -286,7 +286,7 @@ export default function Home() {
         </div>
 
         {recent.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 px-5 py-9 text-center text-sm text-[#9AA093]">
+          <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 px-5 py-9 text-center text-sm text-[var(--muted)]">
             {t.homeEmptyRecent}
           </p>
         ) : (

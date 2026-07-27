@@ -129,14 +129,14 @@ export default function ProfilePage() {
               }}
               className="flex w-full items-center gap-4 py-2 text-left"
             >
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[#9AA093]">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#F1F4EA] dark:bg-stone-700 text-[var(--muted)]">
                 <PersonIcon />
               </span>
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="text-[19px] font-semibold text-[#232920] dark:text-stone-50">
                   {tRoot.profileSignIn}
                 </span>
-                <span className="text-[13px] leading-snug text-[#9AA093]">
+                <span className="text-[13px] leading-snug text-[var(--muted)]">
                   {tRoot.profileSignedOutSub}
                 </span>
               </span>
@@ -144,14 +144,14 @@ export default function ProfilePage() {
             </button>
           ) : (
             <div className="flex w-full items-center gap-4 py-2">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-xl font-semibold uppercase text-white">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] text-xl font-semibold uppercase text-white">
                 {avatarLetter}
               </span>
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-[19px] font-semibold text-[#232920] dark:text-stone-50">
                   {profile.name || profile.email}
                 </span>
-                <span className="truncate text-[13px] text-[#9AA093]">
+                <span className="truncate text-[13px] text-[var(--muted)]">
                   {profile.name ? `${profile.email} · ` : ""}
                   {freeRemaining > 0 ? t.freeRemaining(freeRemaining) : t.credits(profile.credits)}
                   {profile.plan === "pro" && " · Pro"}
@@ -181,7 +181,7 @@ export default function ProfilePage() {
         </div>
       )}
       {subscribeMsg && (
-        <p className="w-full max-w-2xl px-1 text-xs text-[#9AA093]">{subscribeMsg}</p>
+        <p className="w-full max-w-2xl px-1 text-xs text-[var(--muted)]">{subscribeMsg}</p>
       )}
 
       <div className="flex w-full max-w-2xl flex-col">

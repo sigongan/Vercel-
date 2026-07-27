@@ -226,7 +226,7 @@ export function RecipeCard({
                 hapticTap();
                 setCookModeOpen(true);
               }}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-gradient-to-br from-[#8BC926] to-[#5E7A33] py-3 text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] py-3 text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             >
               <CookIcon />
               {t.cookMode}
@@ -552,7 +552,7 @@ function ClassicCard({ recipe, steps, metas, t }: CardProps) {
             <ol className="flex flex-col gap-4">
               {steps.map((step) => (
                 <li key={step.order} className="flex gap-4">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] dark:bg-stone-100 text-[11px] font-semibold text-white dark:text-stone-900">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] dark:bg-stone-100 text-[11px] font-semibold text-white dark:text-stone-900">
                     {step.order}
                   </span>
                   <p className="text-[15px] leading-relaxed text-[#30362B] dark:text-stone-300">
@@ -601,7 +601,7 @@ function SubRecipeBlock({ sub, t }: { sub: SubRecipe; t: Translation }) {
           {sub.name}
         </h4>
         {sub.yield && (
-          <span className="text-xs text-[#9AA093]">
+          <span className="text-xs text-[var(--muted)]">
             {t.subRecipeMakes} {sub.yield}
           </span>
         )}
@@ -644,7 +644,7 @@ function SubRecipeBlock({ sub, t }: { sub: SubRecipe; t: Translation }) {
         <ol className="flex flex-col gap-2.5">
           {steps.map((step) => (
             <li key={step.order} className="flex gap-3">
-              <span className="mt-px text-[11px] font-semibold tabular-nums text-[#9AA093]">
+              <span className="mt-px text-[11px] font-semibold tabular-nums text-[var(--muted)]">
                 {step.order}.
               </span>
               <p className="text-sm leading-relaxed text-[#30362B] dark:text-stone-300">
@@ -687,7 +687,7 @@ function SaveButton({ recipe, t }: { recipe: Recipe; t: Translation }) {
   if (plan !== "pro") {
     if (!isNativeApp()) {
       return (
-        <span className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 py-3 text-[15px] font-semibold text-[#9AA093] dark:text-stone-400">
+        <span className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#E2E6D9] dark:border-stone-700 bg-white dark:bg-stone-800 py-3 text-[15px] font-semibold text-[var(--muted)] dark:text-stone-400">
           <BookmarkIcon />
           {t.getProInApp}
         </span>
@@ -1023,7 +1023,7 @@ function RecipeNotes({ title, t }: { title: string; t: Translation }) {
         onChange={(e) => setNote(e.target.value)}
         placeholder={t.myNotesPlaceholder}
         rows={note ? Math.min(Math.max(note.split("\n").length, 2), 8) : 2}
-        className="w-full resize-y rounded-xl border border-transparent bg-transparent text-sm leading-relaxed text-[#30362B] dark:text-stone-200 placeholder-[#9AA093] dark:placeholder-stone-500 outline-none focus:border-[#E2E6D9] dark:focus:border-stone-600"
+        className="w-full resize-y rounded-xl border border-transparent bg-transparent text-sm leading-relaxed text-[#30362B] dark:text-stone-200 placeholder-[var(--muted)] dark:placeholder-stone-500 outline-none focus:border-[#E2E6D9] dark:focus:border-stone-600"
       />
     </section>
   );
@@ -1061,7 +1061,7 @@ function NutritionRow({ recipe, t }: { recipe: Recipe; t: Translation }) {
           </span>
         ))}
       </div>
-      <p className="text-[10px] text-[#9AA093] dark:text-stone-500">{t.nutritionTitle}</p>
+      <p className="text-[10px] text-[var(--muted)] dark:text-stone-500">{t.nutritionTitle}</p>
     </div>
   );
 }

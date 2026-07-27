@@ -44,7 +44,7 @@ export default function SettingsPage() {
             router.back();
           }}
           aria-label={t.close}
-          className="absolute left-0 flex h-9 w-9 items-center justify-center rounded-full text-[#232920] transition-colors hover:bg-[#F1F4EA] dark:text-stone-100 dark:hover:bg-stone-700"
+          className="absolute left-0 flex h-11 w-11 items-center justify-center rounded-full text-[#232920] transition-colors hover:bg-[#F1F4EA] dark:text-stone-100 dark:hover:bg-stone-700"
         >
           <BackIcon />
         </button>

@@ -107,13 +107,16 @@ export function SettingsFields({ signedIn = false }: { signedIn?: boolean }) {
           className="flex items-center justify-between border-b border-[#EDF1E4] py-3.5 transition-colors hover:bg-[#FCFCF9] dark:border-stone-700 dark:hover:bg-stone-700/40"
         >
           <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.language}</span>
-          <span className="flex items-center gap-1.5 text-[15px] text-[#9AA093]">
+          <span className="flex items-center gap-1.5 text-[15px] text-[var(--muted)]">
             {LANGUAGE_NAMES[language]}
             <Chevron />
           </span>
         </Link>
         <Row label={t.theme} last>
-          <div className="flex items-center gap-3">
+          {/* No gap: each dot now carries its own 44px hit area, which
+              already spaces the visible swatches about as far apart as the
+              old gap-3 did. */}
+          <div className="flex items-center">
             <ThemeDot
               active={theme === "default"}
               label={t.themeDefault}
@@ -185,7 +188,7 @@ export function SettingsFields({ signedIn = false }: { signedIn?: boolean }) {
         <LinkRow href="/privacy" label={t.privacy} />
         <div className="flex items-center justify-between py-3.5">
           <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.versionLabel}</span>
-          <span className="text-[15px] text-[#9AA093]">1.0</span>
+          <span className="text-[15px] text-[var(--muted)]">1.0</span>
         </div>
       </Section>
     </>
@@ -246,11 +249,18 @@ function ThemeDot({
       onClick={onClick}
       aria-label={label}
       aria-pressed={active}
-      style={{ background: swatch }}
-      className={`h-7 w-7 rounded-full transition-all ${
-        active ? "ring-2 ring-offset-2 ring-[#8BC926] dark:ring-offset-stone-800" : "opacity-60 hover:opacity-90"
-      }`}
-    />
+      // 44x44 hit area (Apple's minimum) around a 28px swatch — the dot
+      // stays the same size it always was, it just stops being the only
+      // thing you can hit.
+      className="flex h-11 w-11 items-center justify-center rounded-full"
+    >
+      <span
+        style={{ background: swatch }}
+        className={`h-7 w-7 rounded-full transition-all ${
+          active ? "ring-2 ring-offset-2 ring-[#8BC926] dark:ring-offset-stone-800" : "opacity-60 hover:opacity-90"
+        }`}
+      />
+    </button>
   );
 }
 

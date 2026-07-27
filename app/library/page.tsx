@@ -71,10 +71,10 @@ export default function LibraryPage() {
             hapticTap();
             setLibTab("recent");
           }}
-          className={`rounded-full py-2.5 text-sm font-semibold transition-colors ${
+          className={`rounded-full py-3 text-sm font-semibold transition-colors ${
             libTab === "recent"
               ? "bg-white dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
-              : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"
+              : "text-[var(--muted)] hover:text-[#232920] dark:hover:text-stone-300"
           }`}
         >
           {t.libraryRecentTab}
@@ -85,10 +85,10 @@ export default function LibraryPage() {
             hapticTap();
             setLibTab("wantToCook");
           }}
-          className={`rounded-full py-2.5 text-sm font-semibold transition-colors ${
+          className={`rounded-full py-3 text-sm font-semibold transition-colors ${
             libTab === "wantToCook"
               ? "bg-white dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
-              : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"
+              : "text-[var(--muted)] hover:text-[#232920] dark:hover:text-stone-300"
           }`}
         >
           {t.libraryWantToCookTab}
@@ -100,10 +100,10 @@ export default function LibraryPage() {
               hapticTap();
               setLibTab("saved");
             }}
-            className={`rounded-full py-2.5 text-sm font-semibold transition-colors ${
+            className={`rounded-full py-3 text-sm font-semibold transition-colors ${
               libTab === "saved"
                 ? "bg-white dark:bg-stone-800 text-[#4D7C0F] dark:text-stone-100 shadow-[0_2px_8px_rgba(110,150,60,0.15)]"
-                : "text-[#6B7261] hover:text-[#232920] dark:hover:text-stone-300"
+                : "text-[var(--muted)] hover:text-[#232920] dark:hover:text-stone-300"
             }`}
           >
             {t.librarySavedTab}
@@ -119,12 +119,12 @@ export default function LibraryPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t.recentSearch}
-              className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-2.5 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
+              className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-2.5 text-sm text-[#30362B] dark:text-stone-100 placeholder-[var(--muted)] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
             />
           )}
 
           {recent.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 bg-white/60 dark:bg-stone-800/40 px-5 py-14 text-center text-sm text-[#9AA093]">
+            <p className="rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 bg-white/60 dark:bg-stone-800/40 px-5 py-14 text-center text-sm text-[var(--muted)]">
               {t.libraryEmptyRecent}
             </p>
           ) : (
@@ -139,13 +139,13 @@ export default function LibraryPage() {
                       <span className="w-full truncate text-sm font-medium text-[#30362B] dark:text-stone-200">
                         {item.recipe.title}
                       </span>
-                      <span className="text-xs text-[#9AA093]">{timeAgo(item.savedAt, language)}</span>
+                      <span className="text-xs text-[var(--muted)]">{timeAgo(item.savedAt, language)}</span>
                     </Link>
                     <button
                       type="button"
                       aria-label={t.recentRemove}
                       onClick={() => removeRecentRecipe(item.id)}
-                      className="shrink-0 text-[#9AA093] transition-colors hover:text-[#232920] dark:hover:text-stone-200"
+                      className="shrink-0 text-[var(--muted)] transition-colors hover:text-[#232920] dark:hover:text-stone-200"
                     >
                       ✕
                     </button>
@@ -171,7 +171,7 @@ function WantToCookSection({ t }: { t: Translation }) {
 
   if (items.length === 0) {
     return (
-      <p className="w-full max-w-2xl rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 bg-white/60 dark:bg-stone-800/40 px-5 py-14 text-center text-sm text-[#9AA093]">
+      <p className="w-full max-w-2xl rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-700 bg-white/60 dark:bg-stone-800/40 px-5 py-14 text-center text-sm text-[var(--muted)]">
         {t.libraryEmptyWantToCook}
       </p>
     );
@@ -202,7 +202,7 @@ function WantToCookSection({ t }: { t: Translation }) {
                   setCalendarFor(item);
                 }}
                 aria-label={t.calendarAdd}
-                className="shrink-0 text-[#9AA093] transition-colors hover:text-[#4D7C0F] dark:hover:text-lime-500"
+                className="shrink-0 text-[var(--muted)] transition-colors hover:text-[#4D7C0F] dark:hover:text-lime-500"
               >
                 <CalendarIcon />
               </button>
@@ -210,7 +210,7 @@ function WantToCookSection({ t }: { t: Translation }) {
                 type="button"
                 aria-label={t.recentRemove}
                 onClick={() => removeWantToCook(item.id)}
-                className="shrink-0 text-[#9AA093] transition-colors hover:text-[#232920] dark:hover:text-stone-200"
+                className="shrink-0 text-[var(--muted)] transition-colors hover:text-[#232920] dark:hover:text-stone-200"
               >
                 ✕
               </button>
@@ -368,7 +368,7 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white px-4 py-2 text-xs font-semibold shadow-sm transition-opacity hover:opacity-90"
+          className="rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] text-white px-4 py-2 text-xs font-semibold shadow-sm transition-opacity hover:opacity-90"
         >
           Retry
         </button>
@@ -382,7 +382,7 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
         <p className="text-sm text-[#5D6551] dark:text-stone-400 max-w-xs">{t.auth.signInPrompt}</p>
         <Link
           href="/profile"
-          className="rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white px-4 py-2 text-xs font-semibold shadow-sm transition-opacity hover:opacity-90"
+          className="rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] text-white px-4 py-2 text-xs font-semibold shadow-sm transition-opacity hover:opacity-90"
         >
           {t.auth.signInLink}
         </Link>
@@ -424,12 +424,12 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
         {isNativeApp() ? (
           <button
             onClick={handleManage}
-            className="self-start text-xs text-[#9AA093] hover:text-[#232920] dark:hover:text-stone-200 underline underline-offset-2"
+            className="self-start text-xs text-[var(--muted)] hover:text-[#232920] dark:hover:text-stone-200 underline underline-offset-2"
           >
             {t.manageSubscription}
           </button>
         ) : (
-          <span className="self-start text-xs text-[#9AA093]">{t.getProInApp}</span>
+          <span className="self-start text-xs text-[var(--muted)]">{t.getProInApp}</span>
         )}
         {billingError && <span className="text-xs text-red-600 dark:text-red-400">{billingError}</span>}
       </div>
@@ -444,7 +444,7 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.recentSearch}
-          className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-2.5 text-sm text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
+          className="w-full rounded-xl border border-[#E2E6D9] dark:border-stone-600 bg-white dark:bg-stone-900 px-4 py-2.5 text-sm text-[#30362B] dark:text-stone-100 placeholder-[var(--muted)] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
         />
       )}
 
@@ -476,13 +476,13 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
 
       {recipes !== null && recipes.length === 0 && (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[#E2E6D9] dark:border-stone-600 bg-white/60 dark:bg-stone-800/40 px-8 py-14 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F2F7E8] dark:bg-stone-700 text-[#9AA093]">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F2F7E8] dark:bg-stone-700 text-[var(--muted)]">
             <BookmarkIcon size={20} />
           </span>
           <p className="text-sm text-[#5D6551] dark:text-stone-400 max-w-xs">{t.noSavedRecipes}</p>
           <Link
             href="/extract"
-            className="rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-white px-4 py-2 text-xs font-semibold shadow-sm transition-opacity hover:opacity-90"
+            className="rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] text-white px-4 py-2 text-xs font-semibold shadow-sm transition-opacity hover:opacity-90"
           >
             {t.extract}
           </Link>
@@ -537,7 +537,7 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#9AA093]">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--muted)]">
                   {r.recipe.servings && (
                     <span className="rounded-full border border-[#E2E6D9] dark:border-stone-600 px-2 py-0.5">
                       {r.recipe.servings}
@@ -579,7 +579,7 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
                   </Link>
                   <button
                     onClick={() => setOpenId(openId === r.id ? null : r.id)}
-                    className="text-xs text-[#9AA093] hover:text-[#232920] dark:hover:text-stone-200"
+                    className="text-xs text-[var(--muted)] hover:text-[#232920] dark:hover:text-stone-200"
                   >
                     {openId === r.id ? "Hide" : "View"}
                   </button>
@@ -624,7 +624,7 @@ function SavedRecipesSection({ t, language }: { t: Translation; language: Langua
             <button
               onClick={handleConfirmAssign}
               disabled={selectedForAssign.size === 0}
-              className="rounded-full bg-gradient-to-br from-[#8BC926] to-[#5E7A33] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40"
             >
               {t.collectionsAddTo(assigningCollection)}
             </button>
@@ -676,8 +676,8 @@ function CollectionFilterPills({
           onClick={() => onSelect(null)}
           className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
             activeFilter === null
-              ? "bg-gradient-to-br from-[#8BC926] to-[#5E7A33] text-white"
-              : "bg-[#F1F4EA] dark:bg-stone-700 text-[#6B7261] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
+              ? "bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] text-white"
+              : "bg-[#F1F4EA] dark:bg-stone-700 text-[var(--muted)] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
           }`}
         >
           All ({recipes.length})
@@ -689,8 +689,8 @@ function CollectionFilterPills({
           onClick={() => onSelect(c)}
           className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
             activeFilter === c
-              ? "bg-gradient-to-br from-[#8BC926] to-[#5E7A33] text-white"
-              : "bg-[#F1F4EA] dark:bg-stone-700 text-[#6B7261] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
+              ? "bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] text-white"
+              : "bg-[#F1F4EA] dark:bg-stone-700 text-[var(--muted)] dark:text-stone-400 hover:text-[#232920] dark:hover:text-stone-200"
           }`}
         >
           {c} ({counts.get(c)})
@@ -699,7 +699,7 @@ function CollectionFilterPills({
       <button
         onClick={onCreateNew}
         aria-label={t.collectionsNewAria}
-        className="flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-[#CDD4C2] dark:border-stone-600 text-[#6B7261] dark:text-stone-400 transition-colors hover:border-[#61A00E] hover:text-[#4D7C0F] dark:hover:text-lime-500"
+        className="flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-[#CDD4C2] dark:border-stone-600 text-[var(--muted)] dark:text-stone-400 transition-colors hover:border-[#61A00E] hover:text-[#4D7C0F] dark:hover:text-lime-500"
       >
         <PlusIcon />
       </button>
@@ -755,7 +755,7 @@ function NewCollectionSheet({
         <button
           onClick={onCreate}
           disabled={!name.trim()}
-          className="w-full rounded-full bg-gradient-to-br from-[#8BC926] to-[#5E7A33] py-3.5 text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="w-full rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] py-3.5 text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {t.collectionsCreate}
         </button>

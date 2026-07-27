@@ -70,7 +70,7 @@ export function SignInSheet({
           <button
             onClick={handleClose}
             aria-label={t.close}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#9AA093] transition-colors hover:bg-[#EDF1E4] hover:text-[#232920] dark:hover:bg-stone-700 dark:hover:text-stone-100"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[#EDF1E4] hover:text-[#232920] dark:hover:bg-stone-700 dark:hover:text-stone-100"
           >
             ✕
           </button>
@@ -93,7 +93,7 @@ export function SignInSheet({
           {error && <p className="text-center text-xs text-red-600">{error}</p>}
         </div>
 
-        <p className="text-center text-[11px] leading-relaxed text-[#9AA093]">
+        <p className="text-center text-[11px] leading-relaxed text-[var(--muted)]">
           {t.agreeToTerms("__TERMS__", "__PRIVACY__")
             .split(/(__TERMS__|__PRIVACY__)/)
             .map((part, i) =>

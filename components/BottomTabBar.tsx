@@ -72,7 +72,7 @@ export function BottomTabBar() {
               onClick={() => hapticTap()}
               className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-[color] duration-200 ease-out active:scale-90 [transition-property:color,transform] ${
                 active
-                  ? "text-[#61A00E] dark:text-lime-500"
+                  ? "text-[#4D7C0F] dark:text-lime-500"
                   : "text-[#5D6551] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-100"
               }`}
             >
@@ -92,7 +92,7 @@ export function BottomTabBar() {
                 />
                 <span className="relative">
                   {href === "/profile" && avatarLetter ? (
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-[11px] font-semibold uppercase text-white">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] text-[11px] font-semibold uppercase text-white">
                       {avatarLetter}
                     </span>
                   ) : (

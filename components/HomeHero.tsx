@@ -19,7 +19,7 @@ function MessyPanel() {
     <div className="animate-hero-panel-messy absolute inset-0 flex items-center gap-3 rounded-2xl bg-white/80 dark:bg-stone-900/50 p-3.5" style={{ transformOrigin: "50% 50%" }}>
       <div className="h-[60px] w-[60px] shrink-0 rounded-lg bg-[#E2E6D9] dark:bg-stone-700" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="inline-flex w-fit items-center rounded-sm bg-[#E2E6D9] dark:bg-stone-700 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#9AA093] dark:text-stone-500">
+        <span className="inline-flex w-fit items-center rounded-sm bg-[#E2E6D9] dark:bg-stone-700 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#5D6551] dark:text-stone-400">
           Ad
         </span>
         <div className="h-2 w-[85%] rounded-full bg-[#E2E6D9] dark:bg-stone-700" />

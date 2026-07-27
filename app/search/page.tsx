@@ -181,7 +181,7 @@ export default function SearchPage() {
 
       <form onSubmit={handleScan} className="flex w-full max-w-2xl flex-col gap-3">
         <div className="relative w-full">
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA093]">
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--muted)]">
             <SearchGlyph />
           </span>
           <input
@@ -195,14 +195,14 @@ export default function SearchPage() {
               }
             }}
             placeholder={t.searchPlaceholder}
-            className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[#9AA093] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
+            className="w-full rounded-full border-none bg-[#F1F4EA] dark:bg-stone-800 py-3.5 pl-11 pr-4 text-[15px] text-[#30362B] dark:text-stone-100 placeholder-[var(--muted)] outline-none transition-shadow focus:ring-2 focus:ring-[#61A00E]/30"
           />
         </div>
-        <p className="px-1 text-xs leading-relaxed text-[#9AA093]">{t.searchScoutTagline}</p>
+        <p className="px-1 text-xs leading-relaxed text-[var(--muted)]">{t.searchScoutTagline}</p>
         {q && scan.status !== "loading" && (
           <button
             type="submit"
-            className="w-full rounded-full bg-gradient-to-br from-[#8BC926] to-[#5E7A33] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            className="w-full rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
           >
             {t.searchScanButton}
           </button>
@@ -226,11 +226,11 @@ export default function SearchPage() {
 
       {scan.status === "done" && (
         <section className="flex w-full max-w-2xl flex-col gap-2">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9AA093]">
+          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
             {t.searchScanSection}
           </h2>
           {scan.results.length === 0 ? (
-            <p className="px-1 text-sm text-[#9AA093]">{t.searchScanEmpty}</p>
+            <p className="px-1 text-sm text-[var(--muted)]">{t.searchScanEmpty}</p>
           ) : (
             <ul className="flex flex-col gap-3">
               {scan.results.map((result, i) => (
@@ -245,10 +245,10 @@ export default function SearchPage() {
 
       {!q && scan.status === "idle" && (
         <>
-          <p className="w-full max-w-2xl px-1 text-sm text-[#9AA093]">{t.searchEmptyPrompt}</p>
+          <p className="w-full max-w-2xl px-1 text-sm text-[var(--muted)]">{t.searchEmptyPrompt}</p>
           {tagCounts.length > 0 && (
             <section className="flex w-full max-w-2xl flex-col gap-2.5">
-              <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9AA093]">
+              <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
                 {t.searchBrowseTags}
               </h2>
               <div className="flex flex-wrap gap-2">
@@ -273,7 +273,7 @@ export default function SearchPage() {
 
       {matchedRecent.length > 0 && (
         <section className="flex w-full max-w-2xl flex-col gap-2">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9AA093]">
+          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
             {t.searchRecentSection}
           </h2>
           <ul className="flex flex-col gap-2">
@@ -295,7 +295,7 @@ export default function SearchPage() {
 
       {matchedSaved.length > 0 && (
         <section className="flex w-full max-w-2xl flex-col gap-2">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9AA093]">
+          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
             {t.searchSavedSection}
           </h2>
           <ul className="flex flex-col gap-2">
@@ -398,13 +398,13 @@ function ScanResultCard({
       </div>
       <p className="text-xs font-medium text-[#5E7A33] dark:text-lime-500">
         {result.source}
-        {result.highlights ? <span className="text-[#9AA093] dark:text-stone-400"> · {result.highlights}</span> : null}
+        {result.highlights ? <span className="text-[var(--muted)] dark:text-stone-400"> · {result.highlights}</span> : null}
       </p>
       {result.summary && (
         <p className="text-sm leading-relaxed text-[#5D6551] dark:text-stone-400">{result.summary}</p>
       )}
       {result.whyGood && (
-        <p className="text-xs leading-relaxed text-[#9AA093]">
+        <p className="text-xs leading-relaxed text-[var(--muted)]">
           {result.whyGood}
         </p>
       )}

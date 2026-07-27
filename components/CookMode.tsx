@@ -301,7 +301,7 @@ export function CookMode({
             </span>
             <button
               onClick={handleTimerButton}
-              className="rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             >
               {timerLabel}
             </button>
@@ -353,7 +353,7 @@ export function CookMode({
         ) : (
           <button
             onClick={goNext}
-            className="flex-1 rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            className="flex-1 rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
           >
             {t.cookModeNext}
           </button>

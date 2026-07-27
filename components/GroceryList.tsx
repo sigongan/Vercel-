@@ -79,7 +79,7 @@ export function GroceryListSheet({
                         <span
                           className={`flex-1 text-[15px] ${
                             item.checked
-                              ? "text-[#9AA093] line-through"
+                              ? "text-[var(--muted)] line-through"
                               : "text-[#30362B] dark:text-stone-100"
                           }`}
                         >
@@ -117,7 +117,7 @@ export function GroceryListSheet({
                 hapticTap();
                 shareText(t.groceryTitle, groceryListAsText(items));
               }}
-              className="flex-1 rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="flex-1 rounded-full bg-gradient-to-br from-[#4D7C0F] to-[#5E7A33] py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             >
               {t.groceryShare}
             </button>

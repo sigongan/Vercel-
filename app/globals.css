@@ -19,6 +19,16 @@
      changes — measured empirically, so re-measure if the bar's own
      padding changes again. */
   --tab-bar-height: 98px;
+  /* Muted/secondary text (hints, empty states, placeholders, settings
+     values). Theme-aware because the same literal grey can't serve both:
+     the old flat #9AA093 sat at 2.57:1 on the cream background — well
+     under WCAG AA's 4.5:1, and the reason small copy read as washed out —
+     while being perfectly legible (6.52:1) on the dark background. So
+     light mode gets a darker grey-green (4.85:1) and dark mode keeps the
+     lighter one. Deliberately not part of the pink-theme accent mapping
+     (app/globals.css, below): this is structural text, like the ink and
+     border colors, not an accent. */
+  --muted: #6A7160;
   color-scheme: light;
 }
 
@@ -31,6 +41,8 @@ html.dark {
      full-bleed bar; now that gap needs to match too, or dark mode shows
      a cream sliver behind the bar. */
   --background: #1c1917;
+  /* 6.52:1 on the dark background — the value light mode had to give up. */
+  --muted: #9AA093;
 }
 
 @theme inline {
