@@ -95,7 +95,7 @@ export default function ProfilePage() {
   const avatarLetter = profile?.name?.charAt(0) || profile?.email?.charAt(0) || "?";
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-4 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
+    <main className="relative flex-1 flex flex-col items-center gap-4 px-5 py-8 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="flex w-full max-w-2xl flex-col pb-1">
         <h1 className="text-[28px] font-bold tracking-tight text-[#232920] dark:text-stone-50">
           {tRoot.profileTitle}

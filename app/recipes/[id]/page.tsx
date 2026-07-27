@@ -63,7 +63,7 @@ export default function RecipeDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-stone-50 dark:bg-stone-900 px-4 py-10 pb-28 sm:py-16">
+    <main className="min-h-screen bg-stone-50 dark:bg-stone-900 px-4 py-10 sm:py-16">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         <div className="flex items-center justify-between">
           <Link

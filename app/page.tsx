@@ -130,7 +130,7 @@ export default function Home() {
 
   if (extractedRecipe) {
     return (
-      <main className="relative flex-1 flex flex-col items-center gap-4 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
+      <main className="relative flex-1 flex flex-col items-center gap-4 px-5 py-8 bg-[#FAFAF7] dark:bg-stone-900">
         <div className="w-full max-w-3xl flex flex-col gap-4 animate-fade-in-up">
           <button
             type="button"
@@ -155,7 +155,7 @@ export default function Home() {
   }
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
+    <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="flex w-full max-w-2xl items-center justify-between">
         <div className="flex items-center gap-2.5">
           <AvocadoMark size={26} />

@@ -169,7 +169,7 @@ export default function SearchPage() {
   }
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
+    <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-8 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="flex w-full max-w-2xl items-center gap-2">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#EDF3DF] text-[#4D7C0F] dark:bg-stone-800 dark:text-lime-400">
           <ScoutIcon />

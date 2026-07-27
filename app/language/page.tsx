@@ -13,7 +13,7 @@ export default function LanguagePage() {
   const t = translations[language];
 
   return (
-    <main className="relative flex-1 flex flex-col items-center gap-4 px-5 py-8 pb-28 bg-[#FAFAF7] dark:bg-stone-900">
+    <main className="relative flex-1 flex flex-col items-center gap-4 px-5 py-8 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="flex w-full max-w-2xl items-center gap-3 pb-1">
         <button
           type="button"

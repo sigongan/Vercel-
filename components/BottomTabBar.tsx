@@ -15,9 +15,10 @@ const TABS = [
 ];
 
 /**
- * Persistent bottom navigation across the five main sections. Fixed, so
- * every page under it needs bottom padding (see the pb-28 wrapper in each
- * page) to keep content from being covered.
+ * Persistent bottom navigation across the five main sections. `sticky`, not
+ * `fixed` — it's a normal flex child at the end of the page (see
+ * app/layout.tsx), so it already occupies its own space and pages don't
+ * need bottom padding to keep content from being covered.
  */
 export function BottomTabBar() {
   const { language } = useLanguage();
@@ -25,8 +26,14 @@ export function BottomTabBar() {
   const pathname = usePathname();
 
   return (
+    // `sticky` instead of `fixed`: iOS WebKit repaints `fixed` elements a
+    // frame or two late during momentum scrolling, which reads as the bar
+    // bouncing/lagging behind the content. `sticky bottom-0` on the last
+    // flex child of the page (see app/layout.tsx) pins to the same visual
+    // spot without that repaint, since the browser tracks it as part of
+    // normal layout/scroll instead of a separately-composited overlay.
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-[#E2E6D9] bg-[#FAFAF7]/95 backdrop-blur dark:border-stone-700 dark:bg-stone-900/95 pb-[env(safe-area-inset-bottom)]"
+      className="sticky bottom-0 z-40 w-full shrink-0 border-t border-[#E2E6D9] bg-[#FAFAF7]/95 backdrop-blur dark:border-stone-700 dark:bg-stone-900/95 pb-[env(safe-area-inset-bottom)]"
       aria-label={t.tabBarNav}
     >
       <div className="mx-auto flex max-w-2xl items-stretch justify-around">
