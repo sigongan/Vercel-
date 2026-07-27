@@ -11,16 +11,26 @@
 :root {
   --background: #FAFAF7;
   --foreground: #30362B;
-  /* Height of the fixed bottom tab bar (components/BottomTabBar.tsx),
-     excluding the safe-area padding it adds below itself. Anything else
-     anchored to the bottom of the screen offsets by this instead of
-     hardcoding a guess that silently drifts when the bar changes. */
-  --tab-bar-height: 70px;
+  /* Height of the floating bottom tab bar (components/BottomTabBar.tsx),
+     excluding the safe-area inset it adds below itself (callers add
+     env(safe-area-inset-bottom) back in separately, see app/library/page.tsx).
+     Anything else anchored to the bottom of the screen offsets by this
+     instead of hardcoding a guess that silently drifts when the bar
+     changes — measured empirically, so re-measure if the bar's own
+     padding changes again. */
+  --tab-bar-height: 98px;
   color-scheme: light;
 }
 
 html.dark {
   color-scheme: dark;
+  /* The floating tab bar (sticky, with its own margin around it — see
+     BottomTabBar.tsx) leaves body's own background visible in the gap
+     around it. body never needed a dark override before, since every
+     page's <main> painted over it edge-to-edge under the old fixed,
+     full-bleed bar; now that gap needs to match too, or dark mode shows
+     a cream sliver behind the bar. */
+  --background: #1c1917;
 }
 
 @theme inline {

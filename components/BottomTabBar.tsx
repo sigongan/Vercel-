@@ -33,10 +33,13 @@ export function BottomTabBar() {
     // spot without that repaint, since the browser tracks it as part of
     // normal layout/scroll instead of a separately-composited overlay.
     <nav
-      className="sticky bottom-0 z-40 w-full shrink-0 border-t border-[#E2E6D9] bg-[#FAFAF7]/95 backdrop-blur dark:border-stone-700 dark:bg-stone-900/95 pb-[env(safe-area-inset-bottom)]"
+      className="sticky bottom-0 z-40 w-full shrink-0 px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-2"
       aria-label={t.tabBarNav}
     >
-      <div className="mx-auto flex max-w-2xl items-stretch justify-around">
+      {/* Floating capsule, not an edge-to-edge bar — margin on every side so
+          it reads as a card sitting on top of the page rather than a strip
+          fused to the screen edge. */}
+      <div className="mx-auto flex max-w-2xl items-stretch justify-around rounded-[28px] border border-[#E2E6D9] bg-[#FAFAF7]/95 backdrop-blur shadow-[0_8px_20px_rgba(97,160,14,0.35)] dark:border-stone-700 dark:bg-stone-900/95 dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
         {TABS.map(({ href, match, icon: Icon, labelKey }) => {
           const active = match(pathname);
           return (
@@ -44,7 +47,7 @@ export function BottomTabBar() {
               key={href}
               href={href}
               onClick={() => hapticTap()}
-              className={`flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium transition-[color] duration-200 ease-out active:scale-90 [transition-property:color,transform] ${
+              className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-[color] duration-200 ease-out active:scale-90 [transition-property:color,transform] ${
                 active
                   ? "text-[#61A00E] dark:text-lime-500"
                   : "text-[#9AA093] hover:text-[#5D6551] dark:hover:text-stone-400"
