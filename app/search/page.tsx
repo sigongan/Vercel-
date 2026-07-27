@@ -186,7 +186,6 @@ export default function SearchPage() {
           </span>
           <input
             type="search"
-            autoFocus
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
