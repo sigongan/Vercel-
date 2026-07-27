@@ -158,7 +158,9 @@ export default function Home() {
     <main className="relative flex-1 flex flex-col items-center gap-5 px-5 py-8 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="flex w-full max-w-2xl items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <AvocadoMark size={26} />
+          <span className="animate-avocado-sway inline-flex">
+            <AvocadoMark size={26} />
+          </span>
           <span className="text-[21px] font-bold text-[#232920] dark:text-stone-50">
             {displayName ? t.homeHiUser(displayName) : t.title}
           </span>
