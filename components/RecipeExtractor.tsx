@@ -9,6 +9,7 @@ import { compressImageFile } from "@/lib/compressImage";
 import { SOURCE_ICONS } from "@/components/SourceIcons";
 import { ExtractionProgress } from "./ExtractionProgress";
 import { onSharedUrl, hapticTap } from "@/lib/nativeApp";
+import { timeAgo } from "@/lib/timeAgo";
 import { useRecentRecipes, removeRecentRecipe } from "@/lib/recentRecipes";
 import { UploadSourceSheet } from "./UploadSourceSheet";
 import { DOCUMENT_ACCEPT_TYPES, PHOTO_ACCEPT_TYPES } from "@/lib/uploadAccept";
@@ -375,15 +376,6 @@ export function RecipeExtractor() {
       )}
     </div>
   );
-}
-
-function timeAgo(timestamp: number, language: string): string {
-  const rtf = new Intl.RelativeTimeFormat(language, { numeric: "auto" });
-  const minutes = Math.round((timestamp - Date.now()) / 60_000);
-  if (minutes > -60) return rtf.format(minutes, "minute");
-  const hours = Math.round(minutes / 60);
-  if (hours > -24) return rtf.format(hours, "hour");
-  return rtf.format(Math.round(hours / 24), "day");
 }
 
 function TabButton({

@@ -13,6 +13,7 @@ import { CalendarDateSheet } from "@/components/CalendarDateSheet";
 import { MealPlanStrip } from "@/components/MealPlanStrip";
 import { hapticTap, isNativeApp } from "@/lib/nativeApp";
 import { startProSubscription } from "@/lib/subscribePro";
+import { timeAgo } from "@/lib/timeAgo";
 import type { Recipe } from "@/lib/types/recipe";
 
 const SUPABASE_CONFIGURED = Boolean(
@@ -810,11 +811,3 @@ function CalculatorIcon() {
   );
 }
 
-function timeAgo(timestamp: number, language: string): string {
-  const rtf = new Intl.RelativeTimeFormat(language, { numeric: "auto" });
-  const minutes = Math.round((timestamp - Date.now()) / 60_000);
-  if (minutes > -60) return rtf.format(minutes, "minute");
-  const hours = Math.round(minutes / 60);
-  if (hours > -24) return rtf.format(hours, "hour");
-  return rtf.format(Math.round(hours / 24), "day");
-}
