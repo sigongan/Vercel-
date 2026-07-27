@@ -73,7 +73,7 @@ export function BottomTabBar() {
               className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-[color] duration-200 ease-out active:scale-90 [transition-property:color,transform] ${
                 active
                   ? "text-[#61A00E] dark:text-lime-500"
-                  : "text-[#9AA093] hover:text-[#5D6551] dark:hover:text-stone-400"
+                  : "text-[#5D6551] hover:text-[#232920] dark:text-stone-400 dark:hover:text-stone-100"
               }`}
             >
               {/* Active state is colour + the pill behind the icon only.
