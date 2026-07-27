@@ -60,6 +60,15 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      // The blocking script below (and hooks/useTheme.ts on later theme
+      // changes) mutates this element's class/data-theme attributes before
+      // React hydrates, on purpose — that's what makes a saved Dark/Pink
+      // theme apply on first paint instead of flashing the default theme
+      // first. Without this, React treats that as a hydration mismatch on
+      // every single page load for anyone not on the default theme and
+      // discards/rebuilds the whole tree — a real, reproducible source of
+      // jank, not just a console warning.
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
         <script

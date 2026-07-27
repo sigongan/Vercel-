@@ -52,13 +52,16 @@ export default function Home() {
     startExtraction,
     reset: resetExtraction,
   } = useExtraction();
-  // Render the last known greeting immediately instead of a nameless icon
-  // for a beat on every visit — the fresh fetch below still runs right away.
-  const [displayName, setDisplayName] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    const cached = getCachedMe();
-    return cached?.signedIn ? nameFrom(cached) : null;
-  });
+  // Starts null on both server and client so the first client render always
+  // matches the server-rendered HTML (a `typeof window` branch here used to
+  // read the session-cached name straight into the initial state, which
+  // matched on a cold visit but diverged from the SSR'd "Avocato" title on
+  // every later visit in the same session — React would then discard and
+  // rebuild the header on hydration, a visible flash). The effect below
+  // still applies the cached name right after mount, before the network
+  // fetch resolves, so returning visitors still see their name almost
+  // immediately — just one render tick later, post-hydration, not pre-.
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [homeQuery, setHomeQuery] = useState("");
 
   useEffect(() => {
@@ -76,6 +79,15 @@ export default function Home() {
     if (!SUPABASE_CONFIGURED) return;
 
     async function loadDisplayName() {
+      // Apply the session-cached name first (before the network round-trip
+      // below resolves) so a returning visitor sees it almost immediately —
+      // safe here, post-hydration, unlike doing this in useState's initializer.
+      const cached = getCachedMe();
+      if (cached?.signedIn) {
+        const name = nameFrom(cached);
+        if (name) setDisplayName(name);
+      }
+
       const body = await fetchMe();
       if (!body || !body.signedIn) {
         setDisplayName(null);

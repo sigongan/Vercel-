@@ -37,20 +37,29 @@ export default function ProfilePage() {
     };
   }
 
-  // Render the last known state immediately (set synchronously here, before
-  // paint) instead of a loading skeleton on every visit — the fresh fetch
-  // below still runs right away and corrects it if anything changed.
-  const [profile, setProfile] = useState<ProfileData | null | undefined>(() => {
-    if (typeof window === "undefined") return undefined;
-    const cached = getCachedMe();
-    if (!cached) return undefined;
-    return cached.signedIn ? toProfileData(cached) : null;
-  });
+  // Starts undefined (loading skeleton) on both server and client so the
+  // first client render always matches the server-rendered HTML — a
+  // `typeof window` branch here used to read the session-cached profile
+  // straight into the initial state, which matched SSR on a cold visit but
+  // diverged on every later visit in the same session (skeleton on the
+  // server, sign-in row or account row on the client), and React would
+  // discard and rebuild the whole row on hydration. The effect below still
+  // applies the cached value right after mount, before the network fetch
+  // resolves, so returning visitors still see it almost immediately — just
+  // one render tick later, post-hydration, not pre-.
+  const [profile, setProfile] = useState<ProfileData | null | undefined>(undefined);
 
   useEffect(() => {
     if (!SUPABASE_CONFIGURED) return;
 
     async function loadProfile() {
+      // Apply the session-cached profile first (before the network
+      // round-trip below resolves) so a returning visitor sees it almost
+      // immediately — safe here, post-hydration, unlike doing this in
+      // useState's initializer.
+      const cached = getCachedMe();
+      if (cached) setProfile(cached.signedIn ? toProfileData(cached) : null);
+
       const body = await fetchMe();
       if (!body || !body.signedIn) {
         setProfile(null);
