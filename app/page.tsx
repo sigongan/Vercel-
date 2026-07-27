@@ -262,7 +262,10 @@ export default function Home() {
         </Link>
       )}
 
-      <section className="flex w-full max-w-2xl flex-col gap-2">
+      {/* A little extra breathing room above Recent instead of letting all
+          the leftover vertical space (this is a short list, on a tall
+          screen) pile up as dead space below it. */}
+      <section className="mt-6 flex w-full max-w-2xl flex-col gap-2">
         <div className="flex items-baseline justify-between px-1">
           <h2 className="text-[13px] font-semibold uppercase tracking-wide text-[#9AA093]">
             {t.homeRecentTitle}
