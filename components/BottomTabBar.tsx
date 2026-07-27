@@ -37,22 +37,29 @@ export function BottomTabBar() {
               key={href}
               href={href}
               onClick={() => hapticTap()}
-              className={`flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium transition-colors duration-300 ${
+              className={`flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium transition-[color] duration-200 ease-out active:scale-90 [transition-property:color,transform] ${
                 active
                   ? "text-[#61A00E] dark:text-lime-500"
                   : "text-[#9AA093] hover:text-[#5D6551] dark:hover:text-stone-400"
               }`}
             >
               {/* Active state is colour + the pill behind the icon only.
-                  Nothing here may change size: this bar is the one fixed
-                  thing on screen, and an icon that grew/shrank on every tab
-                  change made the whole bottom of the app look unsettled. */}
-              <span
-                className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-300 ease-out ${
-                  active ? "bg-[#F2F7E8] dark:bg-stone-700" : "bg-transparent"
-                }`}
-              >
-                <Icon active={active} />
+                  The icon itself never changes size: this bar is the one
+                  fixed thing on screen, and an icon that grew/shrank on every
+                  tab change made the whole bottom of the app look unsettled.
+                  The pill lives on its own absolutely-positioned layer behind
+                  the icon so it can pop in with a spring-ish scale+fade
+                  without touching the icon's size. */}
+              <span className="relative flex h-8 w-8 items-center justify-center">
+                <span
+                  aria-hidden
+                  className={`absolute inset-0 rounded-full bg-[#F2F7E8] dark:bg-stone-700 transition-all duration-200 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] ${
+                    active ? "scale-100 opacity-100" : "scale-75 opacity-0"
+                  }`}
+                />
+                <span className="relative">
+                  <Icon active={active} />
+                </span>
               </span>
               {t[labelKey]}
             </Link>
