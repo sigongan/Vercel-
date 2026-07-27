@@ -43,6 +43,17 @@ export default function LibraryPage() {
     ? recent.filter((item) => item.recipe.title.toLowerCase().includes(query.trim().toLowerCase()))
     : recent;
 
+  // Deep-link entry: /library?tab=saved|wantToCook — what Profile's row
+  // links to. Read post-mount rather than in useState's initializer so the
+  // first client render still matches the "recent" tab SSR produced.
+  useEffect(() => {
+    function applyTabFromUrl() {
+      const tab = new URLSearchParams(window.location.search).get("tab");
+      if (tab === "saved" || tab === "wantToCook") setLibTab(tab);
+    }
+    applyTabFromUrl();
+  }, []);
+
   return (
     <main className="relative flex-1 flex flex-col items-center gap-6 px-5 py-10 bg-[#FAFAF7] dark:bg-stone-900">
       <div className="flex w-full max-w-2xl flex-col gap-1">

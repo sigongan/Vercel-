@@ -12,9 +12,10 @@ import { clearCachedMe } from "@/lib/meCache";
 const CLEAR_KEYS = ["avocato:recent-recipes", "avocato:grocery-list", "avocato:recipe-notes"];
 
 /**
- * Preferences / data / about rendered as iOS-Settings-style grouped inset
- * lists (rows in white cards, hairline separators, controls right-aligned)
- * — embedded directly on the Profile page below the account card.
+ * Preferences / data / about rendered as flat grouped lists (a plain
+ * uppercase-ish section label, then full-bleed rows with a hairline
+ * bottom border — no card/box around them) — embedded on the /settings
+ * page, which Profile links out to.
  */
 export function SettingsFields({ signedIn = false }: { signedIn?: boolean }) {
   const { language } = useLanguage();
@@ -27,6 +28,14 @@ export function SettingsFields({ signedIn = false }: { signedIn?: boolean }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function handleSignOut() {
+    hapticTap();
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    clearCachedMe();
+    window.location.href = "/profile";
+  }
 
   async function handleDeleteAccount() {
     hapticTap();
@@ -91,11 +100,11 @@ export function SettingsFields({ signedIn = false }: { signedIn?: boolean }) {
 
   return (
     <>
-      <Group>
+      <Section title={t.preferences}>
         <Link
           href="/language"
           onClick={() => hapticTap()}
-          className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
+          className="flex items-center justify-between border-b border-[#EDF1E4] py-3.5 transition-colors hover:bg-[#FCFCF9] dark:border-stone-700 dark:hover:bg-stone-700/40"
         >
           <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.language}</span>
           <span className="flex items-center gap-1.5 text-[15px] text-[#9AA093]">
@@ -103,7 +112,7 @@ export function SettingsFields({ signedIn = false }: { signedIn?: boolean }) {
             <Chevron />
           </span>
         </Link>
-        <Row label={t.theme}>
+        <Row label={t.theme} last>
           <div className="flex items-center gap-3">
             <ThemeDot
               active={theme === "default"}
@@ -125,70 +134,83 @@ export function SettingsFields({ signedIn = false }: { signedIn?: boolean }) {
             />
           </div>
         </Row>
-      </Group>
+      </Section>
 
-      <Group>
+      <Section title={t.data}>
         <button
           type="button"
           onClick={handleClearData}
-          className="w-full px-5 py-3.5 text-left text-[15px] text-red-500 transition-colors hover:bg-red-50/60 dark:hover:bg-red-950/20"
+          className="w-full py-3.5 text-left text-[15px] text-red-500"
         >
           {cleared ? t.dataClearedConfirm : confirmClear ? t.dataClearConfirm : t.dataClear}
         </button>
-      </Group>
+      </Section>
 
       {isNativeApp() && (
-        <Group>
+        <Section title={t.purchasesSection}>
           <button
             type="button"
             onClick={handleRestore}
             disabled={restoring}
-            className="w-full px-5 py-3.5 text-left text-[15px] text-[#232920] transition-colors hover:bg-[#FCFCF9] disabled:opacity-60 dark:text-stone-100 dark:hover:bg-stone-700/40"
+            className="w-full py-3.5 text-left text-[15px] text-[#232920] disabled:opacity-60 dark:text-stone-100"
           >
             {restoreMsg ?? t.restorePurchases}
           </button>
-        </Group>
+        </Section>
       )}
 
       {signedIn && (
-        <Group>
+        <Section title={t.accountSection}>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="w-full border-b border-[#EDF1E4] py-3.5 text-left text-[15px] text-[#232920] dark:border-stone-700 dark:text-stone-100"
+          >
+            {t.signOut}
+          </button>
           <button
             type="button"
             onClick={handleDeleteAccount}
             disabled={deleting}
-            className="w-full px-5 py-3.5 text-left text-[15px] text-red-500 transition-colors hover:bg-red-50/60 disabled:opacity-60 dark:hover:bg-red-950/20"
+            className="w-full py-3.5 text-left text-[15px] text-red-500 disabled:opacity-60"
           >
             {deleting ? t.deleteAccountWorking : confirmDelete ? t.deleteAccountConfirm : t.deleteAccount}
           </button>
-          {deleteError && (
-            <p className="px-5 pb-3.5 text-xs text-red-600 dark:text-red-400">{deleteError}</p>
-          )}
-        </Group>
+          {deleteError && <p className="pb-3.5 text-xs text-red-600 dark:text-red-400">{deleteError}</p>}
+        </Section>
       )}
 
-      <Group>
+      <Section title={t.about}>
         <LinkRow href="/terms" label={t.terms} />
         <LinkRow href="/privacy" label={t.privacy} />
-        <div className="flex items-center justify-between px-5 py-3.5">
-          <span className="text-[15px] text-[#232920] dark:text-stone-100">Version</span>
+        <div className="flex items-center justify-between py-3.5">
+          <span className="text-[15px] text-[#232920] dark:text-stone-100">{t.versionLabel}</span>
           <span className="text-[15px] text-[#9AA093]">1.0</span>
         </div>
-      </Group>
+      </Section>
     </>
   );
 }
 
-function Group({ children }: { children: React.ReactNode }) {
+/** A plain section header label followed by full-bleed rows — no card/box,
+ *  each row separated by its own bottom hairline (set by the row itself,
+ *  since the last row in a section shouldn't draw one). */
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-[#E2E6D9] bg-white divide-y divide-[#EDF1E4] dark:border-stone-700 dark:bg-stone-800 dark:divide-stone-700">
-      {children}
+    <div className="flex w-full max-w-2xl flex-col gap-3">
+      <h2 className="px-1 text-[13px] font-semibold text-[#232920] dark:text-stone-100">{title}</h2>
+      <div className="flex flex-col">{children}</div>
     </div>
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
   return (
-    <div className="flex min-h-[52px] items-center justify-between gap-3 px-5 py-2.5">
+    <div
+      className={`flex min-h-[52px] items-center justify-between gap-3 py-2.5 ${
+        last ? "" : "border-b border-[#EDF1E4] dark:border-stone-700"
+      }`}
+    >
       <span className="text-[15px] text-[#232920] dark:text-stone-100">{label}</span>
       {children}
     </div>
@@ -199,7 +221,7 @@ function LinkRow({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-[#FCFCF9] dark:hover:bg-stone-700/40"
+      className="flex items-center justify-between border-b border-[#EDF1E4] py-3.5 transition-colors hover:bg-[#FCFCF9] dark:border-stone-700 dark:hover:bg-stone-700/40"
     >
       <span className="text-[15px] text-[#232920] dark:text-stone-100">{label}</span>
       <Chevron />

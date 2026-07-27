@@ -8,9 +8,8 @@ import { translations } from "@/lib/i18n";
 import { compressImageFile } from "@/lib/compressImage";
 import { SOURCE_ICONS } from "@/components/SourceIcons";
 import { ExtractionProgress } from "./ExtractionProgress";
-import { onSharedUrl, hapticTap } from "@/lib/nativeApp";
-import { timeAgo } from "@/lib/timeAgo";
-import { useRecentRecipes, removeRecentRecipe } from "@/lib/recentRecipes";
+import { onSharedUrl } from "@/lib/nativeApp";
+import { useRecentRecipes } from "@/lib/recentRecipes";
 import { UploadSourceSheet } from "./UploadSourceSheet";
 import { DOCUMENT_ACCEPT_TYPES, PHOTO_ACCEPT_TYPES } from "@/lib/uploadAccept";
 
@@ -31,18 +30,10 @@ export function RecipeExtractor() {
     errorMessage,
     recipe,
     setRecipe,
-    setError,
-    setStatus,
     startExtraction,
     reset: backToStart,
   } = useExtraction();
   const recent = useRecentRecipes();
-  const [recentQuery, setRecentQuery] = useState("");
-  const filteredRecent = recentQuery.trim()
-    ? recent.filter((item) =>
-        item.recipe.title.toLowerCase().includes(recentQuery.trim().toLowerCase()),
-      )
-    : recent;
 
   useEffect(() => {
     if (recipe) window.scrollTo({ top: 0, behavior: "smooth" });
@@ -324,56 +315,6 @@ export function RecipeExtractor() {
         fileAccept={DOCUMENT_ACCEPT_TYPES}
         t={t}
       />
-
-      {recent.length > 0 && (
-        <section className="w-full max-w-2xl flex flex-col gap-3">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9AA093]">
-            {t.recentTitle}
-          </h2>
-          {recent.length > 5 && (
-            <input
-              type="search"
-              value={recentQuery}
-              onChange={(e) => setRecentQuery(e.target.value)}
-              placeholder={t.recentSearch}
-              className="w-full rounded-xl border border-[#E2E6D9] bg-white px-4 py-2.5 text-sm text-[#30362B] placeholder-[#9AA093] outline-none transition-shadow focus:border-[#61A00E] focus:ring-4 focus:ring-[#61A00E]/10"
-            />
-          )}
-          <ul className="flex flex-col gap-2">
-            {filteredRecent.map((item) => (
-              <li key={item.id}>
-                <div className="flex items-center gap-3 rounded-2xl border border-transparent bg-white px-4 py-3 shadow-[0_4px_14px_rgba(105,150,55,0.08)] transition-shadow hover:shadow-[0_6px_20px_rgba(105,150,55,0.16)]">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      hapticTap();
-                      setError(null);
-                      setStatus("idle");
-                      setRecipe(item.recipe);
-                    }}
-                    className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left"
-                  >
-                    <span className="w-full truncate text-sm font-medium text-[#30362B]">
-                      {item.recipe.title}
-                    </span>
-                    <span className="text-xs text-[#9AA093]">
-                      {timeAgo(item.savedAt, language)}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={t.recentRemove}
-                    onClick={() => removeRecentRecipe(item.id)}
-                    className="shrink-0 text-[#9AA093] transition-colors hover:text-[#232920]"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </div>
   );
 }

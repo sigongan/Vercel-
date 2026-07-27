@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/hooks/useLanguage";
 import { translations } from "@/lib/i18n";
 import { hapticTap } from "@/lib/nativeApp";
+import { getCachedMe } from "@/lib/meCache";
 
 const TABS = [
   { href: "/", match: (p: string) => p === "/", icon: HomeIcon, labelKey: "tabBarHome" as const },
@@ -24,6 +26,27 @@ export function BottomTabBar() {
   const { language } = useLanguage();
   const t = translations[language];
   const pathname = usePathname();
+
+  // Sign in with Apple never hands over a photo (Apple doesn't expose one,
+  // unlike Google) — this is a colored initial, the same avatar used on
+  // the Profile page and nowhere close to an actual picture. Starts null
+  // (matches SSR) and applies the session cache post-mount, same
+  // hydration-safe shape as Profile/Home's own account state.
+  const [avatarLetter, setAvatarLetter] = useState<string | null>(null);
+  useEffect(() => {
+    function applyFromCache() {
+      const cached = getCachedMe();
+      if (cached?.signedIn) {
+        const letter = cached.name?.charAt(0) || cached.email?.charAt(0) || null;
+        if (letter) setAvatarLetter(letter);
+      } else {
+        setAvatarLetter(null);
+      }
+    }
+    applyFromCache();
+    window.addEventListener("storage", applyFromCache);
+    return () => window.removeEventListener("storage", applyFromCache);
+  }, []);
 
   return (
     // `sticky` instead of `fixed`: iOS WebKit repaints `fixed` elements a
@@ -68,7 +91,13 @@ export function BottomTabBar() {
                   }`}
                 />
                 <span className="relative">
-                  <Icon active={active} />
+                  {href === "/profile" && avatarLetter ? (
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#8BC926] to-[#61A00E] text-[11px] font-semibold uppercase text-white">
+                      {avatarLetter}
+                    </span>
+                  ) : (
+                    <Icon active={active} />
+                  )}
                 </span>
               </span>
               {t[labelKey]}
