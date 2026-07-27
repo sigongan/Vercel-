@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { Recipe, RecipeStep } from "@/lib/types/recipe";
+import type { Recipe, RecipeStep, SubRecipe } from "@/lib/types/recipe";
 import type { Translation } from "@/lib/i18n";
 import {
   nativeKeepAwake,
@@ -23,6 +23,28 @@ function parseDurationSeconds(text: string): number | null {
   if (unit.startsWith("hour") || unit.startsWith("hr")) return n * 3600;
   if (unit.startsWith("min")) return n * 60;
   return n;
+}
+
+/**
+ * The sub-recipes this step actually calls for.
+ *
+ * Extraction already works out that "spread the frangipane" depends on a
+ * frangipane the cook has to make — but until now that only showed as a
+ * section at the bottom of the recipe card, which is exactly where nobody is
+ * looking once they're standing at the counter. Matching it back to the step
+ * puts it where it's needed.
+ *
+ * Matches on the name before any parenthetical, since sub-recipes are named
+ * for the ingredient line they came from ("Frangipane (almond cream
+ * filling)") while the step just says "frangipane". Very short names are
+ * skipped — a two-letter match would fire on half the instructions.
+ */
+function subRecipesForStep(instruction: string, subRecipes: SubRecipe[]): SubRecipe[] {
+  const haystack = instruction.toLowerCase();
+  return subRecipes.filter((sub) => {
+    const core = sub.name.split("(")[0].trim().toLowerCase();
+    return core.length >= 3 && haystack.includes(core);
+  });
 }
 
 function formatClock(totalSeconds: number): string {
@@ -64,6 +86,7 @@ export function CookMode({
 }) {
   const [index, setIndex] = useState(0);
   const [showIngredients, setShowIngredients] = useState(false);
+  const [openSubRecipe, setOpenSubRecipe] = useState<SubRecipe | null>(null);
   const [timers, setTimers] = useState<Record<number, StepTimerState>>({});
   const [now, setNow] = useState(() => Date.now());
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
@@ -71,6 +94,7 @@ export function CookMode({
 
   const step = steps[index];
   const duration = step ? parseDurationSeconds(step.instruction) : null;
+  const stepSubRecipes = step ? subRecipesForStep(step.instruction, recipe.subRecipes ?? []) : [];
 
   const anyRunning = Object.values(timers).some((st) => st.endAt !== null);
 
@@ -294,6 +318,27 @@ export function CookMode({
         </span>
         <p className="max-w-xl text-2xl sm:text-4xl leading-snug font-medium">{step.instruction}</p>
 
+        {/* Sits directly under the instruction, above the timer: if the step
+            depends on something the cook still has to make, that's more
+            urgent than starting a countdown. */}
+        {stepSubRecipes.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2">
+            {stepSubRecipes.map((sub) => (
+              <button
+                key={sub.name}
+                onClick={() => {
+                  hapticTap();
+                  setOpenSubRecipe(sub);
+                }}
+                className="flex items-center gap-2 rounded-full bg-[#8BC926]/15 px-4 py-2.5 text-sm font-semibold text-[#C5E88A] transition-colors hover:bg-[#8BC926]/25"
+              >
+                <SubRecipeIcon />
+                {t.cookModeMakeSubRecipe(sub.name.split("(")[0].trim())}
+              </button>
+            ))}
+          </div>
+        )}
+
         {duration !== null && (
           <div className="flex flex-col items-center gap-3">
             <span className="text-4xl sm:text-5xl font-semibold tabular-nums">
@@ -385,8 +430,95 @@ export function CookMode({
           </ul>
         </div>
       )}
+
+      {openSubRecipe && (
+        <SubRecipeSheet sub={openSubRecipe} t={t} onClose={() => setOpenSubRecipe(null)} />
+      )}
     </div>,
     document.body,
+  );
+}
+
+/**
+ * The full component recipe, over the top of the step it belongs to. A sheet
+ * rather than a route: the cook is mid-step, and making the frangipane is a
+ * detour they come straight back from, not somewhere they navigate to.
+ */
+function SubRecipeSheet({
+  sub,
+  t,
+  onClose,
+}: {
+  sub: SubRecipe;
+  t: Translation;
+  onClose: () => void;
+}) {
+  return (
+    <div className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#252B1D] p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.4)]">
+      <div className="mb-1 flex items-start justify-between gap-3">
+        <h3 className="text-lg font-semibold text-white">{sub.name}</h3>
+        <button
+          onClick={onClose}
+          aria-label={t.cookModeExit}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#8A9880] transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <CloseIcon size={18} />
+        </button>
+      </div>
+
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        {sub.yield && <span className="text-xs text-[#8A9880]">{sub.yield}</span>}
+        {/* The source only named this component; the recipe below is the
+            AI's reconstruction. Worth saying plainly to someone about to
+            cook from it. */}
+        {sub.estimated && (
+          <span
+            title={t.subRecipeEstimatedHint}
+            className="rounded-full bg-[#8BC926]/15 px-2.5 py-1 text-[11px] font-medium text-[#C5E88A]"
+          >
+            {t.subRecipeEstimated}
+          </span>
+        )}
+      </div>
+
+      <h4 className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#8A9880]">
+        {t.ingredients}
+      </h4>
+      <ul className="mb-6 flex flex-col gap-2.5">
+        {sub.ingredients.map((ing, i) => (
+          <li
+            key={i}
+            className="flex items-baseline justify-between gap-3 border-b border-white/5 pb-2.5 text-sm text-[#E8EBE2]"
+          >
+            <span>{ing.name}</span>
+            {ing.amount && <span className="shrink-0 tabular-nums text-[#8A9880]">{ing.amount}</span>}
+          </li>
+        ))}
+      </ul>
+
+      <h4 className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-[#8A9880]">
+        {t.steps}
+      </h4>
+      <ol className="flex flex-col gap-3.5">
+        {sub.steps.map((s) => (
+          <li key={s.order} className="flex gap-3 text-sm leading-relaxed text-[#E8EBE2]">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#8BC926]/15 text-[11px] font-semibold text-[#C5E88A]">
+              {s.order}
+            </span>
+            <span>{s.instruction}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function SubRecipeIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v6" />
+      <path d="M5 9h14l-1.5 10a2 2 0 0 1-2 1.7H8.5a2 2 0 0 1-2-1.7z" />
+    </svg>
   );
 }
 
