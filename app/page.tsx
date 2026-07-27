@@ -14,6 +14,7 @@ import { useWantToCook } from "@/lib/wantToCook";
 import { GroceryListSheet } from "@/components/GroceryList";
 import { AuthErrorBanner } from "@/components/AuthErrorBanner";
 import { UploadSourceSheet } from "@/components/UploadSourceSheet";
+import { HomeHero } from "@/components/HomeHero";
 import { ExtractionProgress } from "@/components/ExtractionProgress";
 import { RecipeCard } from "@/components/RecipeCard";
 import { useExtraction } from "@/hooks/useExtraction";
@@ -174,6 +175,8 @@ export default function Home() {
           <ProfileGlyph />
         </Link>
       </div>
+
+      <HomeHero title={t.homeGreeting} subtitle={t.homeGreetingSub} />
 
       <form
         onSubmit={(e) => {
