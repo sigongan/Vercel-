@@ -173,10 +173,8 @@ actor APIClient {
 
     private func send<T: Decodable>(_ request: URLRequest) async throws -> T {
         let data = try await raw(request)
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
         do {
-            return try decoder.decode(T.self, from: data)
+            return try JSONCoding.decoder.decode(T.self, from: data)
         } catch {
             throw APIError.decoding(underlying: error)
         }

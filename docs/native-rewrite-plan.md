@@ -48,7 +48,10 @@ native/Avocato/
 ├── Models/Recipe.swift           lib/types/recipe.ts의 Swift 대응
 ├── Services/
 │   ├── AuthStore.swift           Keychain 세션 저장
-│   └── APIClient.swift           타입 있는 API 클라이언트
+│   ├── APIClient.swift           타입 있는 API 클라이언트
+│   ├── JSONCoding.swift          공용 JSON 코더 (날짜 파싱 포함)
+│   ├── RecipeStore.swift         디스크 저장 (오프라인)
+│   └── RecipeRepository.swift    디스크 우선 → 네트워크 갱신
 ├── Design/Theme.swift            색상 토큰 (대비 검증된 값)
 └── Views/RootTabView.swift       네이티브 탭바 + 화면 자리표시자
 ```
@@ -91,8 +94,8 @@ native/Avocato/
 - [ ] Live Activities 요리 타이머 (`native/CookTimerWidget/` 재사용)
 - [ ] StoreKit 2 구독 + **구매 복원** (3.1.1 필수)
 - [ ] 홈 화면 위젯
-- [ ] **오프라인 지원** — 저장된 레시피를 네트워크 없이 열기.
-      지금 앱의 진짜 약점이자, 4.2에서 "브라우저로는 못 하는 것"의 가장 좋은 근거
+- [x] **오프라인 저장 계층** — `RecipeStore` + `RecipeRepository` 완료.
+      화면들이 이걸 쓰도록 연결하는 건 3단계에서 (아직 남음)
 
 ### 5단계 — 제출 준비
 - [ ] `docs/app-store-compliance-prompt.md`의 체크리스트 전부 통과
