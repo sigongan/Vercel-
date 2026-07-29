@@ -10,7 +10,9 @@
     "cap:sync": "cap sync ios && node scripts/fix-cap-spm.mjs",
     "cap:open": "cap open ios",
     "compare:extraction": "tsx scripts/compare-extraction.ts",
-    "check:apple-token": "tsx scripts/check-apple-token.ts"
+    "check:apple-token": "tsx scripts/check-apple-token.ts",
+    "check:session": "tsx scripts/check-session.ts",
+    "check:auth": "npm run check:apple-token && npm run check:session"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
