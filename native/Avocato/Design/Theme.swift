@@ -73,3 +73,14 @@ extension View {
             .contentShape(Rectangle())
     }
 }
+
+extension Font {
+    /// New York — Apple's built-in serif, shipped with iOS, no font file to
+    /// add or license. Reserved for the handful of large, editorial moments
+    /// (screen headers, a recipe's own title) that should read like a
+    /// cookbook page; everything else — buttons, labels, body copy — stays on
+    /// the plain system font so the UI itself doesn't start reading as print.
+    static func appTitle(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
+        .system(size: size, weight: weight, design: .serif)
+    }
+}

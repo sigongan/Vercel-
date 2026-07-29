@@ -70,7 +70,7 @@ struct ExtractView: View {
             HStack(spacing: 8) {
                 AvocadoMark(size: 24)
                 Text("Turn anything into a recipe")
-                    .font(.title3.weight(.bold))
+                    .font(.appTitle(20))
                     .foregroundStyle(Palette.ink)
             }
             Text("A link from TikTok, YouTube, or any recipe site — or your own notes.")

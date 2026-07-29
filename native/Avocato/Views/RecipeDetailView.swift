@@ -40,7 +40,7 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
                 Text(recipe.title)
-                    .font(.title2.weight(.bold))
+                    .font(.appTitle(24))
                     .foregroundStyle(Palette.ink)
                 Spacer()
                 if let onSave {
