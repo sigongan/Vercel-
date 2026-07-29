@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseUser } from "@/lib/supabase/server";
+import { getOwnSessionUser } from "@/lib/auth/currentUser";
 import { FREE_MONTHLY_LIMIT } from "@/lib/billingConstants";
 import { isAdminEmail } from "@/lib/admin";
 
@@ -14,30 +15,44 @@ export interface SessionUser {
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
-  // Cookies for the web app, `Authorization: Bearer` for the native app —
-  // resolved in one place so every route handler supports both without
-  // knowing which client it's talking to.
+  // Our own sessions first. This is the single chokepoint every authenticated
+  // route already goes through, which is why moving off Supabase Auth is one
+  // change here rather than eleven changes across the route handlers.
+  const own = await getOwnSessionUser();
+  if (own) {
+    await syncAdminPlan(own.id, own.email);
+    return { id: own.id, email: own.email, name: own.name };
+  }
+
+  // Supabase second, for as long as anything still signs in that way: cookies
+  // for the web app, and native builds that predate the switch. This fallback
+  // is what lets the two systems overlap instead of requiring a flag day —
+  // it comes out once nothing authenticates through Supabase any more.
   const user = await getSupabaseUser();
 
   if (!user) return null;
 
-  if (isAdminEmail(user.email)) {
-    // Admin accounts get every pro perk (save recipes, margin calculator)
-    // without ever going through Stripe — keep their plan in sync on every
-    // authenticated request rather than requiring a manual DB edit.
-    try {
-      const admin = createSupabaseAdminClient();
-      await admin.from("profiles").update({ plan: "pro" }).eq("id", user.id).neq("plan", "pro");
-    } catch (err) {
-      console.error("failed to sync admin plan", err);
-    }
-  }
+  await syncAdminPlan(user.id, user.email ?? null);
 
   return {
     id: user.id,
     email: user.email ?? null,
     name: user.user_metadata?.full_name ?? user.user_metadata?.name ?? null,
   };
+}
+
+/** Admin accounts get every pro perk (save recipes, margin calculator) without
+ *  ever going through billing — kept in sync on every authenticated request
+ *  rather than requiring a manual DB edit. A failure here must not block the
+ *  request: the user is still legitimately signed in either way. */
+async function syncAdminPlan(userId: string, email: string | null): Promise<void> {
+  if (!isAdminEmail(email)) return;
+  try {
+    const admin = createSupabaseAdminClient();
+    await admin.from("profiles").update({ plan: "pro" }).eq("id", userId).neq("plan", "pro");
+  } catch (err) {
+    console.error("failed to sync admin plan", err);
+  }
 }
 
 export interface SessionUserWithPlan extends SessionUser {
