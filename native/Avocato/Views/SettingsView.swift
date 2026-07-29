@@ -119,11 +119,7 @@ struct SettingsView: View {
 
     private var accountSection: some View {
         SettingsSection(title: "Account") {
-            Button {
-                auth.signOut()
-                Task { await repository.clearLocalData() }
-                dismiss()
-            } label: {
+            Button(action: signOut) {
                 Text("Sign out")
                     .font(.subheadline)
                     .foregroundStyle(Palette.ink)
@@ -145,6 +141,28 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain)
             .disabled(isDeleting)
+        }
+    }
+
+    /// Signs out here first, then tells the server.
+    ///
+    /// The local state is cleared before the request and regardless of how it
+    /// goes: someone who taps sign out — on a train, in a kitchen with no
+    /// signal — must end up signed out. The server call is what makes the
+    /// token stop working everywhere else, and if it fails the session simply
+    /// expires on its own schedule instead.
+    private func signOut() {
+        let client = apiClient
+        // Captured before the local clear, because that is what the server
+        // needs to identify which session to revoke.
+        let token = auth.accessToken
+
+        auth.signOut()
+        dismiss()
+
+        Task {
+            await repository.clearLocalData()
+            if let token { try? await client?.signOut(token: token) }
         }
     }
 

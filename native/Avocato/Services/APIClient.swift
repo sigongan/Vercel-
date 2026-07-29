@@ -72,6 +72,42 @@ actor APIClient {
     private struct ExtractSuccess: Codable { let recipe: Recipe }
     private struct ErrorBody: Codable { let error: String?; let code: String? }
 
+    // MARK: - Auth
+    //
+    // Sign-in lives here rather than being called directly from the view
+    // because this is what owns `baseURL` — one place decides which server the
+    // app talks to, and sign-in is not an exception to that.
+
+    func signInWithApple(
+        identityToken: String,
+        rawNonce: String,
+        fullName: PersonNameComponents?
+    ) async throws -> AppleAuth.SignInResult {
+        try await AppleAuth.signIn(
+            identityToken: identityToken,
+            rawNonce: rawNonce,
+            fullName: fullName,
+            baseURL: baseURL
+        )
+    }
+
+    /// Tells the server to revoke a session.
+    ///
+    /// Takes the token explicitly rather than reading it from the auth store,
+    /// because the app clears its local copy *first* — a user who taps sign
+    /// out must end up signed out even with no signal. Reading the store here
+    /// would find it already empty and send an unauthenticated request, which
+    /// the server would cheerfully answer "signed out" to while leaving the
+    /// session very much alive.
+    func signOut(token: String) async throws {
+        var req = request(path: "/api/auth/signout")
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        // Deliberately not via `raw`, which would layer the store's (now
+        // absent) token over the one passed in.
+        _ = try await session.data(for: req)
+    }
+
     // MARK: - Endpoints
 
     func me() async throws -> Me {

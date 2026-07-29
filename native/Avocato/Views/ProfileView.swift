@@ -178,13 +178,24 @@ struct ProfileView: View {
                 errorMessage = "Sign-in expired. Please try again."
                 return
             }
+            guard let apiClient else {
+                errorMessage = "Not connected."
+                return
+            }
             isSigningIn = true
             errorMessage = nil
             Task {
                 do {
                     let token = try AppleAuth.identityToken(from: authorization)
-                    let session = try await AppleAuth.exchange(identityToken: token, rawNonce: nonce)
-                    auth.save(session)
+                    let result = try await apiClient.signInWithApple(
+                        identityToken: token,
+                        rawNonce: nonce,
+                        // Apple only supplies the name on the very first
+                        // authorization, so it has to be forwarded now or it
+                        // is lost for good.
+                        fullName: AppleAuth.fullName(from: authorization)
+                    )
+                    auth.save(result.session)
                     await loadMe()
                     await repository.refreshSaved()
                 } catch {

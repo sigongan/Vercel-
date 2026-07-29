@@ -2,37 +2,45 @@ import Combine
 import Foundation
 import Security
 
-/// Holds the Supabase session for the native app.
+/// Holds the session token for the native app.
 ///
-/// The web app keeps its session in cookies; there is no cookie jar to share
-/// with URLSession here, so the native client is token-based and sends
-/// `Authorization: Bearer <accessToken>` instead. The server accepts both —
-/// see `getSupabaseUser()` in lib/supabase/server.ts.
+/// The token is issued by our own `/api/auth/apple` endpoint and sent as
+/// `Authorization: Bearer <token>` on every request. It is opaque — the app
+/// cannot read anything out of it, and does not need to. Expiry is the
+/// server's business; the app just holds the token until the server stops
+/// accepting it.
 ///
-/// Tokens live in the Keychain, not UserDefaults: a refresh token is a
-/// long-lived credential, and UserDefaults is plaintext in the app container.
-/// `kSecAttrAccessibleAfterFirstUnlock` lets a background refresh work while
-/// the phone is locked, without syncing the credential to other devices.
+/// Stored in the Keychain rather than UserDefaults, which is plaintext in the
+/// app container. `kSecAttrAccessibleAfterFirstUnlock` keeps it readable while
+/// the phone is locked (so a background refresh works) without syncing the
+/// credential to the user's other devices.
 @MainActor
 final class AuthStore: ObservableObject {
     @Published private(set) var session: Session?
 
-    var accessToken: String? { session?.accessToken }
+    var accessToken: String? { session?.token }
     var isSignedIn: Bool { session != nil }
 
     private let service = "app.avocato.ios.session"
-    private let account = "supabase"
+    /// Changed from "supabase" when the app stopped using Supabase Auth. The
+    /// new name means any token left over from that system is simply never
+    /// read — it belongs to a different server and would only ever be
+    /// rejected, so there is nothing to migrate.
+    private let account = "avocato.session"
 
     struct Session: Codable, Sendable {
-        var accessToken: String
-        var refreshToken: String
+        var token: String
+
         /// Absolute expiry, not a duration — a duration decoded from disk on
-        /// next launch would be measured from the wrong starting point.
+        /// the next launch would be measured from the wrong starting point.
+        ///
+        /// Advisory only. The server slides this forward as the app is used,
+        /// so the stored value is a floor rather than a deadline; it exists so
+        /// the app can show a sign-in screen instead of firing off a request
+        /// it already knows will fail.
         var expiresAt: Date
 
-        /// Treated as expired a minute early so a request doesn't start with a
-        /// token that lapses mid-flight.
-        var isExpired: Bool { Date() >= expiresAt.addingTimeInterval(-60) }
+        var isExpired: Bool { Date() >= expiresAt }
     }
 
     init() {
@@ -44,7 +52,7 @@ final class AuthStore: ObservableObject {
         guard let data = try? JSONEncoder().encode(session) else { return }
 
         // SecItemAdd fails with errSecDuplicateItem rather than overwriting,
-        // so clear first — this runs on every token refresh, not just sign-in.
+        // so clear first.
         SecItemDelete(baseQuery() as CFDictionary)
         var attributes = baseQuery()
         attributes[kSecValueData as String] = data
@@ -75,6 +83,13 @@ final class AuthStore: ObservableObject {
               let data = item as? Data,
               let session = try? JSONDecoder().decode(Session.self, from: data)
         else { return nil }
+
+        // A stored session past its expiry is worth discarding here rather
+        // than carrying to the first request that will be rejected anyway.
+        guard !session.isExpired else {
+            SecItemDelete(baseQuery() as CFDictionary)
+            return nil
+        }
 
         return session
     }
