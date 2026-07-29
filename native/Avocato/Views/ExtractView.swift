@@ -14,6 +14,7 @@ struct ExtractView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var result: Recipe?
+    @State private var saveMessage: String?
 
     private var canSubmit: Bool {
         !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isLoading
@@ -60,7 +61,16 @@ struct ExtractView: View {
             .background(Palette.cream.ignoresSafeArea())
             .navigationTitle("Extract")
             .navigationDestination(item: $result) { recipe in
-                RecipeDetailView(recipe: recipe)
+                RecipeDetailView(recipe: recipe) { save(recipe) }
+                    .alert(
+                        saveMessage ?? "",
+                        isPresented: Binding(
+                            get: { saveMessage != nil },
+                            set: { if !$0 { saveMessage = nil } }
+                        )
+                    ) {
+                        Button("OK", role: .cancel) {}
+                    }
             }
         }
     }
@@ -99,6 +109,22 @@ struct ExtractView: View {
                 .padding(10)
                 .background(Palette.card, in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.border, lineWidth: 1))
+        }
+    }
+
+    /// Saves to the account. Every outcome — including "you need Pro" and
+    /// "you need to sign in" — is reported, because a bookmark button that
+    /// silently does nothing is worse than one that explains itself.
+    private func save(_ recipe: Recipe) {
+        guard let apiClient else { return }
+        Task {
+            do {
+                try await apiClient.saveRecipe(recipe)
+                await repository.refreshSaved()
+                saveMessage = "Saved to your library."
+            } catch {
+                saveMessage = (error as? APIClient.APIError)?.errorDescription ?? error.localizedDescription
+            }
         }
     }
 

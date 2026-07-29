@@ -23,6 +23,7 @@ actor APIClient {
         case notSignedIn
         case quotaExceeded
         case rateLimited
+        case proRequired
         case server(status: Int, message: String?)
         case decoding(underlying: Error)
 
@@ -34,6 +35,8 @@ actor APIClient {
                 return "You've used all your free extractions this month."
             case .rateLimited:
                 return "Too many requests — give it a moment and try again."
+            case .proRequired:
+                return "Saving recipes to your account is a Pro feature."
             case let .server(status, message):
                 return message ?? "The server returned an error (\(status))."
             case .decoding:
@@ -82,6 +85,24 @@ actor APIClient {
     func deleteSavedRecipe(id: String) async throws {
         var req = request(path: "/api/recipes/\(id)")
         req.httpMethod = "DELETE"
+        _ = try await raw(req)
+    }
+
+    /// Permanently deletes the account and everything attached to it.
+    /// Required by guideline 5.1.1(v) — POST, not DELETE, to match the route.
+    func deleteAccount() async throws {
+        var req = request(path: "/api/account/delete")
+        req.httpMethod = "POST"
+        _ = try await raw(req)
+    }
+
+    /// Saves a recipe to the account. The route requires a Pro plan and
+    /// answers 402 otherwise, which surfaces as `.proRequired`.
+    func saveRecipe(_ recipe: Recipe) async throws {
+        var req = request(path: "/api/recipes")
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONCoding.encoder.encode(["recipe": recipe])
         _ = try await raw(req)
     }
 
@@ -164,7 +185,14 @@ actor APIClient {
             case "AUTH_REQUIRED": throw APIError.notSignedIn
             case "QUOTA_EXCEEDED": throw APIError.quotaExceeded
             case "RATE_LIMITED": throw APIError.rateLimited
-            default: throw APIError.server(status: http.statusCode, message: body?.error)
+            default:
+                // Routes outside the extraction pipeline answer with a plain
+                // message and no code, so fall back to the status.
+                switch http.statusCode {
+                case 401: throw APIError.notSignedIn
+                case 402: throw APIError.proRequired
+                default: throw APIError.server(status: http.statusCode, message: body?.error)
+                }
             }
         }
 
