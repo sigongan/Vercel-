@@ -56,10 +56,6 @@ struct SearchView: View {
     var body: some View { PlaceholderScreen(title: "Search") }
 }
 
-struct ExtractView: View {
-    var body: some View { PlaceholderScreen(title: "Extract") }
-}
-
 struct LibraryView: View {
     var body: some View { PlaceholderScreen(title: "Library") }
 }

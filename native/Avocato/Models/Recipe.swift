@@ -55,7 +55,12 @@ struct RecipeStep: Codable, Hashable, Sendable {
 /// croissant, a curry paste, a marinade. It appears in the parent ingredient
 /// list as one line that isn't cookable on its own, so it carries its own
 /// ingredients and steps.
-struct SubRecipe: Codable, Hashable, Sendable {
+struct SubRecipe: Codable, Hashable, Sendable, Identifiable {
+    /// Sub-recipes are named for the ingredient line they came from, and that
+    /// name is only meant to be unique within one recipe's own list — never
+    /// persisted or compared across recipes. Fine as an `Identifiable` id for
+    /// the same reason: it only has to be stable for one sheet presentation.
+    var id: String { name }
     /// Matches the parent ingredient's name exactly so the two read together.
     var name: String
     var yield: String?

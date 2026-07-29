@@ -8,21 +8,48 @@ import SwiftUI
 /// bearer token instead of cookies.
 @main
 struct AvocatoApp: App {
-    @StateObject private var auth = AuthStore()
+    @StateObject private var auth: AuthStore
+    /// One shared instance for the whole app — Extract writes to it, Library
+    /// and Home read from it. A per-screen instance would mean an extraction
+    /// on the Extract tab never showed up anywhere else until the next
+    /// server round trip.
+    @StateObject private var repository: RecipeRepository
+    private let apiClient: APIClient
+
+    /// Built in `init()`, not as property defaults, because `repository`
+    /// depends on `apiClient` depending on `auth` — property initializers
+    /// run in declaration order with no guaranteed access to sibling values,
+    /// `init` does.
+    init() {
+        let auth = AuthStore()
+        let client = APIClient(baseURL: Self.apiBaseURL, auth: auth)
+        _auth = StateObject(wrappedValue: auth)
+        _repository = StateObject(wrappedValue: RecipeRepository(api: client))
+        self.apiClient = client
+    }
 
     /// Set in Info.plist so debug builds can point at a local `next dev`
-    /// without touching code. Falls back to production.
+    /// without touching code.
+    ///
+    /// The fallback is the live Vercel deployment, not the `avocato.app`
+    /// domain named in capacitor.config.ts — that domain is reserved but not
+    /// yet connected, so pointing here would silently fail every request.
+    /// Swap this the same day the custom domain goes live.
     private static var apiBaseURL: URL {
         let configured = Bundle.main.object(forInfoDictionaryKey: "AvocatoAPIBaseURL") as? String
-        return URL(string: configured ?? "") ?? URL(string: "https://avocato.app")!
+        return URL(string: configured ?? "") ?? URL(string: "https://vercel-ecru-iota-55.vercel.app")!
     }
 
     var body: some Scene {
         WindowGroup {
             RootTabView()
                 .environmentObject(auth)
-                .environment(\.apiClient, APIClient(baseURL: Self.apiBaseURL, auth: auth))
+                .environmentObject(repository)
+                .environment(\.apiClient, apiClient)
                 .tint(Palette.accent)
+                // Offline-first: whatever's already on disk renders before
+                // any network request is even sent.
+                .task { await repository.loadFromDisk() }
         }
     }
 }
