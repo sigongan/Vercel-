@@ -67,9 +67,12 @@ struct ExtractView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Turn anything into a recipe")
-                .font(.title3.weight(.bold))
-                .foregroundStyle(Palette.ink)
+            HStack(spacing: 8) {
+                AvocadoMark(size: 24)
+                Text("Turn anything into a recipe")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Palette.ink)
+            }
             Text("A link from TikTok, YouTube, or any recipe site — or your own notes.")
                 .font(.footnote)
                 .foregroundStyle(Palette.secondary)
