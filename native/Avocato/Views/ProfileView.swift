@@ -26,6 +26,7 @@ struct ProfileView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
 
+                    quickLinksSection
                     aboutSection
 
                     if auth.isSignedIn { dangerSection }
@@ -63,6 +64,9 @@ struct ProfileView: View {
                                 .font(.caption)
                                 .foregroundStyle(Palette.muted)
                         }
+                        Text(usageSummary)
+                            .font(.caption)
+                            .foregroundStyle(Palette.muted)
                     }
                     Spacer()
                 }
@@ -117,6 +121,49 @@ struct ProfileView: View {
     private var initial: String {
         let source = me?.name ?? me?.email ?? "?"
         return String(source.prefix(1)).uppercased()
+    }
+
+    /// Matches web's freeRemaining/credits copy (see lib/billingConstants.ts
+    /// for the shared `5` free-per-month figure).
+    private var usageSummary: String {
+        guard let me else { return "" }
+        if me.isPro { return "Pro" }
+        let freeRemaining = max(0, 5 - (me.freeUsedThisPeriod ?? 0))
+        if freeRemaining > 0 {
+            return "\(freeRemaining) free extraction\(freeRemaining == 1 ? "" : "s") left this month"
+        }
+        let credits = me.credits ?? 0
+        return "\(credits) credit\(credits == 1 ? "" : "s")"
+    }
+
+    // MARK: - Quick links
+
+    private var quickLinksSection: some View {
+        VStack(spacing: 0) {
+            NavigationLink {
+                SavedRecipesListView()
+            } label: {
+                QuickLinkRow(icon: "bookmark.fill", title: "Saved recipes")
+            }
+            .buttonStyle(.plain)
+
+            Divider().overlay(Palette.border).padding(.leading, 50)
+
+            ShareLink(item: inviteURL, message: Text(inviteMessage)) {
+                QuickLinkRow(icon: "person.2.fill", title: "Invite friends")
+            }
+            .buttonStyle(.plain)
+        }
+        .background(Palette.card, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Palette.border, lineWidth: 1))
+    }
+
+    private var inviteURL: URL {
+        URL(string: "https://vercel-ecru-iota-55.vercel.app")!
+    }
+
+    private var inviteMessage: String {
+        "Avocato turns any recipe video, photo, or link into a clean, cookable recipe. Try it:"
     }
 
     // MARK: - About
@@ -228,6 +275,64 @@ struct ProfileView: View {
     private func loadMe() async {
         guard let apiClient else { return }
         me = try? await apiClient.me()
+    }
+}
+
+private struct QuickLinkRow: View {
+    let icon: String
+    let title: String
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(Palette.accent)
+                .frame(width: 22)
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(Palette.ink)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Palette.muted)
+        }
+        .padding(14)
+        .contentShape(Rectangle())
+    }
+}
+
+/// A focused view onto `repository.saved`, reached from Profile's "Saved
+/// recipes" row. Library's own Recent/Saved picker stays the full-featured
+/// home for this list — this is a shortcut, not a second data source.
+private struct SavedRecipesListView: View {
+    @EnvironmentObject private var repository: RecipeRepository
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 10) {
+                if repository.saved.isEmpty {
+                    EmptyStateView(
+                        icon: "bookmark",
+                        title: "No saved recipes",
+                        message: "Recipes you save from Extract show up here."
+                    )
+                } else {
+                    ForEach(repository.saved) { item in
+                        NavigationLink {
+                            RecipeDetailView(recipe: item.recipe)
+                        } label: {
+                            RecipeRow(title: item.title, subtitle: item.collection)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(20)
+        }
+        .background(Palette.cream.ignoresSafeArea())
+        .navigationTitle("Saved")
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await repository.refreshSaved() }
     }
 }
 
