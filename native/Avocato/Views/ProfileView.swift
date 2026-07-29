@@ -1,7 +1,10 @@
 import AuthenticationServices
 import SwiftUI
 
-/// Account, plan, and the legal/data controls Apple requires.
+/// Identity and plan, plus quick links out to the rest of the account
+/// surface (saved recipes, invite, settings). Legal links, data controls,
+/// and sign-out/delete live one level deeper in `SettingsView` — same split
+/// as the web app's Profile/Settings pages.
 struct ProfileView: View {
     @Environment(\.apiClient) private var apiClient
     @EnvironmentObject private var auth: AuthStore
@@ -11,7 +14,6 @@ struct ProfileView: View {
     @State private var currentNonce: String?
     @State private var errorMessage: String?
     @State private var isSigningIn = false
-    @State private var showDeleteConfirm = false
 
     var body: some View {
         NavigationStack {
@@ -27,9 +29,6 @@ struct ProfileView: View {
                     }
 
                     quickLinksSection
-                    aboutSection
-
-                    if auth.isSignedIn { dangerSection }
                 }
                 .padding(20)
             }
@@ -73,15 +72,10 @@ struct ProfileView: View {
 
                 Divider().overlay(Palette.border)
 
-                HStack {
-                    Label(me?.isPro == true ? "Pro" : "Free", systemImage: me?.isPro == true ? "star.fill" : "star")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Palette.accent)
-                    Spacer()
-                    Button("Sign out") { signOut() }
-                        .font(.subheadline)
-                        .foregroundStyle(Palette.secondary)
-                }
+                Label(me?.isPro == true ? "Pro" : "Free", systemImage: me?.isPro == true ? "star.fill" : "star")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Palette.accent)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(16)
             .background(Palette.card, in: RoundedRectangle(cornerRadius: 18))
@@ -153,6 +147,15 @@ struct ProfileView: View {
                 QuickLinkRow(icon: "person.2.fill", title: "Invite friends")
             }
             .buttonStyle(.plain)
+
+            Divider().overlay(Palette.border).padding(.leading, 50)
+
+            NavigationLink {
+                SettingsView()
+            } label: {
+                QuickLinkRow(icon: "gearshape.fill", title: "Settings")
+            }
+            .buttonStyle(.plain)
         }
         .background(Palette.card, in: RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).stroke(Palette.border, lineWidth: 1))
@@ -164,57 +167,6 @@ struct ProfileView: View {
 
     private var inviteMessage: String {
         "Avocato turns any recipe video, photo, or link into a clean, cookable recipe. Try it:"
-    }
-
-    // MARK: - About
-
-    private var aboutSection: some View {
-        VStack(spacing: 0) {
-            LinkRow(title: "Privacy Policy", url: "https://vercel-ecru-iota-55.vercel.app/privacy")
-            Divider().overlay(Palette.border).padding(.leading, 14)
-            LinkRow(title: "Terms of Service", url: "https://vercel-ecru-iota-55.vercel.app/terms")
-            Divider().overlay(Palette.border).padding(.leading, 14)
-            HStack {
-                Text("Version").font(.subheadline).foregroundStyle(Palette.ink)
-                Spacer()
-                Text(appVersion).font(.subheadline).foregroundStyle(Palette.muted)
-            }
-            .padding(14)
-        }
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Palette.border, lineWidth: 1))
-    }
-
-    private var appVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
-    }
-
-    // MARK: - Delete account
-    //
-    // Required by guideline 5.1.1(v): an app that can create an account must
-    // offer deletion inside the app, not by email.
-
-    private var dangerSection: some View {
-        Button(role: .destructive) {
-            showDeleteConfirm = true
-        } label: {
-            Text("Delete account")
-                .font(.subheadline.weight(.medium))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(14)
-        }
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Palette.border, lineWidth: 1))
-        .confirmationDialog(
-            "Delete your account?",
-            isPresented: $showDeleteConfirm,
-            titleVisibility: .visible
-        ) {
-            Button("Delete account", role: .destructive) { deleteAccount() }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This permanently deletes your account and saved recipes. It can't be undone.")
-        }
     }
 
     // MARK: - Actions
@@ -245,28 +197,6 @@ struct ProfileView: View {
             // Tapping Cancel on Apple's sheet lands here too — that's not an
             // error worth showing.
             if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
-                errorMessage = error.localizedDescription
-            }
-        }
-    }
-
-    private func signOut() {
-        auth.signOut()
-        me = nil
-        // Local recipes go too: on a shared phone, the next person signing in
-        // should not inherit the previous account's library.
-        Task { await repository.clearLocalData() }
-    }
-
-    private func deleteAccount() {
-        guard let apiClient else { return }
-        Task {
-            do {
-                try await apiClient.deleteAccount()
-                auth.signOut()
-                me = nil
-                await repository.clearLocalData()
-            } catch {
                 errorMessage = error.localizedDescription
             }
         }
@@ -333,24 +263,6 @@ private struct SavedRecipesListView: View {
         .navigationTitle("Saved")
         .navigationBarTitleDisplayMode(.inline)
         .task { await repository.refreshSaved() }
-    }
-}
-
-private struct LinkRow: View {
-    let title: String
-    let url: String
-
-    var body: some View {
-        Link(destination: URL(string: url) ?? URL(string: "https://example.com")!) {
-            HStack {
-                Text(title).font(.subheadline).foregroundStyle(Palette.ink)
-                Spacer()
-                Image(systemName: "arrow.up.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Palette.muted)
-            }
-            .padding(14)
-        }
     }
 }
 

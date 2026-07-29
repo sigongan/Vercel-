@@ -7,6 +7,10 @@ struct ExtractView: View {
     @Environment(\.apiClient) private var apiClient
     @EnvironmentObject private var repository: RecipeRepository
 
+    /// Set from Settings' language row — same `UserDefaults` key, so a change
+    /// there is reflected here without any extra plumbing.
+    @AppStorage("preferredLanguage") private var languageCode: String = "en"
+
     private enum Mode: String, CaseIterable { case link = "Link", text = "Text" }
 
     @State private var mode: Mode = .link
@@ -142,10 +146,7 @@ struct ExtractView: View {
         Task {
             do {
                 let kind: APIClient.ExtractKind = (mode == .link) ? .url(trimmed) : .text(trimmed)
-                // "en" for now — the native app doesn't have a language
-                // picker yet, unlike the web app's six. Wire this to the
-                // device locale (or a real setting) once that exists.
-                let recipe = try await apiClient.extract(kind: kind, lang: "en")
+                let recipe = try await apiClient.extract(kind: kind, lang: languageCode)
                 await repository.rememberExtraction(recipe)
                 isLoading = false
                 result = recipe
