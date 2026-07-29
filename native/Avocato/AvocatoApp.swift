@@ -42,7 +42,7 @@ struct AvocatoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
+            AppRootView()
                 .environmentObject(auth)
                 .environmentObject(repository)
                 .environment(\.apiClient, apiClient)
@@ -50,6 +50,32 @@ struct AvocatoApp: App {
                 // Offline-first: whatever's already on disk renders before
                 // any network request is even sent.
                 .task { await repository.loadFromDisk() }
+        }
+    }
+}
+
+/// Owns the brief launch-to-tabs handoff. A separate `View` rather than
+/// putting `@State` directly on `AvocatoApp` — `@State` is designed for the
+/// view identity/lifecycle system, and `App` conformers sit outside that;
+/// giving the state a real View to live on is the supported shape.
+private struct AppRootView: View {
+    @State private var showLaunch = true
+
+    var body: some View {
+        ZStack {
+            RootTabView()
+            if showLaunch {
+                LaunchView()
+                    .transition(.opacity)
+                    .zIndex(1)
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
+                withAnimation(.easeOut(duration: 0.35)) {
+                    showLaunch = false
+                }
+            }
         }
     }
 }
