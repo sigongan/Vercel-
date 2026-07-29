@@ -20,7 +20,7 @@ actor RecipeStore {
     /// A recipe extracted on this device. Mirrors the web app's
     /// `lib/recentRecipes.ts`, which keeps the last fifty locally so closing
     /// the app doesn't lose an extraction that was never saved to an account.
-    struct RecentRecipe: Codable, Identifiable, Hashable, Sendable {
+    nonisolated struct RecentRecipe: Codable, Identifiable, Hashable, Sendable {
         var id: String
         var savedAt: Date
         var recipe: Recipe

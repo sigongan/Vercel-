@@ -8,8 +8,15 @@ import Foundation
 /// genuinely omits fields (a recipe scraped from a video often has no prep
 /// time, no servings, no nutrition), so optionality is the real contract, not
 /// defensive coding.
+///
+/// Every type below is `nonisolated`: they're plain `Sendable` values meant
+/// to cross actor boundaries freely (decoded on `RecipeStore`'s own actor,
+/// rendered on the main actor, cached to disk on yet another). A project
+/// built with Xcode's "Default Actor Isolation: Main Actor" setting would
+/// otherwise implicitly pin them to the main actor, which contradicts that
+/// design and breaks anything decoding them off the main thread.
 
-enum SourceType: String, Codable, Sendable {
+nonisolated enum SourceType: String, Codable, Sendable {
     case image
     case pdf
     case videoFile = "video-file"
@@ -29,7 +36,7 @@ enum SourceType: String, Codable, Sendable {
     }
 }
 
-enum Confidence: String, Codable, Sendable {
+nonisolated enum Confidence: String, Codable, Sendable {
     case high, medium, low
 
     init(from decoder: Decoder) throws {
@@ -38,7 +45,7 @@ enum Confidence: String, Codable, Sendable {
     }
 }
 
-struct Ingredient: Codable, Hashable, Sendable {
+nonisolated struct Ingredient: Codable, Hashable, Sendable {
     var name: String
     var amount: String?
     /// Set when the source gave no amount and the AI estimated one. The UI
@@ -46,7 +53,7 @@ struct Ingredient: Codable, Hashable, Sendable {
     var estimated: Bool?
 }
 
-struct RecipeStep: Codable, Hashable, Sendable {
+nonisolated struct RecipeStep: Codable, Hashable, Sendable {
     var order: Int
     var instruction: String
 }
@@ -55,7 +62,7 @@ struct RecipeStep: Codable, Hashable, Sendable {
 /// croissant, a curry paste, a marinade. It appears in the parent ingredient
 /// list as one line that isn't cookable on its own, so it carries its own
 /// ingredients and steps.
-struct SubRecipe: Codable, Hashable, Sendable, Identifiable {
+nonisolated struct SubRecipe: Codable, Hashable, Sendable, Identifiable {
     /// Sub-recipes are named for the ingredient line they came from, and that
     /// name is only meant to be unique within one recipe's own list — never
     /// persisted or compared across recipes. Fine as an `Identifiable` id for
@@ -72,14 +79,14 @@ struct SubRecipe: Codable, Hashable, Sendable, Identifiable {
 }
 
 /// AI-estimated, per serving. Always approximate — show with a disclaimer.
-struct Nutrition: Codable, Hashable, Sendable {
+nonisolated struct Nutrition: Codable, Hashable, Sendable {
     var calories: String?
     var protein: String?
     var carbs: String?
     var fat: String?
 }
 
-struct Recipe: Codable, Hashable, Sendable {
+nonisolated struct Recipe: Codable, Hashable, Sendable {
     var title: String
     var description: String?
     var servings: String?
@@ -108,7 +115,7 @@ struct Recipe: Codable, Hashable, Sendable {
 }
 
 /// A recipe as stored in `saved_recipes` and returned by `GET /api/recipes`.
-struct SavedRecipe: Codable, Identifiable, Hashable, Sendable {
+nonisolated struct SavedRecipe: Codable, Identifiable, Hashable, Sendable {
     var id: String
     var title: String
     var recipe: Recipe

@@ -12,7 +12,14 @@ import Foundation
 /// The exact shape wasn't confirmed against a live row, so this deliberately
 /// accepts both: fractional seconds first, plain second. Either format
 /// round-trips, which makes the question moot rather than load-bearing.
-enum JSONCoding {
+/// `nonisolated` on the type, not just its members: a project built with
+/// Xcode's newer "Default Actor Isolation: Main Actor" setting implicitly
+/// isolates every declaration to `@MainActor` unless told otherwise, which
+/// would make `decoder`/`encoder` unreachable from `RecipeStore` — its own
+/// actor, deliberately not the main one, decoding on a background thread.
+/// This keeps that correct regardless of which isolation mode the project
+/// happens to be building under.
+nonisolated enum JSONCoding {
     static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
