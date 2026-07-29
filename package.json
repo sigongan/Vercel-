@@ -9,7 +9,8 @@
     "lint": "eslint",
     "cap:sync": "cap sync ios && node scripts/fix-cap-spm.mjs",
     "cap:open": "cap open ios",
-    "compare:extraction": "tsx scripts/compare-extraction.ts"
+    "compare:extraction": "tsx scripts/compare-extraction.ts",
+    "check:apple-token": "tsx scripts/check-apple-token.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
@@ -26,6 +27,7 @@
     "@supabase/supabase-js": "^2.110.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "jose": "^6.2.4",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
