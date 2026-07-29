@@ -186,6 +186,32 @@ async function main() {
   await expectRejected("not a JWT at all", "MALFORMED", async () => verify("hello"));
   await expectRejected("empty token", "MALFORMED", async () => verify(""));
 
+  console.log("\nConfiguration errors stay distinct from token rejections");
+  // Regression test: a missing APPLE_BUNDLE_ID once got caught by the
+  // token-verification try/catch and relabelled AppleTokenError("MALFORMED")
+  // — a deployment mistake reading, in the logs, as "the client sent a bad
+  // token". That sent debugging in exactly the wrong direction in production.
+  // A config error must surface as something else — anything else.
+  {
+    const saved = process.env.APPLE_BUNDLE_ID;
+    delete process.env.APPLE_BUNDLE_ID;
+    try {
+      await verify(await mint());
+      bad("missing APPLE_BUNDLE_ID", "Expected an error, but the token was ACCEPTED.");
+    } catch (error) {
+      if (error instanceof AppleTokenError) {
+        bad(
+          "missing APPLE_BUNDLE_ID surfaces as a config error, not a token rejection",
+          `Got AppleTokenError(${error.code}) — a deployment mistake is being reported as a bad token again.`
+        );
+      } else {
+        ok("missing APPLE_BUNDLE_ID surfaces as a config error, not a token rejection");
+      }
+    } finally {
+      if (saved !== undefined) process.env.APPLE_BUNDLE_ID = saved;
+    }
+  }
+
   console.log("\nBinds the token to one sign-in attempt (nonce)");
   await expectRejected("nonce that doesn't match", "NONCE_MISMATCH", async () =>
     verify(await mint({ nonce: hashedNonce }), "a-different-nonce")

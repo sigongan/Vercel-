@@ -146,6 +146,16 @@ async function verifyAgainstKeySet(
     throw new AppleTokenError("MALFORMED", "No identity token was supplied.");
   }
 
+  // Read outside the try below on purpose. `acceptedAudiences` throws a plain
+  // Error when APPLE_BUNDLE_ID is missing — a deployment mistake, not
+  // anything about the token — and that try exists to translate *token*
+  // failures. A config error caught there would fall through to the generic
+  // MALFORMED case and read as "the client sent garbage" in the logs, which
+  // sends whoever's debugging looking at the wrong end of the system
+  // entirely. Left uncaught here, it surfaces as an unhandled 500 instead,
+  // which is what a missing deployment variable actually is.
+  const audiences = acceptedAudiences();
+
   let payload;
   try {
     // jose verifies the signature and the registered claims (`iss`, `aud`,
@@ -153,7 +163,7 @@ async function verifyAgainstKeySet(
     ({ payload } = await jwtVerify(identityToken, keySet, {
       algorithms: [APPLE_SIGNING_ALGORITHM],
       issuer: APPLE_ISSUER,
-      audience: acceptedAudiences(),
+      audience: audiences,
       // Apple's tokens are short-lived by design. A little tolerance absorbs
       // ordinary clock skew between Apple's servers and ours without
       // meaningfully widening the window a stolen token stays usable.
