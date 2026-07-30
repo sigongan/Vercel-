@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 /// Preferences, on-device data controls, account actions, and the legal/
@@ -9,6 +10,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var repository: RecipeRepository
+    @EnvironmentObject private var purchases: PurchaseStore
+
+    @State private var me: APIClient.Me?
 
     /// Read directly by `ExtractView` too — a shared `UserDefaults` key is
     /// simpler than threading a language store through the environment for
@@ -30,6 +34,7 @@ struct SettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 preferencesSection
+                if auth.isSignedIn { subscriptionSection }
                 dataSection
                 if auth.isSignedIn { accountSection }
                 aboutSection
@@ -45,6 +50,12 @@ struct SettingsView: View {
         .background(Palette.cream.ignoresSafeArea())
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+        .task { await loadMe() }
+    }
+
+    private func loadMe() async {
+        guard let apiClient else { return }
+        me = try? await apiClient.me()
     }
 
     // MARK: - Preferences
@@ -85,6 +96,81 @@ struct SettingsView: View {
 
     private var currentLanguageName: String {
         Self.languages.first { $0.code == languageCode }?.name ?? "English"
+    }
+
+    // MARK: - Subscription
+
+    /// Server truth (`me?.isPro`) or-ed with this session's own purchase
+    /// result. The two can disagree right after a purchase — the server
+    /// snapshot in `me` is from before it happened — so either being true is
+    /// enough to show Pro rather than waiting on a refetch to agree.
+    private var isCurrentlyPro: Bool {
+        me?.isPro == true || purchases.isPro
+    }
+
+    private var subscriptionSection: some View {
+        SettingsSection(title: "Subscription") {
+            if isCurrentlyPro {
+                Label("Pro", systemImage: "star.fill")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Palette.accent)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 14)
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    if let product = purchases.product {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(product.displayName)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(Palette.ink)
+                            Text(subscriptionPriceLine(for: product))
+                                .font(.caption)
+                                .foregroundStyle(Palette.muted)
+                        }
+
+                        Button {
+                            Task { await purchases.purchase() }
+                        } label: {
+                            Text(purchases.isPurchasing ? "Purchasing…" : "Subscribe")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Palette.ctaGradient, in: Capsule())
+                                .opacity(purchases.isPurchasing ? 0.6 : 1)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(purchases.isPurchasing)
+                    } else {
+                        Text("Loading subscription info…")
+                            .font(.subheadline)
+                            .foregroundStyle(Palette.muted)
+                    }
+
+                    Button("Restore Purchases") {
+                        Task { await purchases.restore() }
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(Palette.secondary)
+                    .disabled(purchases.isPurchasing)
+                }
+                .padding(.vertical, 14)
+            }
+
+            if let purchaseError = purchases.errorMessage {
+                Text(purchaseError)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .padding(.bottom, 12)
+            }
+        }
+    }
+
+    private func subscriptionPriceLine(for product: Product) -> String {
+        guard let period = product.subscription?.subscriptionPeriod else {
+            return product.displayPrice
+        }
+        return "\(product.displayPrice) / \(period.unit.settingsLabel)"
     }
 
     // MARK: - Data
@@ -240,6 +326,18 @@ private struct SettingsSection<Content: View>: View {
     }
 }
 
+private extension Product.SubscriptionPeriod.Unit {
+    var settingsLabel: String {
+        switch self {
+        case .day: "day"
+        case .week: "week"
+        case .month: "month"
+        case .year: "year"
+        @unknown default: "period"
+        }
+    }
+}
+
 private struct LegalLinkRow: View {
     let title: String
     let url: String
@@ -266,4 +364,5 @@ private struct LegalLinkRow: View {
     }
     .environmentObject(auth)
     .environmentObject(RecipeRepository(api: client))
+    .environmentObject(PurchaseStore(apiClient: client))
 }

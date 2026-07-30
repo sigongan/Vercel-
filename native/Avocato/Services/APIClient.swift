@@ -91,6 +91,17 @@ actor APIClient {
         )
     }
 
+    /// Hands Apple's signed transaction to the server for the verification
+    /// that actually grants Pro — StoreKit's own on-device check
+    /// (`VerificationResult`) is necessary but never sufficient here.
+    func verifyPurchase(signedTransaction: String) async throws {
+        var req = request(path: "/api/apple/verify-purchase")
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["signedTransaction": signedTransaction])
+        _ = try await raw(req)
+    }
+
     /// Tells the server to revoke a session.
     ///
     /// Takes the token explicitly rather than reading it from the auth store,

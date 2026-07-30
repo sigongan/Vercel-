@@ -14,6 +14,10 @@ struct AvocatoApp: App {
     /// on the Extract tab never showed up anywhere else until the next
     /// server round trip.
     @StateObject private var repository: RecipeRepository
+    /// Started at launch, not lazily on first visit to Settings — its
+    /// `Transaction.updates` listener is how a subscription approved outside
+    /// this exact moment (Ask to Buy, a renewal) still reaches the server.
+    @StateObject private var purchases: PurchaseStore
     private let apiClient: APIClient
 
     /// Built in `init()`, not as property defaults, because `repository`
@@ -25,6 +29,7 @@ struct AvocatoApp: App {
         let client = APIClient(baseURL: Self.apiBaseURL, auth: auth)
         _auth = StateObject(wrappedValue: auth)
         _repository = StateObject(wrappedValue: RecipeRepository(api: client))
+        _purchases = StateObject(wrappedValue: PurchaseStore(apiClient: client))
         self.apiClient = client
     }
 
@@ -45,11 +50,13 @@ struct AvocatoApp: App {
             AppRootView()
                 .environmentObject(auth)
                 .environmentObject(repository)
+                .environmentObject(purchases)
                 .environment(\.apiClient, apiClient)
                 .tint(Palette.accent)
                 // Offline-first: whatever's already on disk renders before
                 // any network request is even sent.
                 .task { await repository.loadFromDisk() }
+                .task { await purchases.loadProduct() }
         }
     }
 }
