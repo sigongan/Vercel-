@@ -102,6 +102,19 @@ actor APIClient {
         _ = try await raw(req)
     }
 
+    /// Sets the account's display name — the fallback for when Apple didn't
+    /// supply one. Apple only ever sends a name on an account's very first
+    /// authorization, never again even on a later sign-in, and plenty of
+    /// people decline to share it at all; this is what lets those accounts
+    /// show something better than the part of their email before the `@`.
+    func updateDisplayName(_ name: String) async throws {
+        var req = request(path: "/api/account/display-name")
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["name": name])
+        _ = try await raw(req)
+    }
+
     /// Tells the server to revoke a session.
     ///
     /// Takes the token explicitly rather than reading it from the auth store,

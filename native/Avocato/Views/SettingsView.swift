@@ -25,6 +25,9 @@ struct SettingsView: View {
     @State private var isDeleting = false
     @State private var errorMessage: String?
 
+    @State private var nameDraft = ""
+    @State private var isSavingName = false
+
     static let languages: [(code: String, name: String)] = [
         ("en", "English"), ("de", "Deutsch"), ("it", "Italiano"),
         ("es", "Español"), ("fr", "Français"), ("pt", "Português"),
@@ -56,6 +59,7 @@ struct SettingsView: View {
     private func loadMe() async {
         guard let apiClient else { return }
         me = try? await apiClient.me()
+        nameDraft = me?.name ?? ""
     }
 
     // MARK: - Preferences
@@ -205,6 +209,44 @@ struct SettingsView: View {
 
     private var accountSection: some View {
         SettingsSection(title: "Account") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Name")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Palette.muted)
+
+                HStack(spacing: 10) {
+                    TextField("Your name", text: $nameDraft)
+                        .font(.subheadline)
+                        .foregroundStyle(Palette.ink)
+                        .textInputAutocapitalization(.words)
+                        .autocorrectionDisabled()
+                        .submitLabel(.done)
+                        .onSubmit(saveName)
+
+                    if nameChanged {
+                        Button(action: saveName) {
+                            Text(isSavingName ? "Saving…" : "Save")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Palette.ctaGradient, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isSavingName || nameDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+                // Apple sends a real name only on an account's very first
+                // authorization, and plenty of people decline to share it at
+                // all — this is that fallback, not a rarely-touched extra.
+                Text("Shown when Apple doesn't share a name, or if you'd rather use something else.")
+                    .font(.caption2)
+                    .foregroundStyle(Palette.muted)
+            }
+            .padding(.vertical, 14)
+
+            Divider().overlay(Palette.border)
+
             Button(action: signOut) {
                 Text("Sign out")
                     .font(.subheadline)
@@ -227,6 +269,27 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain)
             .disabled(isDeleting)
+        }
+    }
+
+    private var nameChanged: Bool {
+        nameDraft.trimmingCharacters(in: .whitespacesAndNewlines) != (me?.name ?? "")
+    }
+
+    private func saveName() {
+        let trimmed = nameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let apiClient else { return }
+        isSavingName = true
+        errorMessage = nil
+        Task {
+            do {
+                try await apiClient.updateDisplayName(trimmed)
+                me?.name = trimmed
+                nameDraft = trimmed
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            isSavingName = false
         }
     }
 
